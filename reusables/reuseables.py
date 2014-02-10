@@ -2,19 +2,22 @@
 #-*- coding: utf-8 -*-
 
 __author__ = "Chris Griffith"
-__version__ = "0.0.1a"
+__version__ = "0.0.1"
 
 import os
 import sys
 
-python_version = sys.version()
-python_version_string = ".".join(sys.version())
+python_version = sys.version_info[0:3]
+python_version_string = ".".join([str(x) for x in python_version])
 package_root = os.path.abspath(os.path.dirname(__file__))
 python3x = python_version >= (3, 0)
 python2x = python_version < (3, 0)
 
 
 def join_paths(*paths):
+    """
+    Join multiple paths together and return the absolute path of them.
+    """
     path = os.path.abspath(paths[0])
     for next_path in paths[1:]:
         path = os.path.join(path, next_path)
@@ -22,6 +25,9 @@ def join_paths(*paths):
 
 
 def join_root(*paths):
+    """
+    Join any path or paths as a sub directory of the current file's directory.
+    """
     path = package_root
     for next_path in paths:
         path = os.path.join(path, next_path)
@@ -35,6 +41,7 @@ def config_dict(config_file=[], auto_find=False, **config_parser_options):
     and .ini in the execution directory and package root (unsafe but handy).
     """
 
+    #TODO add verify path option
     import glob
     if python2x:
         import ConfigParser as configparser
@@ -65,3 +72,11 @@ def config_dict(config_file=[], auto_find=False, **config_parser_options):
 
     return {section: {k: v for k, v in cfg_parser.items(section)}
             for section in cfg_parser.sections()}
+
+
+def sort_by(unordered_list, key):
+    """
+    Sort a list of dicts, tuples or lists by the provided dict key, or list/
+    tuple position.
+    """
+    return sorted(unordered_list, key=lambda x: x[key])
