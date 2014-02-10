@@ -19,25 +19,11 @@ regex = {"safe_filename": re.compile(r'^[\w\d\. _\-]+$'),
          "safe_path_nix": re.compile(r'^[\w\d\. _\-/]+$')}
 nix_based = os.name == "posix"
 win_based = os.name == "nt"
-verbose = False
-_will_log = False
-logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 
 def _log(msg, level=logging.INFO):
-    if verbose:
-        print(msg)
-    if logging:
-        logging.log(level, msg)
-
-
-def enable_logging():
-    """
-    Turn on logging.
-    """
-    global _will_log
-    _will_log = True
-    _log("Logging enabled")
+    logger.log(level=level, msg=msg)
 
 
 def join_paths(*paths):
