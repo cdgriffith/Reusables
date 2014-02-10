@@ -2,7 +2,7 @@
 #-*- coding: utf-8 -*-
 
 __author__ = "Chris Griffith"
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 
 import os
 import sys
@@ -13,7 +13,11 @@ python_version_string = ".".join([str(x) for x in python_version])
 package_root = os.path.abspath(os.path.dirname(__file__))
 python3x = python_version >= (3, 0)
 python2x = python_version < (3, 0)
-regex = {"safe_filename": re.compile(r'^[\w\d\. _\-]+$')}
+regex = {"safe_filename": re.compile(r'^[\w\d\. _\-]+$'),
+         "safe_path_windows": re.compile(r'^[\w\d _\-\\]+$'),
+         "safe_path_nix": re.compile(r'^[\w\d\. _\-/]+$')}
+nix_based = os.name == "posix"
+win_based = os.name == "nt"
 
 
 def join_paths(*paths):
@@ -45,6 +49,7 @@ def config_dict(config_file=[], auto_find=False, **config_parser_options):
 
     #TODO add verify path option
     import glob
+
     if python2x:
         import ConfigParser as configparser
     elif python3x:
@@ -70,6 +75,10 @@ def config_dict(config_file=[], auto_find=False, **config_parser_options):
     else:
         cfg_files.extend(config_file)
 
+    for cfg in cfg_files:
+        if not os.path.exists(cfg):
+            cfg_files.pop(cfg)
+
     cfg_parser.read(cfg_files)
 
     return {section: {k: v for k, v in cfg_parser.items(section)}
@@ -86,7 +95,9 @@ def sort_by(unordered_list, key):
 
 def check_filename(filename):
     """
-    Returns a boolean stating if the filename is safe to use or not.
+    Returns a boolean stating if the filename is safe to use or not. Note that
+    this does not test for "legal" names accepted, but a more restricted set of:
+    Letters, numbers, spaces, hyphens, underscores and periods
     """
     if not isinstance(filename, str):
         raise TypeError("filename must be a string")
@@ -97,13 +108,67 @@ def check_filename(filename):
 
 def safe_filename(filename):
     """
-    Replace bad filename characters with underscores.
+    Replace unsafe filename characters with underscores. Note that this does not
+    test for "legal" names accepted, but a more restricted set of:
+    Letters, numbers, spaces, hyphens, underscores and periods
     """
     if not isinstance(filename, str):
         raise TypeError("filename must be a string")
-    if check_filename(filename):
+    if regex['safe_filename'].search(filename):
         return filename
     safe_name = ""
     for char in filename:
         safe_name += char if regex['safe_filename'].search(char) else "_"
     return safe_name
+
+
+def safe_path(path):
+    """
+    Replace unsafe path characters with underscores. Note that this does not
+    test for "legal" characters, but a more restricted set of:
+    Letters, numbers, space, hyphen, underscore, period, separator, and drive
+
+    Supports windows and *nix systems.
+    """
+    if not isinstance(path, str):
+        raise TypeError("path must be a string")
+    filename = safe_filename(os.path.basename(path))
+    dirname = os.path.dirname(path)
+    safe_dirname = ""
+    regexp = regex['safe_path_windows'] if win_based else regex['safe_path_nix']
+    if dirname.find(":\\") == 1 and dirname[0].isalpha():
+        dirname = dirname[3:]
+        safe_dirname = dirname[0:3]
+    if regexp.search(dirname):
+        safe_dirname += dirname
+    else:
+        for char in dirname:
+            safe_dirname += char if regexp.search(char) else "_"
+    sanitized_path = os.path.normpath("{path}{sep}{filename}".format(
+        path=safe_dirname,
+        sep=os.sep if not safe_dirname.endswith(os.sep) else "",
+        filename=filename))
+    if (not filename and
+            path.endswith(os.sep) and
+            not sanitized_path.endswith(os.sep)):
+        sanitized_path += os.sep
+    return sanitized_path
+
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--safe-filename", dest="filename", action='append',
+                        help="Verify a filename contains only letters, numbers,\
+spaces, hyphens, underscores and periods")
+    parser.add_argument("--safe-path", dest="path", action='append',
+                        help="Verify a path contains only letters, numbers,\
+spaces, hyphens, underscores, periods (unix), separator, and drive (win)")
+    args = parser.parse_args()
+    print(args)
+    if args.filename:
+        for filename in args.filename:
+            print(safe_filename(filename))
+    if args.path:
+        for path in args.path:
+            print(safe_path(path))
