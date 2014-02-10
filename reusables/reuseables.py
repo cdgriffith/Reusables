@@ -2,16 +2,18 @@
 #-*- coding: utf-8 -*-
 
 __author__ = "Chris Griffith"
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 
 import os
 import sys
+import re
 
 python_version = sys.version_info[0:3]
 python_version_string = ".".join([str(x) for x in python_version])
 package_root = os.path.abspath(os.path.dirname(__file__))
 python3x = python_version >= (3, 0)
 python2x = python_version < (3, 0)
+regex = {"safe_filename": re.compile(r'^[\w\d\. _\-]+$')}
 
 
 def join_paths(*paths):
@@ -80,3 +82,28 @@ def sort_by(unordered_list, key):
     tuple position.
     """
     return sorted(unordered_list, key=lambda x: x[key])
+
+
+def check_filename(filename):
+    """
+    Returns a boolean stating if the filename is safe to use or not.
+    """
+    if not isinstance(filename, str):
+        raise TypeError("filename must be a string")
+    if regex['safe_filename'].search(filename):
+        return True
+    return False
+
+
+def safe_filename(filename):
+    """
+    Replace bad filename characters with underscores.
+    """
+    if not isinstance(filename, str):
+        raise TypeError("filename must be a string")
+    if check_filename(filename):
+        return filename
+    safe_name = ""
+    for char in filename:
+        safe_name += char if regex['safe_filename'].search(char) else "_"
+    return safe_name
