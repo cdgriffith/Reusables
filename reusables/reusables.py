@@ -7,6 +7,7 @@ __version__ = "0.0.3"
 import os
 import sys
 import re
+import logging
 
 python_version = sys.version_info[0:3]
 python_version_string = ".".join([str(x) for x in python_version])
@@ -18,6 +19,25 @@ regex = {"safe_filename": re.compile(r'^[\w\d\. _\-]+$'),
          "safe_path_nix": re.compile(r'^[\w\d\. _\-/]+$')}
 nix_based = os.name == "posix"
 win_based = os.name == "nt"
+verbose = False
+_will_log = False
+logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
+
+
+def _log(msg, level=logging.INFO):
+    if verbose:
+        print(msg)
+    if logging:
+        logging.log(level, msg)
+
+
+def enable_logging():
+    """
+    Turn on logging.
+    """
+    global _will_log
+    _will_log = True
+    _log("Logging enabled")
 
 
 def join_paths(*paths):
@@ -40,14 +60,13 @@ def join_root(*paths):
     return path
 
 
-def config_dict(config_file=[], auto_find=False, **config_parser_options):
+def config_dict(config_file=[], auto_find=False, verify=True, **cfg_options):
     """
     Return configuration options as dictionary. Accepts either a single
     config file or a list of files. Auto find will search for all .cfg, .config
     and .ini in the execution directory and package root (unsafe but handy).
     """
 
-    #TODO add verify path option
     import glob
 
     if python2x:
@@ -55,7 +74,7 @@ def config_dict(config_file=[], auto_find=False, **config_parser_options):
     elif python3x:
         import configparser
 
-    cfg_parser = configparser.ConfigParser(**config_parser_options)
+    cfg_parser = configparser.ConfigParser(**cfg_options)
 
     cfg_files = []
 
@@ -75,9 +94,11 @@ def config_dict(config_file=[], auto_find=False, **config_parser_options):
     else:
         cfg_files.extend(config_file)
 
-    for cfg in cfg_files:
-        if not os.path.exists(cfg):
-            cfg_files.pop(cfg)
+    if verify:
+        for cfg in cfg_files:
+            if not os.path.exists(cfg):
+                _log("Config file not found: {0}".format(cfg))
+                cfg_files.pop(cfg)
 
     cfg_parser.read(cfg_files)
 
@@ -157,7 +178,7 @@ def safe_path(path):
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(prog="reusables")
     parser.add_argument("--safe-filename", dest="filename", action='append',
                         help="Verify a filename contains only letters, numbers,\
 spaces, hyphens, underscores and periods")
