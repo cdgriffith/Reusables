@@ -1,5 +1,7 @@
 # Reusables
 **Convenient Consolidated Commonly Consumed Code Commodities**
+[![Build Status](https://travis-ci.org/cdgriffith/Reusables.png?branch=master)](https://travis-ci.org/cdgriffith/Reusables)
+[![Coverage Status](https://coveralls.io/repos/cdgriffith/Reusables/badge.png?branch=master)](https://coveralls.io/r/cdgriffith/Reusables?branch=master)
 
 ## Overview
 
