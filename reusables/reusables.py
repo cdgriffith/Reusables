@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 """
-Reusables - Consolidated Commonly Consumed Code Commodities
+Reusables - Commonly Consumed Code Chunks
 
 Copyright (c) 2014  - Chris Griffith - MIT License
 """
 __author__ = "Chris Griffith"
-__version__ = "0.0.4"
+__version__ = "0.0.5"
 
 import os
 import sys
@@ -42,6 +42,10 @@ def join_paths(*paths, **kwargs):
         next_path = next_path.lstrip(os.sep).strip() if not \
             kwargs.get('strict') else next_path
         path = os.path.join(path, next_path)
+    if (not kwargs.get('strict') and
+            "." not in os.path.basename(path) and
+            not path.endswith(os.sep)):
+        path += os.sep
     return path
 
 
@@ -77,9 +81,9 @@ def config_dict(config_file=[], auto_find=False, verify=True, **cfg_options):
         cfg_files.extend(glob.glob("*.cfg"))
         cfg_files.extend(glob.glob("*.config"))
         cfg_files.extend(glob.glob("*.ini"))
-        cfg_files.extend(join_root(glob.glob("*.cfg")))
-        cfg_files.extend(join_root(glob.glob("*.config")))
-        cfg_files.extend(join_root(glob.glob("*.ini")))
+        cfg_files.extend(glob.glob(join_root("*.cfg")))
+        cfg_files.extend(glob.glob(join_root("*.config")))
+        cfg_files.extend(glob.glob(join_root("*.ini")))
 
     if not isinstance(config_file, list):
         if isinstance(config_file, str):
@@ -90,7 +94,6 @@ def config_dict(config_file=[], auto_find=False, verify=True, **cfg_options):
         cfg_files.extend(config_file)
 
     if verify:
-        print(cfg_files)
         cfg_parser.read([cfg for cfg in cfg_files if os.path.exists(cfg)])
     else:
         cfg_parser.read(cfg_files)
@@ -145,13 +148,14 @@ def safe_path(path, replacement="_"):
 
     Supports windows and *nix systems.
     """
+
     if not isinstance(path, str):
         raise TypeError("path must be a string")
     filename = safe_filename(os.path.basename(path))
     dirname = os.path.dirname(path)
     safe_dirname = ""
     regexp = regex['safe_path_windows'] if win_based else regex['safe_path_nix']
-    if dirname.find(":\\") == 1 and dirname[0].isalpha():
+    if win_based and dirname.find(":\\") == 1 and dirname[0].isalpha():
         dirname = dirname[3:]
         safe_dirname = dirname[0:3]
     if regexp.search(dirname):
