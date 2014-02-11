@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
+"""
+Reusables - Consolidated Commonly Consumed Code Commodities
 
+Copyright (c) 2014  - Chris Griffith - MIT License
+"""
 __author__ = "Chris Griffith"
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 
 import os
 import sys
@@ -10,7 +14,7 @@ import re
 import logging
 
 python_version = sys.version_info[0:3]
-python_version_string = ".".join([str(x) for x in python_version])
+version_string = ".".join([str(x) for x in python_version])
 package_root = os.path.abspath(os.path.dirname(__file__))
 python3x = python_version >= (3, 0)
 python2x = python_version < (3, 0)
@@ -19,29 +23,36 @@ regex = {"safe_filename": re.compile(r'^[\w\d\. _\-]+$'),
          "safe_path_nix": re.compile(r'^[\w\d\. _\-/]+$')}
 nix_based = os.name == "posix"
 win_based = os.name == "nt"
-logger = logging.getLogger(__name__).addHandler(logging.NullHandler())
+logger = logging.getLogger(__name__)
+if python_version >= (2, 7):
+    #Surpresses warning that no logger is found if a parent logger is not set
+    logger.addHandler(logging.NullHandler())
 
 
 def _log(msg, level=logging.INFO):
     logger.log(level=level, msg=msg)
 
 
-def join_paths(*paths):
+def join_paths(*paths, **kwargs):
     """
     Join multiple paths together and return the absolute path of them.
     """
     path = os.path.abspath(paths[0])
     for next_path in paths[1:]:
+        next_path = next_path.lstrip(os.sep).strip() if not \
+            kwargs.get('strict') else next_path
         path = os.path.join(path, next_path)
     return path
 
 
-def join_root(*paths):
+def join_root(*paths, **kwargs):
     """
     Join any path or paths as a sub directory of the current file's directory.
     """
     path = package_root
     for next_path in paths:
+        next_path = next_path.lstrip(os.sep).strip() if not \
+            kwargs.get('strict') else next_path
         path = os.path.join(path, next_path)
     return path
 
@@ -52,9 +63,7 @@ def config_dict(config_file=[], auto_find=False, verify=True, **cfg_options):
     config file or a list of files. Auto find will search for all .cfg, .config
     and .ini in the execution directory and package root (unsafe but handy).
     """
-
     import glob
-
     if python2x:
         import ConfigParser as configparser
     elif python3x:
@@ -72,21 +81,19 @@ def config_dict(config_file=[], auto_find=False, verify=True, **cfg_options):
         cfg_files.extend(join_root(glob.glob("*.config")))
         cfg_files.extend(join_root(glob.glob("*.ini")))
 
-    if not isinstance(cfg_files, list):
-        if isinstance(cfg_files, str):
-            cfg_files.append(cfg_files)
+    if not isinstance(config_file, list):
+        if isinstance(config_file, str):
+            cfg_files.append(config_file)
         else:
             raise TypeError("config_files must be a list or a string")
     else:
         cfg_files.extend(config_file)
 
     if verify:
-        for cfg in cfg_files:
-            if not os.path.exists(cfg):
-                _log("Config file not found: {0}".format(cfg))
-                cfg_files.pop(cfg)
-
-    cfg_parser.read(cfg_files)
+        print(cfg_files)
+        cfg_parser.read([cfg for cfg in cfg_files if os.path.exists(cfg)])
+    else:
+        cfg_parser.read(cfg_files)
 
     return {section: {k: v for k, v in cfg_parser.items(section)}
             for section in cfg_parser.sections()}
@@ -113,7 +120,7 @@ def check_filename(filename):
     return False
 
 
-def safe_filename(filename):
+def safe_filename(filename, replacement="_"):
     """
     Replace unsafe filename characters with underscores. Note that this does not
     test for "legal" names accepted, but a more restricted set of:
@@ -125,11 +132,12 @@ def safe_filename(filename):
         return filename
     safe_name = ""
     for char in filename:
-        safe_name += char if regex['safe_filename'].search(char) else "_"
+        safe_name += char if regex['safe_filename'].search(char) \
+            else replacement
     return safe_name
 
 
-def safe_path(path):
+def safe_path(path, replacement="_"):
     """
     Replace unsafe path characters with underscores. Note that this does not
     test for "legal" characters, but a more restricted set of:
@@ -150,7 +158,7 @@ def safe_path(path):
         safe_dirname += dirname
     else:
         for char in dirname:
-            safe_dirname += char if regexp.search(char) else "_"
+            safe_dirname += char if regexp.search(char) else replacement
     sanitized_path = os.path.normpath("{path}{sep}{filename}".format(
         path=safe_dirname,
         sep=os.sep if not safe_dirname.endswith(os.sep) else "",
