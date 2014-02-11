@@ -29,10 +29,6 @@ if python_version >= (2, 7):
     logger.addHandler(logging.NullHandler())
 
 
-def _log(msg, level=logging.INFO):
-    logger.log(level=level, msg=msg)
-
-
 def join_paths(*paths, **kwargs):
     """
     Join multiple paths together and return the absolute path of them.
@@ -174,7 +170,7 @@ def safe_path(path, replacement="_"):
     return sanitized_path
 
 
-if __name__ == "__main__":
+def _main(test=False):
     import argparse
     parser = argparse.ArgumentParser(prog="reusables")
     parser.add_argument("--safe-filename", dest="filename", action='append',
@@ -183,11 +179,18 @@ spaces, hyphens, underscores and periods")
     parser.add_argument("--safe-path", dest="path", action='append',
                         help="Verify a path contains only letters, numbers,\
 spaces, hyphens, underscores, periods (unix), separator, and drive (win)")
+
+    if test:
+        return True
     args = parser.parse_args()
-    print(args)
+
     if args.filename:
         for filename in args.filename:
             print(safe_filename(filename))
     if args.path:
         for path in args.path:
             print(safe_path(path))
+
+
+if __name__ == "__main__":
+    _main()

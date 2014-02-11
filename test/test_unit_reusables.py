@@ -32,6 +32,10 @@ class TestReusables(unittest.TestCase):
         resp = reusables.config_dict(auto_find=True)
         assert resp == {'Section 1': {'key 1': 'value 1', 'key2': 'Value2'}, 'Section 2': {}}, resp
 
+    def test_get_config_dict_no_verify(self):
+        resp = reusables.config_dict('bad_loc.cfg', verify=False)
+        assert resp == {}, resp
+
     def test_check_bad_filename(self):
         resp = reusables.check_filename("safeFile?.text")
         assert not resp
@@ -61,3 +65,13 @@ class TestReusables(unittest.TestCase):
         path = "/var/lib/test/path/filename.txt"
         resp = reusables.safe_path(path)
         assert resp == path, resp
+
+    def test_main(self):
+        reusables._main(True)
+
+    def test_sorting(self):
+        al = [{"name": "a"}, {"name": "c"}, {"name": "b"}]
+        resp = reusables.sort_by(al, "name")
+        assert resp[0]['name'] == 'a'
+        assert resp[1]['name'] == 'b'
+        assert resp[2]['name'] == 'c'
