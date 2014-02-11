@@ -75,3 +75,9 @@ class TestReusables(unittest.TestCase):
         assert resp[0]['name'] == 'a'
         assert resp[1]['name'] == 'b'
         assert resp[2]['name'] == 'c'
+
+    def test_type_errors(self):
+        self.assertRaises(TypeError, reusables.config_dict, dict(config='1'))
+        self.assertRaises(TypeError, reusables.check_filename, tuple())
+        self.assertRaises(TypeError, reusables.safe_filename, set())
+        self.assertRaises(TypeError, reusables.safe_path, dict())

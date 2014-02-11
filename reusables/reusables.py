@@ -18,9 +18,9 @@ version_string = ".".join([str(x) for x in python_version])
 package_root = os.path.abspath(os.path.dirname(__file__))
 python3x = python_version >= (3, 0)
 python2x = python_version < (3, 0)
-regex = {"safe_filename": re.compile(r'^[\w\d\. _\-]+$'),
-         "safe_path_windows": re.compile(r'^[\w\d _\-\\]+$'),
-         "safe_path_nix": re.compile(r'^[\w\d\. _\-/]+$')}
+regex = {"safe_filename": re.compile(r'^[\w\d\. _\-\(\)]+$'),
+         "safe_path_windows": re.compile(r'^[\w\d _\-\\\(\)]+$'),
+         "safe_path_nix": re.compile(r'^[\w\d\. _\-/\(\)]+$')}
 nix_based = os.name == "posix"
 win_based = os.name == "nt"
 logger = logging.getLogger(__name__)
@@ -57,12 +57,13 @@ def join_root(*paths, **kwargs):
     return path
 
 
-def config_dict(config_file=[], auto_find=False, verify=True, **cfg_options):
+def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
     """
     Return configuration options as dictionary. Accepts either a single
     config file or a list of files. Auto find will search for all .cfg, .config
     and .ini in the execution directory and package root (unsafe but handy).
     """
+    if not config_file: config_file = []
     import glob
     if python2x:
         import ConfigParser as configparser
@@ -73,6 +74,17 @@ def config_dict(config_file=[], auto_find=False, verify=True, **cfg_options):
 
     cfg_files = []
 
+    if config_file:
+        if not isinstance(config_file, list):
+            if isinstance(config_file, str):
+                cfg_files.append(config_file)
+            else:
+                raise TypeError("config_files must be a list or a string")
+        else:
+            cfg_files.extend(config_file)
+    else:
+        auto_find = True
+
     if auto_find:
         cfg_files.extend(glob.glob("*.cfg"))
         cfg_files.extend(glob.glob("*.config"))
@@ -80,14 +92,6 @@ def config_dict(config_file=[], auto_find=False, verify=True, **cfg_options):
         cfg_files.extend(glob.glob(join_root("*.cfg")))
         cfg_files.extend(glob.glob(join_root("*.config")))
         cfg_files.extend(glob.glob(join_root("*.ini")))
-
-    if not isinstance(config_file, list):
-        if isinstance(config_file, str):
-            cfg_files.append(config_file)
-        else:
-            raise TypeError("config_files must be a list or a string")
-    else:
-        cfg_files.extend(config_file)
 
     if verify:
         cfg_parser.read([cfg for cfg in cfg_files if os.path.exists(cfg)])
@@ -144,7 +148,6 @@ def safe_path(path, replacement="_"):
 
     Supports windows and *nix systems.
     """
-
     if not isinstance(path, str):
         raise TypeError("path must be a string")
     filename = safe_filename(os.path.basename(path))
@@ -152,10 +155,10 @@ def safe_path(path, replacement="_"):
     safe_dirname = ""
     regexp = regex['safe_path_windows'] if win_based else regex['safe_path_nix']
     if win_based and dirname.find(":\\") == 1 and dirname[0].isalpha():
-        dirname = dirname[3:]
         safe_dirname = dirname[0:3]
-    if regexp.search(dirname):
-        safe_dirname += dirname
+        dirname = dirname[3:]
+    if regexp.search(dirname) and check_filename(filename):
+        return path
     else:
         for char in dirname:
             safe_dirname += char if regexp.search(char) else replacement
