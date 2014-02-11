@@ -4,7 +4,7 @@
 holder for upcoming features that are not well written or tested.
 """
 
-def hashfile(fi_loc, hash_type="md5", blocksize=65536):
+def file_hash(path, hash_type="md5", blocksize=65536):
     """
     Hash a given file with sha256 and return the hex digest.
 
@@ -13,11 +13,12 @@ def hashfile(fi_loc, hash_type="md5", blocksize=65536):
     import hashlib
     hashes = {"md5": hashlib.md5,
               "sha1": hashlib.sha1,
-    }
+              "sha256": hashlib.sha256,
+              "sha512": hashlib.sha512}
     if hash_type not in hashes:
-        raise ValueError("Hash type must be either: md5 or sha1")
+        raise ValueError("Hash type must be: md5, sha1, sha256, or sha512")
     hasher = hashes[hash_type]()
-    with open(fi_loc, "rb") as afile:
+    with open(path, "rb") as afile:
         buf = afile.read(blocksize)
         while len(buf) > 0:
             hasher.update(buf)
