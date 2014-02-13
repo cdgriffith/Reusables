@@ -32,10 +32,7 @@ def reuse(func):
                     tmp_args[tmp_args.index(old)] = new
                     cache['args'] = tuple(tmp_args)
             del kwargs["reuse_rep_args"]
-        try:
-            args.extend(cache['args'][len(args):])
-        except IndexError:
-            pass
+        args.extend(cache['args'][len(args):])
         local_kwargs.update(kwargs)
         result = func(*tuple(args), **local_kwargs)
         _reuse_cache[func.__name__] = dict(args=tuple(args),

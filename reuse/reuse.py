@@ -53,11 +53,11 @@ def join_root(*paths, **kwargs):
     """
     Join any path or paths as a sub directory of the current file's directory.
     """
-    path = package_root
+    path = "."
     for next_path in paths:
         next_path = next_path.lstrip(os.sep).strip() if not \
             kwargs.get('strict') else next_path
-        path = os.path.join(path, next_path)
+        path = os.path.abspath(os.path.join(path, next_path))
     return path
 
 
@@ -67,8 +67,8 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
     config file or a list of files. Auto find will search for all .cfg, .config
     and .ini in the execution directory and package root (unsafe but handy).
     """
-    if not config_file: config_file = []
-    import glob
+    if not config_file:
+        config_file = []
     if python2x:
         import ConfigParser as configparser
     elif python3x:
@@ -79,7 +79,7 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
     cfg_files = []
 
     if config_file:
-        if not isinstance(config_file, list):
+        if not isinstance(config_file, (list, tuple)):
             if isinstance(config_file, str):
                 cfg_files.append(config_file)
             else:
