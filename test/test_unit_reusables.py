@@ -50,7 +50,7 @@ class TestReuse(unittest.TestCase):
     def test_get_config_namespace(self):
         resp = reuse.config_namespace(os.path.join(test_root,
                                                    'test_config.cfg'))
-        assert resp.Section1 == {'key2': 'Value2', 'key 1': 'value 1'}
+        assert resp.Section1.key2 == 'Value2', str(resp.Section1)
 
     def test_check_bad_filename(self):
         resp = reuse.check_filename("safeFile?.text")

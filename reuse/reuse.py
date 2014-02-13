@@ -30,28 +30,65 @@ reg_exps = {"safe_filename": re.compile(r'^[\w\d\. _\-\(\)]+$'),
             "safe_path_nix": re.compile(r'^[\w\d\. _\-/\(\)]+$')}
 
 common_exts = {"pictures": (".jpeg", ".jpg", ".png", ".gif", ".bmp", ".tif",
-                            ".tiff"),
-               "movies": (".mkv", ".avi", ".mp4", ".mov", ".flv", ".mpeg",
-                          ".mpg", ".3gp", ".m4v", ".ogv", ".asf", ".m1v",
-                          ".m2v", ".mpe", ".ogv", ".wmv"),
+                            ".tiff", ".ico", ".mng", ".tga", ".psd", ".xcf",
+                            ".svg", ".icns"),
+               "video": (".mkv", ".avi", ".mp4", ".mov", ".flv", ".mpeg",
+                         ".mpg", ".3gp", ".m4v", ".ogv", ".asf", ".m1v",
+                         ".m2v", ".mpe", ".ogv", ".wmv"),
                "music": (".mp3", ".ogg", ".wav", ".flac", ".aif", ".aiff",
                          ".au", ".m4a", ".wma", ".mp2", ".m4a", ".m4p", ".aac",
                          ".ra", ".mid", ".midi", ".mus", ".psf"),
                "documents": (".doc", ".docx", ".pdf", ".xls", ".xlsx", ".ppt",
                              ".pptx", ".csv", ".epub", ".gdoc", ".odt", ".rtf",
-                             ".txt", ".info", ".xps", ".gslides", ".gsheet")}
+                             ".txt", ".info", ".xps", ".gslides", ".gsheet"),
+               "archives": (".zip", ".rar", ".7z", ".tar.gz", ".tgz", ".gz",
+                            ".bzip", ".bzip2", ".bz2", ".xz", ".lzma", ".bin",
+                            ".tar"),
+               "cd_images": (".iso", ".nrg", ".img", ".mds", ".mdf", ".cue",
+                             ".daa")}
 
 
 class Namespace(object):
     """
     Namespace container to easily access items by either
-    namespace.item or namespace['item']
+    namespace.item.sub_item or namespace['item']['subitem'] or
+    namespace['item'].subitem.
     """
     def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
+        for k, v in kwargs.items():
+            if isinstance(v, dict):
+                v = Namespace(**v)
+            setattr(self, k, v)
+
+    def __contains__(self, item):
+        return self.__dict__.__contains__(item)
 
     def __getitem__(self, item):
         return self.__dict__[item]
+
+    def __setattr__(self, key, value):
+        self.__dict__[key] = value
+
+    def __delattr__(self, item):
+        del self.__dict__[item]
+
+    def __repr__(self):
+        return "<Namespace: {0}>".format(str(self.to_dict()))
+
+    def __str__(self):
+        return str(self.to_dict())
+
+    def items(self):
+        return ((k, v) for (k, v) in self.__dict__.items())
+
+    def to_dict(self, in_dict=None):
+        in_dict = in_dict if in_dict else self.__dict__
+        out_dict = dict()
+        for k, v in in_dict.items():
+            if isinstance(v, Namespace):
+                v = self.to_dict(v)
+            out_dict[k] = v
+        return out_dict
 
 # Some may ask why make everything into namespaces, I ask why not
 regex = Namespace(**reg_exps)
@@ -80,7 +117,7 @@ def join_root(*paths, **kwargs):
     """
     Join any path or paths as a sub directory of the current file's directory.
     """
-    path = "."
+    path = os.path.abspath(".")
     for next_path in paths:
         next_path = next_path.lstrip(os.sep).strip() if not \
             kwargs.get('strict') else next_path

@@ -5,11 +5,12 @@
 
 ## Overview
 
-The reuse library is a convenient reference of python functions and globals
-that are widely implemented throughout different projects.
+The reuse library is a reference of python functions and globals
+that programmers may find themselves often recreating.
+
+Example functions:
 
 ```python
-
     import reuse
 
     reuse.config_dict('my_config.cfg')
@@ -20,7 +21,6 @@ that are widely implemented throughout different projects.
 
     reuse.find_all_files(".", ext=reuse.exts.pictures)
     # ['/home/user/background.jpg', '/home/user/private.png']
-
 ```
 
 ## Design
@@ -30,7 +30,7 @@ input dictates, nothing else.' Which in general is the better way to approach
 the problem allowing for the developer to fix their code. However reusables
 is made to work with more human input. The idea is that it will be used
 in cases like reading user inputted options or working with python
-directly from the terminal.
+directly from the terminal or ipython.
 
 Reusables with try smooth input into what you *really* wanted it to say.
 Let's use joining paths as an example, it's uncommon to join two root paths together
@@ -50,6 +50,61 @@ library for reference convenience.
 ```python
     join_paths('/home', '/user/', ' Desktop/example.file ', strict=True)
     # '/user/ Desktop/example.file '
+```
+
+## What's in the box?
+
+Here are some of the more useful features included:
+
+### Globals
+
+ global  |  definition
+-------- | ------------
+exts     | tuples of common file extensions (documents, music, video and pictures)
+regex    | regular expressions of interest
+python3x | and python2x, boolean variables
+win_based | and nix_based, to see what type of platform you are on
+
+### Functions
+
+ functions  |  definition
+----------- | ------------
+join_paths | like os.path.join but will remove whitespace and extra separators
+join_root | base path is automatically current working directory
+config_dict | reads config file(s) and returns results as a dictionary
+config_namespace | automatically turns results of config_dict into a Namespace
+check_filename | see's if a filename is safe and human readable
+safe_filename | converts a string into a safe, human readable string that can be used as a filename
+safe_path | converts a potentially dangerous path into a safe one
+file_hash | returns a hexdigest of a file's hash, read in blocks to avoid memory issues
+find_all_files | hybrid of os.walk and glob.glob, search for files in directory, can specific name and/or extension
+
+### Extras
+
+Also included is a Namespace class, similar to Bunch but designed so that directories
+are recursively made into namespaces, and can be treated as either a
+dict or a namespace when accessed.
+
+```python
+
+    from reuse import Namespace
+
+    my_breakfast = {"spam" : {"eggs": {"sausage": {"bacon": "yummy"}}}}
+    namespace_breakfast = Namespace(\*\*my\_breakfast)
+
+    print(namespace_breakfast.spam.eggs.sausage.bacon)
+    # yummy
+
+    print(namespace_breakfast.spam.eggs\[\'sausage\'\].bacon)
+    # yummy
+
+    str(namespace_breakfast['spam'].eggs)
+    # "{'sausage': {'bacon': 'yummy'}}"
+
+    # Don't use dict() on Namespace objects, use .to_dict()
+    namespace_breakfast.spam.eggs['sausage'].to_dict()
+    # {'sausage': {'bacon': 'yummy'}}
+
 ```
 
 ## Additional Info

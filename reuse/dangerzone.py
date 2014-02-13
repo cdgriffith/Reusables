@@ -21,9 +21,10 @@ _reuse_cache = dict()  # Could use DefaultDict but eh, it's another import
 
 def reuse(func):
     """
-    Save the variables entered into the function for reuse next time.
-
-    Dangerzone score: mischievous
+    Save the variables entered into the function for reuse next time. Different
+    from partials for the fact that it saves it to the original function,
+    so that any module calling the default function will act as if it's a
+    partial, and then may unknowingly change what the partial becomes!
     """
     import functools
 
@@ -53,5 +54,5 @@ def reuse(func):
         _reuse_cache[func.__name__] = dict(args=tuple(args),
                                            kwargs=local_kwargs)
         return result
-
     return wrapper
+
