@@ -114,3 +114,13 @@ class TestReuse(unittest.TestCase):
     def test_find_files_name(self):
         resp = reuse.find_all_files(test_root, name="test_config")
         assert resp[0].endswith(os.path.join(test_root, "test_config.cfg"))
+
+    def test_find_files_iterator(self):
+        resp = reuse.find_all_files_iter(test_root, ext=".cfg")
+        assert not isinstance(resp, list)
+        resp = [x for x in resp]
+        assert resp[0].endswith(os.path.join(test_root, "test_config.cfg"))
+
+    def test_main(self):
+        resp = reuse.main(["--safe-filename", "tease.txt", "--safe-path",
+                           "/var/lib"])

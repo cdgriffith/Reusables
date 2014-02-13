@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 """
-Reusables - Commonly Consumed Code Chunks
+Reusables - Commonly Consumed Code Commodities
 
 Copyright (c) 2014  - Chris Griffith - MIT License
 """
 __author__ = "Chris Griffith"
-__version__ = "0.0.5"
+__version__ = "0.0.6"
 
 import os
 import sys
@@ -18,9 +18,6 @@ version_string = ".".join([str(x) for x in python_version])
 package_root = os.path.abspath(os.path.dirname(__file__))
 python3x = python_version >= (3, 0)
 python2x = python_version < (3, 0)
-regex = {"safe_filename": re.compile(r'^[\w\d\. _\-\(\)]+$'),
-         "safe_path_windows": re.compile(r'^[\w\d _\-\\\(\)]+$'),
-         "safe_path_nix": re.compile(r'^[\w\d\. _\-/\(\)]+$')}
 nix_based = os.name == "posix"
 win_based = os.name == "nt"
 logger = logging.getLogger(__name__)
@@ -28,14 +25,44 @@ if python_version >= (2, 7):
     #Surpresses warning that no logger is found if a parent logger is not set
     logger.addHandler(logging.NullHandler())
 
+reg_exps = {"safe_filename": re.compile(r'^[\w\d\. _\-\(\)]+$'),
+            "safe_path_windows": re.compile(r'^[\w\d _\-\\\(\)]+$'),
+            "safe_path_nix": re.compile(r'^[\w\d\. _\-/\(\)]+$')}
+
+common_exts = {"pictures": (".jpeg", ".jpg", ".png", ".gif", ".bmp", ".tif",
+                            ".tiff"),
+               "movies": (".mkv", ".avi", ".mp4", ".mov", ".flv", ".mpeg",
+                          ".mpg", ".3gp", ".m4v", ".ogv", ".asf", ".m1v",
+                          ".m2v", ".mpe", ".ogv", ".wmv"),
+               "music": (".mp3", ".ogg", ".wav", ".flac", ".aif", ".aiff",
+                         ".au", ".m4a", ".wma", ".mp2", ".m4a", ".m4p", ".aac",
+                         ".ra", ".mid", ".midi", ".mus", ".psf"),
+               "documents": (".doc", ".docx", ".pdf", ".xls", ".xlsx", ".ppt",
+                             ".pptx", ".csv", ".epub", ".gdoc", ".odt", ".rtf",
+                             ".txt", ".info", ".xps", ".gslides", ".gsheet")}
+
 
 class Namespace(object):
+    """
+    Namespace container to easily access items by either
+    namespace.item or namespace['item']
+    """
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
 
+    def __getitem__(self, item):
+        return self.__dict__[item]
+
+# Some may ask why make everything into namespaces, I ask why not
+regex = Namespace(**reg_exps)
+exts = Namespace(**common_exts)
+
+
 def join_paths(*paths, **kwargs):
     """
-    Join multiple paths together and return the absolute path of them.
+    Join multiple paths together and return the absolute path of them. This
+    function will 'clean' the path as well unless the option of 'strict' is
+    provided.
     """
     path = os.path.abspath(paths[0])
     for next_path in paths[1:]:
@@ -46,7 +73,7 @@ def join_paths(*paths, **kwargs):
             "." not in os.path.basename(path) and
             not path.endswith(os.sep)):
         path += os.sep
-    return path
+    return path if kwargs.get('strict') else safe_path(path)
 
 
 def join_root(*paths, **kwargs):
@@ -58,7 +85,7 @@ def join_root(*paths, **kwargs):
         next_path = next_path.lstrip(os.sep).strip() if not \
             kwargs.get('strict') else next_path
         path = os.path.abspath(os.path.join(path, next_path))
-    return path
+    return path if kwargs.get('strict') else safe_path(path)
 
 
 def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
@@ -69,9 +96,9 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
     """
     if not config_file:
         config_file = []
-    if python2x:
+    try:
         import ConfigParser as configparser
-    elif python3x:
+    except ImportError:
         import configparser
 
     cfg_parser = configparser.ConfigParser(**cfg_options)
@@ -105,8 +132,12 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
 
 def config_namespace(config_file=None, auto_find=False,
                      verify=True, **cfg_options):
+    """
+    Return configuration options as a Namespace.
+    """
     return Namespace(**config_dict(config_file, auto_find,
                                    verify, **cfg_options))
+
 
 def sort_by(unordered_list, key):
     """
@@ -124,7 +155,7 @@ def check_filename(filename):
     """
     if not isinstance(filename, str):
         raise TypeError("filename must be a string")
-    if regex['safe_filename'].search(filename):
+    if regex.safe_filename.search(filename):
         return True
     return False
 
@@ -137,11 +168,11 @@ def safe_filename(filename, replacement="_"):
     """
     if not isinstance(filename, str):
         raise TypeError("filename must be a string")
-    if regex['safe_filename'].search(filename):
+    if regex.safe_filename.search(filename):
         return filename
     safe_name = ""
     for char in filename:
-        safe_name += char if regex['safe_filename'].search(char) \
+        safe_name += char if regex.safe_filename.search(char) \
             else replacement
     return safe_name
 
@@ -159,7 +190,7 @@ def safe_path(path, replacement="_"):
     filename = safe_filename(os.path.basename(path))
     dirname = os.path.dirname(path)
     safe_dirname = ""
-    regexp = regex['safe_path_windows'] if win_based else regex['safe_path_nix']
+    regexp = regex.safe_path_windows if win_based else regex.safe_path_nix
     if win_based and dirname.find(":\\") == 1 and dirname[0].isalpha():
         safe_dirname = dirname[0:3]
         dirname = dirname[3:]
@@ -192,17 +223,20 @@ def file_hash(path, hash_type="md5", blocksize=65536):
               "sha512": hashlib.sha512}
     if hash_type not in hashes:
         raise ValueError("Hash type must be: md5, sha1, sha256, or sha512")
-    hasher = hashes[hash_type]()
-    with open(path, "rb") as afile:
-        buf = afile.read(blocksize)
+    hashit = hashes[hash_type]()
+    with open(path, "rb") as infile:
+        buf = infile.read(blocksize)
         while len(buf) > 0:
-            hasher.update(buf)
-            buf = afile.read(blocksize)
-        return hasher.hexdigest()
+            hashit.update(buf)
+            buf = infile.read(blocksize)
+    return hashit.hexdigest()
 
 
-def find_all_files(directory, ext=None, name=None):
-    file_list = []
+def find_all_files_iter(directory=".", ext=None, name=None):
+    """
+    Walk through a file directory and return an iterator of files
+    that match requirements.
+    """
     if ext and isinstance(ext, str):
         ext = [ext]
     elif ext and not isinstance(ext, (list, tuple)):
@@ -211,19 +245,27 @@ def find_all_files(directory, ext=None, name=None):
         for file in files:
             if ext:
                 for end in ext:
-                    if file.endswith(end):
+                    if file.lower().endswith(end):
                         break
                 else:
                     continue
             if name:
-                if name not in file:
+                if name.lower() not in file.lower():
                     continue
-            file_list.append(join_paths(root, file))
-    return file_list
+            yield join_paths(root, file, strict=True)
 
 
-def main():
+def find_all_files(directory=".", ext=None, name=None):
+    """
+    Returns a list of all files in a sub directory that match an extension
+    and or part of a filename.
+    """
+    return list(find_all_files_iter(directory, ext=ext, name=name))
+
+
+def main(command_line_options=""):
     import argparse
+
     parser = argparse.ArgumentParser(prog="reuse")
     parser.add_argument("--safe-filename", dest="filename", action='append',
                         help="Verify a filename contains only letters, numbers,\
@@ -231,7 +273,8 @@ spaces, hyphens, underscores and periods")
     parser.add_argument("--safe-path", dest="path", action='append',
                         help="Verify a path contains only letters, numbers,\
 spaces, hyphens, underscores, periods (unix), separator, and drive (win)")
-    args = parser.parse_args()
+    args = parser.parse_args(sys.argv if not command_line_options else
+                             command_line_options)
     if args.filename:
         for filename in args.filename:
             print(safe_filename(filename))

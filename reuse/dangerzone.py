@@ -1,14 +1,29 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
+"""
+Dangerzone
 
-_reuse_cache = dict() # Could use DefaultDict but eh, it's another import
+Code in the dangerzone is either inherently dangerous by design  or not fully
+tested and should never be used in production code. This may sound like a
+generic warning like you would find with release candidate code, so let me
+reiterate this point:
+
+    This code will muck up your project if you use it.
+
+Have fun!
+
+
+Copyright (c) 2014  - Chris Griffith - MIT License
+"""
+
+_reuse_cache = dict()  # Could use DefaultDict but eh, it's another import
+
 
 def reuse(func):
     """
     Save the variables entered into the function for reuse next time.
 
-    Not: This is a dirty function that probably shouldn't be used.
-    So when you do use it make sure to have fun with it!
+    Dangerzone score: mischievous
     """
     import functools
 
@@ -38,4 +53,5 @@ def reuse(func):
         _reuse_cache[func.__name__] = dict(args=tuple(args),
                                            kwargs=local_kwargs)
         return result
+
     return wrapper

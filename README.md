@@ -1,25 +1,25 @@
 # Reusables
-**Convenient Consolidated Commonly Consumed Code Commodities**
+**Commonly Consumed Code Commodities**
 [![Build Status](https://travis-ci.org/cdgriffith/Reusables.png?branch=master)](https://travis-ci.org/cdgriffith/Reusables)
 [![Coverage Status](https://coveralls.io/repos/cdgriffith/Reusables/badge.png?branch=master)](https://coveralls.io/r/cdgriffith/Reusables?branch=master)
 
 ## Overview
 
-The reusables library is a convenient reference of python functions and globals
+The reuse library is a convenient reference of python functions and globals
 that are widely implemented throughout different projects.
 
 ```python
 
-    import reusables
+    import reuse
 
-    reusables.python3x
-    # False
-
-    reusables.config_dict('my_config.cfg')
+    reuse.config_dict('my_config.cfg')
     # {'Section 1': {'key 1': 'value 1', 'key2': 'Value2'}, 'Section 2': {}}
 
-    reusables.safe_path('/home/user/eViL User\0\\/newdir$^&*/new^%file.txt')
+    reuse.safe_path('/home/user/eViL User\0\\/newdir$^&*/new^%file.txt')
     # '/home/user/eViL User__/newdir____/new__file.txt'
+
+    reuse.find_all_files(".", ext=reuse.exts.pictures)
+    # ['/home/user/background.jpg', '/home/user/private.png']
 
 ```
 
