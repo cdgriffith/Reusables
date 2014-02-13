@@ -5,8 +5,12 @@
 
 ## Overview
 
+<!--- start description --->
+
 The reuse library is a reference of python functions and globals
 that programmers may find themselves often recreating.
+
+<!--- end description --->
 
 Example functions:
 
@@ -81,7 +85,7 @@ find_all_files | hybrid of os.walk and glob.glob, search for files in directory,
 
 ### Extras
 
-Also included is a Namespace class, similar to Bunch but designed so that directories
+Also included is a Namespace class, similar to Bunch but designed so that dictionaries
 are recursively made into namespaces, and can be treated as either a
 dict or a namespace when accessed.
 

@@ -35,3 +35,6 @@ class TestDangerzone(unittest.TestCase):
         run1 = gen_func(1, 2, 3)
         assert run1 == (1, 2, 3)
         assert gen_func(reuse_rep_args=[(1, 4)]) == (4, 2, 3)
+
+if __name__ == "__main__":
+    unittest.main()

@@ -124,3 +124,6 @@ class TestReuse(unittest.TestCase):
     def test_main(self):
         resp = reuse.main(["--safe-filename", "tease.txt", "--safe-path",
                            "/var/lib"])
+
+if __name__ == "__main__":
+    unittest.main()
