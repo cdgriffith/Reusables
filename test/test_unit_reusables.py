@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import unittest
+import os
 import reuse
 
+test_root = os.path.abspath(os.path.dirname(__file__))
 
 class TestReuse(unittest.TestCase):
 
@@ -25,16 +27,21 @@ class TestReuse(unittest.TestCase):
         assert resp == '/dirty/ path.file ', resp
 
     def test_get_config_dict(self):
-        resp = reuse.config_dict('test_config.cfg')
-        assert resp == {'Section 1': {'key 1': 'value 1', 'key2': 'Value2'}, 'Section 2': {}}, resp
+        resp = reuse.config_dict(os.path.join(test_root, 'test_config.cfg'))
+        assert resp == {'Section1': {'key 1': 'value 1', 'key2': 'Value2'}, 'Section 2': {}}, resp
 
     def test_get_config_dict_auto(self):
         resp = reuse.config_dict(auto_find=True)
-        assert resp == {'Section 1': {'key 1': 'value 1', 'key2': 'Value2'}, 'Section 2': {}}, resp
+        assert resp == {'Section1': {'key 1': 'value 1', 'key2': 'Value2'}, 'Section 2': {}}, resp
 
     def test_get_config_dict_no_verify(self):
         resp = reuse.config_dict('bad_loc.cfg', verify=False)
         assert resp == {}, resp
+
+    def test_get_config_namespace(self):
+        resp = reuse.config_namespace(os.path.join(test_root,
+                                                   'test_config.cfg'))
+        assert resp.Section1 == {'key2': 'Value2', 'key 1': 'value 1'}
 
     def test_check_bad_filename(self):
         resp = reuse.check_filename("safeFile?.text")
@@ -66,9 +73,6 @@ class TestReuse(unittest.TestCase):
         resp = reuse.safe_path(path)
         assert resp == path, resp
 
-    def test_main(self):
-        reuse._main(True)
-
     def test_sorting(self):
         al = [{"name": "a"}, {"name": "c"}, {"name": "b"}]
         resp = reuse.sort_by(al, "name")
@@ -81,3 +85,23 @@ class TestReuse(unittest.TestCase):
         self.assertRaises(TypeError, reuse.check_filename, tuple())
         self.assertRaises(TypeError, reuse.safe_filename, set())
         self.assertRaises(TypeError, reuse.safe_path, dict())
+
+    def test_hash_file(self):
+        valid = "489abd73c49c41650a609d2eb67987b1"
+        resp = reuse.file_hash(os.path.join(test_root, "test_hash"))
+        assert resp == valid, (resp, valid)
+
+    def test_bad_hash_type(self):
+        self.assertRaises(ValueError, reuse.file_hash, "", hash_type="sham5")
+
+    def test_find_files(self):
+        resp = reuse.find_all_files(test_root, ext=".cfg")
+        assert resp[0].endswith(os.path.join(test_root, "test_config.cfg"))
+
+    def test_find_files_multi_ext(self):
+        resp = reuse.find_all_files(test_root, ext=[".cfg", ".nope"])
+        assert resp[0].endswith(os.path.join(test_root, "test_config.cfg"))
+
+    def test_find_files_name(self):
+        resp = reuse.find_all_files(test_root, name="test_config")
+        assert resp[0].endswith(os.path.join(test_root, "test_config.cfg"))

@@ -29,6 +29,10 @@ if python_version >= (2, 7):
     logger.addHandler(logging.NullHandler())
 
 
+class Namespace(object):
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+
 def join_paths(*paths, **kwargs):
     """
     Join multiple paths together and return the absolute path of them.
@@ -86,12 +90,9 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
         auto_find = True
 
     if auto_find:
-        cfg_files.extend(glob.glob("*.cfg"))
-        cfg_files.extend(glob.glob("*.config"))
-        cfg_files.extend(glob.glob("*.ini"))
-        cfg_files.extend(glob.glob(join_root("*.cfg")))
-        cfg_files.extend(glob.glob(join_root("*.config")))
-        cfg_files.extend(glob.glob(join_root("*.ini")))
+        cfg_files.extend(find_all_files(".", ext=(".cfg", ".config", ".ini")))
+        cfg_files.extend(find_all_files(package_root,
+                                        ext=(".cfg", ".config", ".ini")))
 
     if verify:
         cfg_parser.read([cfg for cfg in cfg_files if os.path.exists(cfg)])
@@ -101,6 +102,11 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
     return {section: {k: v for k, v in cfg_parser.items(section)}
             for section in cfg_parser.sections()}
 
+
+def config_namespace(config_file=None, auto_find=False,
+                     verify=True, **cfg_options):
+    return Namespace(**config_dict(config_file, auto_find,
+                                   verify, **cfg_options))
 
 def sort_by(unordered_list, key):
     """
@@ -173,20 +179,59 @@ def safe_path(path, replacement="_"):
     return sanitized_path
 
 
-def _main(test=False):
+def file_hash(path, hash_type="md5", blocksize=65536):
+    """
+    Hash a given file with sha256 and return the hex digest.
+
+    This function is designed to be non memory intensive.
+    """
+    import hashlib
+    hashes = {"md5": hashlib.md5,
+              "sha1": hashlib.sha1,
+              "sha256": hashlib.sha256,
+              "sha512": hashlib.sha512}
+    if hash_type not in hashes:
+        raise ValueError("Hash type must be: md5, sha1, sha256, or sha512")
+    hasher = hashes[hash_type]()
+    with open(path, "rb") as afile:
+        buf = afile.read(blocksize)
+        while len(buf) > 0:
+            hasher.update(buf)
+            buf = afile.read(blocksize)
+        return hasher.hexdigest()
+
+
+def find_all_files(directory, ext=None, name=None):
+    file_list = []
+    if ext and isinstance(ext, str):
+        ext = [ext]
+    elif ext and not isinstance(ext, (list, tuple)):
+        raise TypeError("extension must be either one extension or a list")
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            if ext:
+                for end in ext:
+                    if file.endswith(end):
+                        break
+                else:
+                    continue
+            if name:
+                if name not in file:
+                    continue
+            file_list.append(join_paths(root, file))
+    return file_list
+
+
+def main():
     import argparse
-    parser = argparse.ArgumentParser(prog="reusables")
+    parser = argparse.ArgumentParser(prog="reuse")
     parser.add_argument("--safe-filename", dest="filename", action='append',
                         help="Verify a filename contains only letters, numbers,\
 spaces, hyphens, underscores and periods")
     parser.add_argument("--safe-path", dest="path", action='append',
                         help="Verify a path contains only letters, numbers,\
 spaces, hyphens, underscores, periods (unix), separator, and drive (win)")
-
-    if test:
-        return True
     args = parser.parse_args()
-
     if args.filename:
         for filename in args.filename:
             print(safe_filename(filename))
@@ -196,4 +241,4 @@ spaces, hyphens, underscores, periods (unix), separator, and drive (win)")
 
 
 if __name__ == "__main__":
-    _main()
+    main()

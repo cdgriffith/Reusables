@@ -7,6 +7,6 @@ install:
     - pip install -r requirements-test.txt
     - pip install coveralls
 script:
-    PYTHONPATH=reusables nosetests -w test --with-coverage -vv --cover-package=reuse
+    nosetests --with-coverage -vv --cover-package=reuse test
 after_success:
     coveralls
