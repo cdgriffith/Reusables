@@ -12,9 +12,6 @@ that are widely implemented throughout different projects.
 
     import reusables
 
-    reusables.python_version
-    # (2, 7, 5)
-
     reusables.python3x
     # False
 
