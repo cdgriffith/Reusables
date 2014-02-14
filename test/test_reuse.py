@@ -37,7 +37,7 @@ class TestReuse(unittest.TestCase):
 
     def test_get_config_dict_auto(self):
         resp = reusables.config_dict(auto_find=True)
-        assert resp == {'Section1': {'key 1': 'value 1', 'key2': 'Value2'}, 'Section 2': {}}, resp
+        assert resp.get('Section1') == {'key 1': 'value 1', 'key2': 'Value2'}
 
     def test_get_config_dict_no_verify(self):
         resp = reusables.config_dict('bad_loc.cfg', verify=False)
