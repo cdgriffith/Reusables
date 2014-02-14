@@ -1,5 +1,6 @@
 [report]
 omit =
     */python?.?/*
-    */site-packages/noes/*
+    */site-packages/nose/*
     */test/*
+    */pypy/*
