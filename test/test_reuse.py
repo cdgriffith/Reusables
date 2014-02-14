@@ -125,5 +125,17 @@ class TestReuse(unittest.TestCase):
         resp = reuse.main(["--safe-filename", "tease.txt", "--safe-path",
                            "/var/lib"])
 
+    def test_namespace(self):
+        test_dict = {'key1': 'value1', "Key 2": {"Key 3": "Value 3", "Key4" : {"Key5": "Value5"}}}
+        namespace = reuse.Namespace(**test_dict)
+        assert namespace.key1 == test_dict['key1']
+        assert dict(getattr(namespace, 'Key 2')) == test_dict['Key 2']
+        setattr(namespace, 'TEST_KEY', 'VALUE')
+        assert namespace.TEST_KEY == 'VALUE'
+        delattr(namespace, 'TEST_KEY')
+        assert 'TEST_KEY' not in namespace.to_dict()
+        assert isinstance(namespace['Key 2'].Key4, reuse.Namespace)
+        assert str(namespace) == str(test_dict)
+
 if __name__ == "__main__":
     unittest.main()

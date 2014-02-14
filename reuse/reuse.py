@@ -48,25 +48,35 @@ common_exts = {"pictures": (".jpeg", ".jpg", ".png", ".gif", ".bmp", ".tif",
                              ".daa")}
 
 
-class Namespace(object):
+class Namespace(dict):
     """
     Namespace container to easily access items by either
     namespace.item.sub_item or namespace['item']['subitem'] or
     namespace['item'].subitem.
     """
+
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
             if isinstance(v, dict):
                 v = Namespace(**v)
             setattr(self, k, v)
+        super(Namespace, self).__init__(**kwargs)
 
     def __contains__(self, item):
         return self.__dict__.__contains__(item)
 
     def __getitem__(self, item):
+        try:
+            return self.__dict__[item]
+        except KeyError:
+            return super(Namespace, self).__getitem__(item)
+
+    def __getattr__(self, item):
         return self.__dict__[item]
 
     def __setattr__(self, key, value):
+        if isinstance(value, dict):
+            value = Namespace(**value)
         self.__dict__[key] = value
 
     def __delattr__(self, item):
@@ -107,7 +117,7 @@ def join_paths(*paths, **kwargs):
             kwargs.get('strict') else next_path
         path = os.path.join(path, next_path)
     if (not kwargs.get('strict') and
-            "." not in os.path.basename(path) and
+                "." not in os.path.basename(path) and
             not path.endswith(os.sep)):
         path += os.sep
     return path if kwargs.get('strict') else safe_path(path)
@@ -254,6 +264,7 @@ def file_hash(path, hash_type="md5", blocksize=65536):
     This function is designed to be non memory intensive.
     """
     import hashlib
+
     hashes = {"md5": hashlib.md5,
               "sha1": hashlib.sha1,
               "sha256": hashlib.sha256,

@@ -19,12 +19,8 @@ import re
 attrs = dict(re.findall(r"__([a-z]+)__ *= *['\"](.+)['\"]", reuse_content))
 
 
-def long_description():
-    with open("README.md", "r") as readme_file:
-        readme = readme_file.read()
-    start = readme.find("<!--- start description --->\n") + 29
-    end = readme.find("<!--- end description --->\n")
-    return readme[start:end].strip()
+with open("README.rst", "r") as readme_file:
+    long_description = readme_file.read()
 
 setup(
     name='reuse',
@@ -37,7 +33,7 @@ setup(
     #cmdclass={'test': },
     author_email='chris@cdgriffith.com',
     description='Commonly Consumed Code Commodities',
-    long_description=long_description(),
+    long_description=long_description,
     packages=['reuse'],
     include_package_data=True,
     platforms='any',
