@@ -30,7 +30,6 @@ setup(
     author=attrs['author'],
     tests_require=requirements_test,
     install_requires=requirements,
-    #cmdclass={'test': },
     author_email='chris@cdgriffith.com',
     description='Commonly Consumed Code Commodities',
     long_description=long_description,

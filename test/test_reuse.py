@@ -115,6 +115,11 @@ class TestReuse(unittest.TestCase):
         resp = reuse.find_all_files(test_root, name="test_config")
         assert resp[0].endswith(os.path.join(test_root, "test_config.cfg"))
 
+    def test_find_files_bad_ext(self):
+        self.assertRaises(TypeError,
+                          reuse.find_all_files_iter(test_root,
+                                                    ext=dict(ext='.txt')))
+
     def test_find_files_iterator(self):
         resp = reuse.find_all_files_iter(test_root, ext=".cfg")
         assert not isinstance(resp, list)
@@ -122,11 +127,12 @@ class TestReuse(unittest.TestCase):
         assert resp[0].endswith(os.path.join(test_root, "test_config.cfg"))
 
     def test_main(self):
-        resp = reuse.main(["--safe-filename", "tease.txt", "--safe-path",
-                           "/var/lib"])
+        reuse.main(["--safe-filename", "tease.txt", "--safe-path", "/var/lib"])
 
     def test_namespace(self):
-        test_dict = {'key1': 'value1', "Key 2": {"Key 3": "Value 3", "Key4" : {"Key5": "Value5"}}}
+        test_dict = {'key1': 'value1',
+                     "Key 2": {"Key 3": "Value 3",
+                               "Key4": {"Key5": "Value5"}}}
         namespace = reuse.Namespace(**test_dict)
         assert namespace.key1 == test_dict['key1']
         assert dict(getattr(namespace, 'Key 2')) == test_dict['Key 2']
@@ -135,7 +141,8 @@ class TestReuse(unittest.TestCase):
         delattr(namespace, 'TEST_KEY')
         assert 'TEST_KEY' not in namespace.to_dict()
         assert isinstance(namespace['Key 2'].Key4, reuse.Namespace)
-        assert str(namespace) == str(test_dict)
+        assert "'key1': 'value1'" in str(namespace)
+        assert repr(namespace).startswith("<Namespace:")
 
 if __name__ == "__main__":
     unittest.main()

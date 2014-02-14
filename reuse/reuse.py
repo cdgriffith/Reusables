@@ -27,7 +27,8 @@ if python_version >= (2, 7):
 
 reg_exps = {"safe_filename": re.compile(r'^[\w\d\. _\-\(\)]+$'),
             "safe_path_windows": re.compile(r'^[\w\d _\-\\\(\)]+$'),
-            "safe_path_nix": re.compile(r'^[\w\d\. _\-/\(\)]+$')}
+            "safe_path_nix": re.compile(r'^[\w\d\. _\-/\(\)]+$'),
+            "module_attributes": re.compile(r'__([a-z]+)__ *= *[\'"](.+)[\'"]')}
 
 common_exts = {"pictures": (".jpeg", ".jpg", ".png", ".gif", ".bmp", ".tif",
                             ".tiff", ".ico", ".mng", ".tga", ".psd", ".xcf",
@@ -50,11 +51,14 @@ common_exts = {"pictures": (".jpeg", ".jpg", ".png", ".gif", ".bmp", ".tif",
 
 class Namespace(dict):
     """
-    Namespace container to easily access items by either
-    namespace.item.sub_item or namespace['item']['subitem'] or
-    namespace['item'].subitem.
-    """
+    Namespace container.
+    Allows access to attributes by either class dot notation or item reference
 
+    All valid:
+        namespace.spam.eggs
+        namespace['spam']['eggs']
+        namespace['spam'].eggs
+    """
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
             if isinstance(v, dict):
@@ -66,10 +70,7 @@ class Namespace(dict):
         return self.__dict__.__contains__(item)
 
     def __getitem__(self, item):
-        try:
-            return self.__dict__[item]
-        except KeyError:
-            return super(Namespace, self).__getitem__(item)
+        return self.__dict__[item]
 
     def __getattr__(self, item):
         return self.__dict__[item]
@@ -87,9 +88,6 @@ class Namespace(dict):
 
     def __str__(self):
         return str(self.to_dict())
-
-    def items(self):
-        return ((k, v) for (k, v) in self.__dict__.items())
 
     def to_dict(self, in_dict=None):
         in_dict = in_dict if in_dict else self.__dict__
@@ -117,7 +115,7 @@ def join_paths(*paths, **kwargs):
             kwargs.get('strict') else next_path
         path = os.path.join(path, next_path)
     if (not kwargs.get('strict') and
-                "." not in os.path.basename(path) and
+            "." not in os.path.basename(path) and
             not path.endswith(os.sep)):
         path += os.sep
     return path if kwargs.get('strict') else safe_path(path)
@@ -173,8 +171,8 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
     else:
         cfg_parser.read(cfg_files)
 
-    return {section: {k: v for k, v in cfg_parser.items(section)}
-            for section in cfg_parser.sections()}
+    return dict((section, dict((k, v) for (k, v) in cfg_parser.items(section)))
+                for section in cfg_parser.sections())
 
 
 def config_namespace(config_file=None, auto_find=False,
@@ -312,7 +310,11 @@ def find_all_files(directory=".", ext=None, name=None):
 
 
 def main(command_line_options=""):
-    import argparse
+    try:
+        import argparse
+    except ImportError:
+        print("Cannot import argparse module, options cannot be parsed")
+        return
 
     parser = argparse.ArgumentParser(prog="reuse")
     parser.add_argument("--safe-filename", dest="filename", action='append',
