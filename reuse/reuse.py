@@ -278,11 +278,12 @@ def file_hash(path, hash_type="md5", blocksize=65536):
     return hashit.hexdigest()
 
 
-def find_all_files_iter(directory=".", ext=None, name=None):
+def find_all_files_generator(directory=".", ext=None, name=None):
     """
     Walk through a file directory and return an iterator of files
     that match requirements.
     """
+    print(ext)
     if ext and isinstance(ext, str):
         ext = [ext]
     elif ext and not isinstance(ext, (list, tuple)):
@@ -306,7 +307,7 @@ def find_all_files(directory=".", ext=None, name=None):
     Returns a list of all files in a sub directory that match an extension
     and or part of a filename.
     """
-    return list(find_all_files_iter(directory, ext=ext, name=name))
+    return list(find_all_files_generator(directory, ext=ext, name=name))
 
 
 def main(command_line_options=""):

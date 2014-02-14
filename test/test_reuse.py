@@ -116,12 +116,12 @@ class TestReuse(unittest.TestCase):
         assert resp[0].endswith(os.path.join(test_root, "test_config.cfg"))
 
     def test_find_files_bad_ext(self):
-        self.assertRaises(TypeError,
-                          reuse.find_all_files_iter(test_root,
-                                                    ext=dict(ext='.txt')))
+        resp = iter(reuse.find_all_files_generator(test_root,
+                                                   ext={'test': '.txt'}))
+        self.assertRaises(TypeError, next, resp)
 
     def test_find_files_iterator(self):
-        resp = reuse.find_all_files_iter(test_root, ext=".cfg")
+        resp = reuse.find_all_files_generator(test_root, ext=".cfg")
         assert not isinstance(resp, list)
         resp = [x for x in resp]
         assert resp[0].endswith(os.path.join(test_root, "test_config.cfg"))
