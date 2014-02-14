@@ -1,12 +1,12 @@
-Reuse
-=====
+Reusables
+=========
 
 **Commonly Consumed Code Commodities** |Build Status| |Coverage Status|
 
 Overview
 --------
 
-The reuse library is a reference of python functions and globals that
+The reusables library is a reference of python functions and globals that
 programmers may find themselves often recreating.
 
 Example
@@ -14,15 +14,15 @@ Example
 
 .. code:: python
 
-        import reuse
+        import reusables
 
-        reuse.config_dict('my_config.cfg')
+        reusables.config_dict('my_config.cfg')
         # {'Section 1': {'key 1': 'value 1', 'key2': 'Value2'}, 'Section 2': {}}
 
-        reuse.safe_path('/home/user/eViL User\0\\/newdir$^&*/new^%file.txt')
+        reusables.safe_path('/home/user/eViL User\0\\/newdir$^&*/new^%file.txt')
         # '/home/user/eViL User__/newdir____/new__file.txt'
 
-        reuse.find_all_files(".", ext=reuse.exts.pictures)
+        reusables.find_all_files(".", ext=reusables.exts.pictures)
         # ['/home/user/background.jpg', '/home/user/private.png']
 
 Design
@@ -31,17 +31,17 @@ Design
 Most python libraries are designed with the mindset of 'do exactly what
 the input dictates, nothing else.' Which in general is the better way to
 approach the problem allowing for the developer to fix their code.
-However reuse is made to work with more human input. The idea is that it
+However reusables is made to work with more human input. The idea is that it
 will be used in cases like reading user inputted options or working with
 python directly from the terminal or ipython.
 
-Reuse with try smooth input into what you *really* wanted it to say.
+Reusables with try smooth input into what you *really* wanted it to say.
 Let's use joining paths as an example, it's uncommon to join two root
 paths together and actually want just the second root path. Nor is it
 common to have spaces before and after the path or filename and actually
 want them there.
 
-Reuse fixes your blunders for you:
+Reusables fixes your blunders for you:
 
 .. code:: python
 
@@ -111,7 +111,7 @@ treated as either a dict or a namespace when accessed.
 
 .. code:: python
 
-        from reuse import Namespace
+        from reusables import Namespace
 
         my_breakfast = {"spam" : {"eggs": {"sausage": {"bacon": "yummy"}}}}
         namespace_breakfast = Namespace(**my_breakfast)
@@ -138,7 +138,7 @@ improve existing code is warmly welcomed!
 
 Copyright (c) 2014 - Chris Griffith - MIT License
 
-.. |Build Status| image:: https://travis-ci.org/cdgriffith/Reuse.png?branch=master
-   :target: https://travis-ci.org/cdgriffith/Reuse
-.. |Coverage Status| image:: https://coveralls.io/repos/cdgriffith/Reuse/badge.png?branch=master
-   :target: https://coveralls.io/r/cdgriffith/Reuse?branch=master
+.. |Build Status| image:: https://travis-ci.org/cdgriffith/Reusables.png?branch=master
+   :target: https://travis-ci.org/cdgriffith/Reusables
+.. |Coverage Status| image:: https://coveralls.io/repos/cdgriffith/Reusables/badge.png?branch=master
+   :target: https://coveralls.io/r/cdgriffith/Reusables?branch=master
