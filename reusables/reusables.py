@@ -317,7 +317,7 @@ def main(command_line_options=""):
         print("Cannot import argparse module, options cannot be parsed")
         return
 
-    parser = argparse.ArgumentParser(prog="reuse")
+    parser = argparse.ArgumentParser(prog="reusables")
     parser.add_argument("--safe-filename", dest="filename", action='append',
                         help="Verify a filename contains only letters, numbers,\
 spaces, hyphens, underscores and periods")

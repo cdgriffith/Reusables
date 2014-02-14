@@ -12,7 +12,7 @@ with open("requirements-test.txt", "r") as test_required:
     requirements_test = [x.strip() for x in test_required.readlines() if x.strip()]
 
 
-with open(os.path.join(root, "reuse", "reuse.py"), "r") as reuse_file:
+with open(os.path.join(root, "reusables", "reusables.py"), "r") as reuse_file:
     reuse_content = reuse_file.read()
 
 import re
@@ -23,7 +23,7 @@ with open("README.rst", "r") as readme_file:
     long_description = readme_file.read()
 
 setup(
-    name='reuse',
+    name='reusables',
     version=attrs['version'],
     url='https://github.com/cdgriffith/Reusables',
     license='MIT',
@@ -33,7 +33,7 @@ setup(
     author_email='chris@cdgriffith.com',
     description='Commonly Consumed Code Commodities',
     long_description=long_description,
-    packages=['reuse'],
+    packages=['reusables'],
     include_package_data=True,
     platforms='any',
     test_suite='nose.collector',

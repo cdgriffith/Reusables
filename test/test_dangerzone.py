@@ -2,7 +2,7 @@
 #-*- coding: utf-8 -*-
 
 import unittest
-from reuse import dangerzone
+from reusables import dangerzone
 
 @dangerzone.reuse
 def gen_func(a, b, c=None):
