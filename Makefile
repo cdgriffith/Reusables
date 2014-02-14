@@ -22,7 +22,7 @@ build:
 	python2.7 setup.py bdist_egg;
 	python3.2 setup.py bdist_egg;
 	python3.3 setup.py bdist_egg;
-	pypy setup.py dist_egg;
+	pypy setup.py bdist_egg;
 
 register:
 	python2.7 setup.py register;

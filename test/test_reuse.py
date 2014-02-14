@@ -9,31 +9,57 @@ test_root = os.path.abspath(os.path.dirname(__file__))
 
 class TestReuse(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        config_file = """[Section1]
+key 1 = value 1
+Key2 = Value2
+
+[Section 2]
+"""
+        with open(os.path.join(test_root, "test_config.cfg"), "w") as oc:
+            oc.write(config_file)
+
+    @classmethod
+    def tearDownClass(cls):
+        os.unlink(os.path.join(test_root, "test_config.cfg"))
+
     def test_join_path_clean(self):
+        if not reusables.nix_based:
+            self.skipTest("Linux based test")
         resp = reusables.join_paths('/test/', 'clean/', 'path')
         assert resp == '/test/clean/path/', resp
 
     def test_join_path_dirty(self):
+        if not reusables.nix_based:
+            self.skipTest("Linux based test")
         resp = reusables.join_paths('/test/', '/dirty/', ' path.file ')
         assert resp == '/test/dirty/path.file', resp
 
     def test_join_path_clean_strict(self):
+        if not reusables.nix_based:
+            self.skipTest("Linux based test")
         resp = reusables.join_paths('/test/', 'clean/', 'path/', strict=True)
         assert resp == '/test/clean/path/', resp
 
     def test_join_path_dirty_strict(self):
+        if not reusables.nix_based:
+            self.skipTest("Linux based test")
         resp = reusables.join_paths('/test/', '/dirty/',
                                     ' path.file ', strict=True)
         assert resp == '/dirty/ path.file ', resp
 
     def test_join_root(self):
+        if not reusables.nix_based:
+            self.skipTest("Linux based test")
         resp = reusables.join_root('clean/')
         path = os.path.abspath(os.path.join(".", 'clean/'))
         assert resp == path, (resp, path)
 
     def test_get_config_dict(self):
         resp = reusables.config_dict(os.path.join(test_root, 'test_config.cfg'))
-        assert resp == {'Section1': {'key 1': 'value 1', 'key2': 'Value2'}, 'Section 2': {}}, resp
+        assert resp['Section1']['key 1'] == 'value 1'
+        assert resp['Section 2'] == {}
 
     def test_get_config_dict_auto(self):
         resp = reusables.config_dict(auto_find=True)
@@ -71,6 +97,8 @@ class TestReuse(unittest.TestCase):
         assert resp == infilename, resp
 
     def test_safe_bad_path(self):
+        if not reusables.nix_based:
+            self.skipTest("Linux based test")
         path = "/var/lib\\/test/p?!ath/fi\0lename.txt"
         expected = "/var/lib_/test/p__ath/fi_lename.txt"
         resp = reusables.safe_path(path)
@@ -78,6 +106,8 @@ class TestReuse(unittest.TestCase):
         assert resp == expected, resp
 
     def test_safe_good_path(self):
+        if not reusables.nix_based:
+            self.skipTest("Linux based test")
         path = "/var/lib/test/path/filename.txt"
         resp = reusables.safe_path(path)
         assert resp == path, resp
@@ -96,24 +126,29 @@ class TestReuse(unittest.TestCase):
         self.assertRaises(TypeError, reusables.safe_path, dict())
 
     def test_hash_file(self):
-        valid = "489abd73c49c41650a609d2eb67987b1"
+        valid = "81dc9bdb52d04dc20036dbd8313ed055"
+        hash_file = "1234"
+        with open(os.path.join(test_root, "test_hash"), 'w') as out_hash:
+            out_hash.write(hash_file)
         resp = reusables.file_hash(os.path.join(test_root, "test_hash"))
+        os.unlink(os.path.join(test_root, "test_hash"))
         assert resp == valid, (resp, valid)
+
 
     def test_bad_hash_type(self):
         self.assertRaises(ValueError, reusables.file_hash, "", hash_type="sham5")
 
     def test_find_files(self):
         resp = reusables.find_all_files(test_root, ext=".cfg")
-        assert resp[0].endswith(os.path.join(test_root, "test_config.cfg"))
+        assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
 
     def test_find_files_multi_ext(self):
         resp = reusables.find_all_files(test_root, ext=[".cfg", ".nope"])
-        assert resp[0].endswith(os.path.join(test_root, "test_config.cfg"))
+        assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
 
     def test_find_files_name(self):
         resp = reusables.find_all_files(test_root, name="test_config")
-        assert resp[0].endswith(os.path.join(test_root, "test_config.cfg"))
+        assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
 
     def test_find_files_bad_ext(self):
         resp = iter(reusables.find_all_files_generator(test_root,
@@ -124,7 +159,7 @@ class TestReuse(unittest.TestCase):
         resp = reusables.find_all_files_generator(test_root, ext=".cfg")
         assert not isinstance(resp, list)
         resp = [x for x in resp]
-        assert resp[0].endswith(os.path.join(test_root, "test_config.cfg"))
+        assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
 
     def test_main(self):
         reusables.main(["--safe-filename", "tease.txt", "--safe-path", "/var/lib"])
