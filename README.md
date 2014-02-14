@@ -1,7 +1,7 @@
-# Reusables
+# Reuse
 **Commonly Consumed Code Commodities**
-[![Build Status](https://travis-ci.org/cdgriffith/Reusables.png?branch=master)](https://travis-ci.org/cdgriffith/Reusables)
-[![Coverage Status](https://coveralls.io/repos/cdgriffith/Reusables/badge.png?branch=master)](https://coveralls.io/r/cdgriffith/Reusables?branch=master)
+[![Build Status](https://travis-ci.org/cdgriffith/Reuse.png?branch=master)](https://travis-ci.org/cdgriffith/Reuse)
+[![Coverage Status](https://coveralls.io/repos/cdgriffith/Reuse/badge.png?branch=master)](https://coveralls.io/r/cdgriffith/Reuse?branch=master)
 
 ## Overview
 
@@ -31,17 +31,17 @@ Example functions:
 
 Most python libraries are designed with the mindset of 'do exactly what the
 input dictates, nothing else.' Which in general is the better way to approach
-the problem allowing for the developer to fix their code. However reusables
+the problem allowing for the developer to fix their code. However reuse
 is made to work with more human input. The idea is that it will be used
 in cases like reading user inputted options or working with python
 directly from the terminal or ipython.
 
-Reusables with try smooth input into what you *really* wanted it to say.
+Reuse with try smooth input into what you *really* wanted it to say.
 Let's use joining paths as an example, it's uncommon to join two root paths together
 and actually want just the second root path. Nor is it common to have spaces
 before and after the path or filename and actually want them there.
 
-Reusables fixes your blunders for you:
+Reuse fixes your blunders for you:
 ```python
     join_paths('/home', '/user/', ' Desktop/example.file ')
     # '/home/user/Desktop/example.file'

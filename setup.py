@@ -16,7 +16,6 @@ with open(os.path.join(root, "reuse", "reuse.py"), "r") as reuse_file:
     reuse_content = reuse_file.read()
 
 import re
-# noinspection PyTypeChecker
 attrs = dict(re.findall(r"__([a-z]+)__ *= *['\"](.+)['\"]", reuse_content))
 
 
@@ -49,8 +48,10 @@ setup(
         'Natural Language :: English',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: Apache Software License',
+        'Intended Audience :: System Administrators',
+        'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
+        'Topic :: Utilities',
         'Topic :: Software Development :: Libraries :: Python Modules',
         ],
     extras_require={

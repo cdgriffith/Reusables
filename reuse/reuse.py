@@ -6,7 +6,7 @@ Reusables - Commonly Consumed Code Commodities
 Copyright (c) 2014  - Chris Griffith - MIT License
 """
 __author__ = "Chris Griffith"
-__version__ = "0.0.6"
+__version__ = "0.1"
 
 import os
 import sys
