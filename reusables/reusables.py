@@ -25,28 +25,37 @@ if python_version >= (2, 7):
     #Surpresses warning that no logger is found if a parent logger is not set
     logger.addHandler(logging.NullHandler())
 
-reg_exps = {"safe_filename": re.compile(r'^[\w\d\. _\-\(\)]+$'),
-            "safe_path_windows": re.compile(r'^[\w\d _\-\\\(\)]+$'),
-            "safe_path_nix": re.compile(r'^[\w\d\. _\-/\(\)]+$'),
-            "module_attributes": re.compile(r'__([a-z]+)__ *= *[\'"](.+)[\'"]')}
+reg_exps = {
+    "safe_filename": re.compile(r'^[\w\d\. _\-\(\)]+$'),
+    "safe_path_windows": re.compile(r'^[\w\d _\-\\\(\)]+$'),
+    "safe_path_nix": re.compile(r'^[\w\d\. _\-/\(\)]+$'),
+    "module_attributes": re.compile(r'__([a-z]+)__ *= *[\'"](.+)[\'"]')
+}
 
-common_exts = {"pictures": (".jpeg", ".jpg", ".png", ".gif", ".bmp", ".tif",
-                            ".tiff", ".ico", ".mng", ".tga", ".psd", ".xcf",
-                            ".svg", ".icns"),
-               "video": (".mkv", ".avi", ".mp4", ".mov", ".flv", ".mpeg",
-                         ".mpg", ".3gp", ".m4v", ".ogv", ".asf", ".m1v",
-                         ".m2v", ".mpe", ".ogv", ".wmv"),
-               "music": (".mp3", ".ogg", ".wav", ".flac", ".aif", ".aiff",
-                         ".au", ".m4a", ".wma", ".mp2", ".m4a", ".m4p", ".aac",
-                         ".ra", ".mid", ".midi", ".mus", ".psf"),
-               "documents": (".doc", ".docx", ".pdf", ".xls", ".xlsx", ".ppt",
-                             ".pptx", ".csv", ".epub", ".gdoc", ".odt", ".rtf",
-                             ".txt", ".info", ".xps", ".gslides", ".gsheet"),
-               "archives": (".zip", ".rar", ".7z", ".tar.gz", ".tgz", ".gz",
-                            ".bzip", ".bzip2", ".bz2", ".xz", ".lzma", ".bin",
-                            ".tar"),
-               "cd_images": (".iso", ".nrg", ".img", ".mds", ".mdf", ".cue",
-                             ".daa")}
+common_exts = {
+    "pictures": (".jpeg", ".jpg", ".png", ".gif", ".bmp", ".tif", ".tiff",
+                 ".ico", ".mng", ".tga", ".psd", ".xcf", ".svg", ".icns"),
+    "video": (".mkv", ".avi", ".mp4", ".mov", ".flv", ".mpeg",  ".mpg", ".3gp",
+              ".m4v", ".ogv", ".asf", ".m1v", ".m2v", ".mpe", ".ogv", ".wmv",
+              ".rm", ".qt"),
+    "music": (".mp3", ".ogg", ".wav", ".flac", ".aif", ".aiff", ".au", ".m4a",
+              ".wma", ".mp2", ".m4a", ".m4p", ".aac", ".ra", ".mid", ".midi",
+              ".mus", ".psf"),
+    "documents": (".doc", ".docx", ".pdf", ".xls", ".xlsx", ".ppt", ".pptx",
+                  ".csv", ".epub", ".gdoc", ".odt", ".rtf",  ".txt", ".info",
+                  ".xps", ".gslides", ".gsheet"),
+    "archives": (".zip", ".rar", ".7z", ".tar.gz", ".tgz", ".gz", ".bzip",
+                 ".bzip2", ".bz2", ".xz", ".lzma", ".bin", ".tar"),
+    "cd_images": (".iso", ".nrg", ".img", ".mds", ".mdf", ".cue", ".daa")
+}
+
+common_variables = {
+    "empty_file_md5": "d41d8cd98f00b204e9800998ecf8427e",
+    "empty_file_sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+    "empty_file_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca4959\
+91b7852b855",
+
+}
 
 
 class Namespace(dict):
@@ -59,6 +68,7 @@ class Namespace(dict):
         namespace['spam']['eggs']
         namespace['spam'].eggs
     """
+
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
             if isinstance(v, dict):
@@ -101,6 +111,7 @@ class Namespace(dict):
 # Some may ask why make everything into namespaces, I ask why not
 regex = Namespace(**reg_exps)
 exts = Namespace(**common_exts)
+variables = Namespace(**common_variables)
 
 
 def join_paths(*paths, **kwargs):
@@ -115,7 +126,7 @@ def join_paths(*paths, **kwargs):
             kwargs.get('strict') else next_path
         path = os.path.join(path, next_path)
     if (not kwargs.get('strict') and
-            "." not in os.path.basename(path) and
+                "." not in os.path.basename(path) and
             not path.endswith(os.sep)):
         path += os.sep
     return path if kwargs.get('strict') else safe_path(path)
@@ -165,6 +176,8 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
         cfg_files.extend(find_all_files(".", ext=(".cfg", ".config", ".ini")))
         cfg_files.extend(find_all_files(package_root,
                                         ext=(".cfg", ".config", ".ini")))
+
+    logger.info("config files to be used: {0}".format(cfg_files))
 
     if verify:
         cfg_parser.read([cfg for cfg in cfg_files if os.path.exists(cfg)])
@@ -255,27 +268,28 @@ def safe_path(path, replacement="_"):
     return sanitized_path
 
 
-def file_hash(path, hash_type="md5", blocksize=65536):
+def file_hash(path, hash_type="md5", block_size=65536):
     """
     Hash a given file with sha256 and return the hex digest.
 
     This function is designed to be non memory intensive.
     """
     import hashlib
-
     hashes = {"md5": hashlib.md5,
               "sha1": hashlib.sha1,
+              "sha224": hashlib.sha224,
               "sha256": hashlib.sha256,
+              "sha384": hashlib.sha384,
               "sha512": hashlib.sha512}
     if hash_type not in hashes:
         raise ValueError("Hash type must be: md5, sha1, sha256, or sha512")
-    hashit = hashes[hash_type]()
+    hashed = hashes[hash_type]()
     with open(path, "rb") as infile:
-        buf = infile.read(blocksize)
+        buf = infile.read(block_size)
         while len(buf) > 0:
-            hashit.update(buf)
-            buf = infile.read(blocksize)
-    return hashit.hexdigest()
+            hashed.update(buf)
+            buf = infile.read(block_size)
+    return hashed.hexdigest()
 
 
 def find_all_files_generator(directory=".", ext=None, name=None):
@@ -308,6 +322,98 @@ def find_all_files(directory=".", ext=None, name=None):
     and or part of a filename.
     """
     return list(find_all_files_generator(directory, ext=ext, name=name))
+
+
+def remove_empty_directories(root_directory, dnd=False, ignore_errors=True):
+    """
+    Remove all empty folders from a path. Returns list of empty directories.
+    """
+    directory_list = []
+    for root, directories, files in os.walk(root_directory, topdown=False):
+        if (not directories and not files and os.path.exists(root) and
+                root != root_directory and os.path.isdir(root)):
+            directory_list.append(root)
+        elif directories and not files:
+            for directory in directories:
+                directory = join_paths(root, directory, strict=True)
+                if os.path.exists(directory) and os.path.isdir(directory):
+                    directory_list.append(directory)
+
+    directory_list = sorted(set(directory_list))
+
+    if not dnd:
+        for directory in directory_list:
+            try:
+                os.rmdir(directory)
+            except OSError as err:
+                if ignore_errors:
+                    logger.info("Directory {0} could not be deleted".format(
+                        directory))
+                else:
+                    raise err
+
+    return directory_list
+
+
+def remove_empty_files(root_directory, dnd=False, ignore_errors=True):
+    """
+    Remove all empty files from a path. Returns list of the empty files removed.
+    """
+    file_list = []
+    for root, directories, files in os.walk(root_directory):
+        for file in files:
+            file_path = join_paths(root, file, strict=True)
+            if os.path.isfile(file_path) and not os.path.getsize(file_path):
+                if file_hash(file_path) == variables.empty_file_md5:
+                    file_list.append(file_path)
+
+    file_list = sorted(set(file_list))
+
+    if not dnd:
+        for file in file_list:
+            try:
+                os.unlink(file)
+            except OSError as err:
+                if ignore_errors:
+                    logger.info("File {0} could not be deleted".format(file))
+                else:
+                    raise err
+
+    return file_list
+
+
+def extract_all(archive_file, path=".", dnd=True):
+    """
+    Automatically detect archive type and extract all files to specified path.
+    """
+    import zipfile
+    import tarfile
+
+    if not os.path.exists(archive_file) or os.path.getsize(archive_file):
+        logger.error("File {0} unextractable".format(archive_file))
+        raise OSError("File does not exist or has zero size")
+
+    if zipfile.is_zipfile(archive_file):
+        logger.debug("File {0} detected as a zip file".format(archive_file))
+        archive = zipfile.ZipFile(archive_file)
+    elif tarfile.is_tarfile(archive_file):
+        logger.debug("File {0} detected as a tar file".format(archive_file))
+        archive = tarfile.TarFile(archive_file)
+    else:
+        raise TypeError("File is not a zip or tar archive")
+
+    logger.debug("Extracting files to {0}".format(path))
+    try:
+        archive.extractall(path=path)
+    except Exception as err:
+        logger.exception("Could not unarchive file")
+        raise err
+    else:
+        if not dnd:
+            logger.debug("Archive {0} will now be deleted".format(archive_file))
+            os.unlink(archive_file)
+    finally:
+        archive.close()
 
 
 def main(command_line_options=""):

@@ -179,5 +179,17 @@ Key2 = Value2
         assert "'key1': 'value1'" in str(namespace)
         assert repr(namespace).startswith("<Namespace:")
 
+    @unittest.skip
+    def test_remove_directories(self):
+        pass
+
+    @unittest.skip
+    def test_remove_files(self):
+        pass
+
+    @unittest.skip
+    def test_extract_all(self):
+        pass
+
 if __name__ == "__main__":
     unittest.main()
