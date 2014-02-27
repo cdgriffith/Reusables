@@ -3,9 +3,17 @@
 
 import unittest
 import os
+import sys
+import shutil
+import tarfile
+
 import reusables
 
 test_root = os.path.abspath(os.path.dirname(__file__))
+
+test_structure_tar = os.path.join(test_root, "test_structure.tar.gz")
+test_structure = os.path.join(test_root, "test_structure")
+
 
 class TestReuse(unittest.TestCase):
 
@@ -19,10 +27,14 @@ Key2 = Value2
 """
         with open(os.path.join(test_root, "test_config.cfg"), "w") as oc:
             oc.write(config_file)
+        if os.path.exists(test_structure):
+            shutil.rmtree(test_structure)
 
     @classmethod
     def tearDownClass(cls):
         os.unlink(os.path.join(test_root, "test_config.cfg"))
+        if os.path.exists(test_structure):
+            shutil.rmtree(test_structure)
 
     def test_join_path_clean(self):
         if not reusables.nix_based:
@@ -162,7 +174,11 @@ Key2 = Value2
         assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
 
     def test_main(self):
-        reusables.main(["--safe-filename", "tease.txt", "--safe-path", "/var/lib"])
+        if sys.version_info >= (2, 7):
+            reusables.main(["--safe-filename",
+                            "tease.txt",
+                            "--safe-path",
+                            "/var/lib"])
 
     def test_namespace(self):
         test_dict = {'key1': 'value1',
@@ -179,17 +195,77 @@ Key2 = Value2
         assert "'key1': 'value1'" in str(namespace)
         assert repr(namespace).startswith("<Namespace:")
 
-    @unittest.skip
+    def test_path_single(self):
+        resp = reusables.safe_path('path')
+        assert resp == 'path', resp
+
+    # Windows based path tests
+
+    def test_win_join_path_clean(self):
+        if not reusables.win_based:
+            self.skipTest("Windows based test")
+        resp = reusables.join_paths('C:\\test', 'clean\\', 'path')
+        assert resp == 'C:\\test\\clean\\path', resp
+
+    def test_win_join_path_dirty(self):
+        if not reusables.win_based:
+            self.skipTest("Windows based test")
+        resp = reusables.join_paths('C:\\test\\', 'D:\\dirty', ' path.file ')
+        assert resp == 'D:\\dirty\\path.file', resp
+
+    def test_win_join_path_clean_strict(self):
+        if not reusables.win_based:
+            self.skipTest("Windows based test")
+        resp = reusables.join_paths('C:\\test', 'clean\\', 'path', strict=True)
+        assert resp == 'C:\\test\\clean\\path', resp
+
+    def test_win_join_path_dirty_strict(self):
+        if not reusables.win_based:
+            self.skipTest("Windows based test")
+        resp = reusables.join_paths('C:\\test\\', 'D:\\dirty',
+                                    ' path.file ', strict=True)
+        assert resp == 'D:\\dirty\\ path.file ', resp
+
+    def test_win_join_root(self):
+        if not reusables.win_based:
+            self.skipTest("Windows based test")
+        resp = reusables.join_root('clean\\')
+        path = os.path.abspath(os.path.join(".", 'clean\\'))
+        assert resp == path, (resp, path)
+
+    def _extract_structure(self):
+        tar = tarfile.open(test_structure_tar)
+        tar.extractall(path=test_root)
+        tar.close()
+        assert os.path.exists(test_structure)
+        assert os.path.isdir(test_structure)
+
+    def _remove_structure(self):
+
+        shutil.rmtree(test_structure)
+        assert not os.path.exists(test_structure)
+
     def test_remove_directories(self):
-        pass
+        self._extract_structure()
+        delete = reusables.remove_empty_directories(test_structure)
+        assert len(delete) == 8, (len(delete), delete)
+        assert not [x for x in delete if "empty" not in x.lower()]
+        self._remove_structure()
 
-    @unittest.skip
     def test_remove_files(self):
-        pass
+        self._extract_structure()
+        delete = reusables.remove_empty_files(test_structure)
+        assert len(delete) == 3, (len(delete), delete)
+        assert not [x for x in delete if "file" not in x.lower()]
+        self._remove_structure()
 
-    @unittest.skip
     def test_extract_all(self):
-        pass
+        assert os.path.exists(test_structure_tar)
+        reusables.extract_all(test_structure_tar, path=test_root, dnd=True)
+        assert os.path.exists(test_structure)
+        assert os.path.isdir(test_structure)
+        shutil.rmtree(test_structure)
+
 
 if __name__ == "__main__":
     unittest.main()

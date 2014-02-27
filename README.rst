@@ -131,7 +131,7 @@ treated as either a dict or a namespace when accessed.
 Additional Info
 ---------------
 
-This does not claim to provide the most accurate, fastest or 'pythonic'
+This does not claim to provide the most accurate, fastest or most 'pythonic'
 way to implement these useful snippets, this is simply designed for easy
 reference. Any contributions that would help add functionality or
 improve existing code is warmly welcomed!

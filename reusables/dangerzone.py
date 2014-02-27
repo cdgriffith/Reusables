@@ -55,3 +55,34 @@ def reuse(func):
                                            kwargs=local_kwargs)
         return result
     return wrapper
+
+#TODO complete import from github
+def import_from_github(github_url, file_location):
+    try:
+        import urllib2 as urllib
+    except ImportError:
+        import urllib
+
+    github_url = github_url.lower().strip()
+
+    if not github_url.startswith("https://"):
+        github_url = "https://" + github_url
+
+#    if not "github" in github_url:
+#        github_url = github_url
+
+
+    if not github_url.endswith("archive.zip"):
+        github_url += "/master/archive.zip"
+
+    urllib.urlopen(github_url)
+
+#TODO Complete config dict writer
+def config_dict_write(config_dict, config_file, overwrite=True):
+    """
+    Write a config dictionary to a config file.
+    """
+    try:
+        import ConfigParser as configparser
+    except ImportError:
+        import configparser

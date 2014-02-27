@@ -3,7 +3,7 @@
 from setuptools import setup
 import os
 
-# Fix for issues with nosetests
+# Fix for issues with nosetests, experienced on win7
 import multiprocessing
 
 root = os.path.abspath(os.path.dirname(__file__))
@@ -31,7 +31,6 @@ setup(
     description='Commonly Consumed Code Commodities',
     long_description=long_description,
     packages=packages,
-    package_data={'': ['test_config.cfg', 'test_hash']},
     include_package_data=True,
     platforms='any',
     test_suite='nose.collector',

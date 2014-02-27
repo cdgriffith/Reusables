@@ -11,15 +11,18 @@ __version__ = "0.1.3"
 import os
 import sys
 import re
+import tempfile
 import logging
 
 python_version = sys.version_info[0:3]
 version_string = ".".join([str(x) for x in python_version])
-package_root = os.path.abspath(os.path.dirname(__file__))
+current_root = os.path.abspath(".")
 python3x = python_version >= (3, 0)
 python2x = python_version < (3, 0)
 nix_based = os.name == "posix"
 win_based = os.name == "nt"
+temp_directory = tempfile.gettempdir()
+
 logger = logging.getLogger(__name__)
 if python_version >= (2, 7):
     #Surpresses warning that no logger is found if a parent logger is not set
@@ -53,8 +56,7 @@ common_variables = {
     "empty_file_md5": "d41d8cd98f00b204e9800998ecf8427e",
     "empty_file_sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
     "empty_file_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca4959\
-91b7852b855",
-
+91b7852b855"
 }
 
 
@@ -68,7 +70,6 @@ class Namespace(dict):
         namespace['spam']['eggs']
         namespace['spam'].eggs
     """
-
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
             if isinstance(v, dict):
@@ -173,8 +174,7 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
         auto_find = True
 
     if auto_find:
-        cfg_files.extend(find_all_files(".", ext=(".cfg", ".config", ".ini")))
-        cfg_files.extend(find_all_files(package_root,
+        cfg_files.extend(find_all_files(current_root,
                                         ext=(".cfg", ".config", ".ini")))
 
     logger.info("config files to be used: {0}".format(cfg_files))
@@ -184,8 +184,8 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
     else:
         cfg_parser.read(cfg_files)
 
-    return dict((section, dict((k, v) for (k, v) in cfg_parser.items(section)))
-                for section in cfg_parser.sections())
+    return dict((section, dict((k, v) for (k, v) in
+               cfg_parser.items(section))) for section in cfg_parser.sections())
 
 
 def config_namespace(config_file=None, auto_find=False,
@@ -194,7 +194,7 @@ def config_namespace(config_file=None, auto_find=False,
     Return configuration options as a Namespace.
     """
     return Namespace(**config_dict(config_file, auto_find,
-                                   verify, **cfg_options))
+                                   verify,  **cfg_options))
 
 
 def sort_by(unordered_list, key):
@@ -234,7 +234,7 @@ def safe_filename(filename, replacement="_"):
             else replacement
     return safe_name
 
-
+#TODO make safe path smarter
 def safe_path(path, replacement="_"):
     """
     Replace unsafe path characters with underscores. Note that this does not
@@ -245,6 +245,8 @@ def safe_path(path, replacement="_"):
     """
     if not isinstance(path, str):
         raise TypeError("path must be a string")
+    if os.sep not in path:
+        return safe_filename(path, replacement=replacement)
     filename = safe_filename(os.path.basename(path))
     dirname = os.path.dirname(path)
     safe_dirname = ""
@@ -275,6 +277,7 @@ def file_hash(path, hash_type="md5", block_size=65536):
     This function is designed to be non memory intensive.
     """
     import hashlib
+
     hashes = {"md5": hashlib.md5,
               "sha1": hashlib.sha1,
               "sha224": hashlib.sha224,
@@ -282,7 +285,7 @@ def file_hash(path, hash_type="md5", block_size=65536):
               "sha384": hashlib.sha384,
               "sha512": hashlib.sha512}
     if hash_type not in hashes:
-        raise ValueError("Hash type must be: md5, sha1, sha256, or sha512")
+        raise ValueError("Invalid hash type \"{0}\"".format(hash_type))
     hashed = hashes[hash_type]()
     with open(path, "rb") as infile:
         buf = infile.read(block_size)
@@ -333,25 +336,30 @@ def remove_empty_directories(root_directory, dnd=False, ignore_errors=True):
         if (not directories and not files and os.path.exists(root) and
                 root != root_directory and os.path.isdir(root)):
             directory_list.append(root)
+            if not dnd:
+                try:
+                    os.rmdir(root)
+                except OSError as err:
+                    if ignore_errors:
+                        logger.info("{0} could not be deleted".format(root))
+                    else:
+                        raise err
         elif directories and not files:
+            print(directories, files)
             for directory in directories:
                 directory = join_paths(root, directory, strict=True)
-                if os.path.exists(directory) and os.path.isdir(directory):
+                if (os.path.exists(directory) and os.path.isdir(directory) and
+                        not os.listdir(directory)):
                     directory_list.append(directory)
-
-    directory_list = sorted(set(directory_list))
-
-    if not dnd:
-        for directory in directory_list:
-            try:
-                os.rmdir(directory)
-            except OSError as err:
-                if ignore_errors:
-                    logger.info("Directory {0} could not be deleted".format(
-                        directory))
-                else:
-                    raise err
-
+                    if not dnd:
+                        try:
+                            os.rmdir(directory)
+                        except OSError as err:
+                            if ignore_errors:
+                                logger.info("{0} could not be deleted".format(
+                                    directory))
+                            else:
+                                raise err
     return directory_list
 
 
@@ -389,7 +397,7 @@ def extract_all(archive_file, path=".", dnd=True):
     import zipfile
     import tarfile
 
-    if not os.path.exists(archive_file) or os.path.getsize(archive_file):
+    if not os.path.exists(archive_file) or not os.path.getsize(archive_file):
         logger.error("File {0} unextractable".format(archive_file))
         raise OSError("File does not exist or has zero size")
 
@@ -398,7 +406,7 @@ def extract_all(archive_file, path=".", dnd=True):
         archive = zipfile.ZipFile(archive_file)
     elif tarfile.is_tarfile(archive_file):
         logger.debug("File {0} detected as a tar file".format(archive_file))
-        archive = tarfile.TarFile(archive_file)
+        archive = tarfile.open(archive_file)
     else:
         raise TypeError("File is not a zip or tar archive")
 
@@ -417,11 +425,7 @@ def extract_all(archive_file, path=".", dnd=True):
 
 
 def main(command_line_options=""):
-    try:
-        import argparse
-    except ImportError:
-        print("Cannot import argparse module, options cannot be parsed")
-        return
+    import argparse
 
     parser = argparse.ArgumentParser(prog="reusables")
     parser.add_argument("--safe-filename", dest="filename", action='append',
