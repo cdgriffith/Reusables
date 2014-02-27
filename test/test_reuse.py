@@ -202,29 +202,31 @@ Key2 = Value2
     # Windows based path tests
 
     def test_win_join_path_clean(self):
-        if not reusables.win_based:
-            self.skipTest("Windows based test")
+        self._is_win()
         resp = reusables.join_paths('C:\\test', 'clean\\', 'path')
         assert resp == 'C:\\test\\clean\\path', resp
 
     def test_win_join_path_dirty(self):
-        if not reusables.win_based:
-            self.skipTest("Windows based test")
+        self._is_win()
         resp = reusables.join_paths('C:\\test\\', 'D:\\dirty', ' path.file ')
         assert resp == 'D:\\dirty\\path.file', resp
 
     def test_win_join_path_clean_strict(self):
-        if not reusables.win_based:
-            self.skipTest("Windows based test")
+        self._is_win()
         resp = reusables.join_paths('C:\\test', 'clean\\', 'path', strict=True)
         assert resp == 'C:\\test\\clean\\path', resp
 
     def test_win_join_path_dirty_strict(self):
-        if not reusables.win_based:
-            self.skipTest("Windows based test")
+        self._is_win()
         resp = reusables.join_paths('C:\\test\\', 'D:\\dirty',
                                     ' path.file ', strict=True)
         assert resp == 'D:\\dirty\\ path.file ', resp
+
+    def _is_win(self):
+        if not reusables.win_based and sys.version_info >= (2,7):
+            self.skipTest("Windows based test")
+        elif not reusables.win_based and sys.version_info < (2,7):
+            return "Windows based test"
 
     def test_win_join_root(self):
         if not reusables.win_based:

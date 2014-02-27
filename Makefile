@@ -42,7 +42,7 @@ help:
 	@echo ""
 	@echo "all          run clean, test and build"
 	@echo "build        generate source and egg files"
-	@echo "test         test using nosetests"
+	@echo "test         test files using nosetests"
 	@echo "register     register the new version wiht PyPI"
 	@echo "upload       upload results of build to PyPI, will be signed"
 	@echo "help         see this message again"

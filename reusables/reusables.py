@@ -306,17 +306,17 @@ def find_all_files_generator(directory=".", ext=None, name=None):
     elif ext and not isinstance(ext, (list, tuple)):
         raise TypeError("extension must be either one extension or a list")
     for root, dirs, files in os.walk(directory):
-        for file in files:
+        for file_name in files:
             if ext:
                 for end in ext:
-                    if file.lower().endswith(end):
+                    if file_name.lower().endswith(end):
                         break
                 else:
                     continue
             if name:
-                if name.lower() not in file.lower():
+                if name.lower() not in file_name.lower():
                     continue
-            yield join_paths(root, file, strict=True)
+            yield join_paths(root, file_name, strict=True)
 
 
 def find_all_files(directory=".", ext=None, name=None):
@@ -369,8 +369,8 @@ def remove_empty_files(root_directory, dnd=False, ignore_errors=True):
     """
     file_list = []
     for root, directories, files in os.walk(root_directory):
-        for file in files:
-            file_path = join_paths(root, file, strict=True)
+        for file_name in files:
+            file_path = join_paths(root, file_name, strict=True)
             if os.path.isfile(file_path) and not os.path.getsize(file_path):
                 if file_hash(file_path) == variables.empty_file_md5:
                     file_list.append(file_path)

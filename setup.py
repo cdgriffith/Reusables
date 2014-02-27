@@ -36,6 +36,9 @@ setup(
     test_suite='nose.collector',
     classifiers = [
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: Implementation :: PyPy',
         'Development Status :: 4 - Beta',
         'Natural Language :: English',
         'Environment :: Web Environment',
