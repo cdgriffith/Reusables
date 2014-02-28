@@ -28,9 +28,15 @@ if python_version >= (2, 7):
     #Surpresses warning that no logger is found if a parent logger is not set
     logger.addHandler(logging.NullHandler())
 
+ # http://msdn.microsoft.com/en-us/library/aa365247%28v=vs.85%29.aspx#file_and_directory_names
+
 reg_exps = {
-    "safe_filename": re.compile(r'^[\w\d\. _\-\(\)]+$'),
-    "safe_path_windows": re.compile(r'^[\w\d _\-\\\(\)]+$'),
+    "safe_filename": re.compile(r'^([ -~][^><:/"\\\|\?\*])+[^. ]$'),
+    "valid_path_windows": re.compile(r'^(\w:\\|\\\\?|\\\\\?\\|\\\\\.\\)\
+?((?!(CLOCK\$(\\|$)|(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]| )(\..*|(\\|$))|.*\.$))\
+(((?!([><:/"\\\|\?\*]))[\x20-\u10FFFF])+\\?))*$'),
+    "valid_path_nix": re.compile(r'^/?([\x01-\xFF]+/?)*$'),
+    "safe_path_windows":  re.compile(r'^[\w\d _\-\\\(\)]+$'),
     "safe_path_nix": re.compile(r'^[\w\d\. _\-/\(\)]+$'),
     "module_attributes": re.compile(r'__([a-z]+)__ *= *[\'"](.+)[\'"]')
 }
