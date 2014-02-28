@@ -99,8 +99,8 @@ Key2 = Value2
         assert resp
 
     def test_safe_bad_filename(self):
-        resp = reusables.safe_filename("!?!ThatsNotaFileName.\0ThatsASpaceShip^&*")
-        assert not [x for x in ("!", "?", "\0", "^", "&", "*") if x in resp], resp
+        resp = reusables.safe_filename("<\">ThatsNotaFileName.\0ThatsASpaceShip^&*")
+        assert not [x for x in ("\"", "?", "\0", "<", ">", "*") if x in resp], resp
         assert reusables.check_filename(resp)
 
     def test_safe_good_filename(self):
@@ -199,42 +199,6 @@ Key2 = Value2
         resp = reusables.safe_path('path')
         assert resp == 'path', resp
 
-    # Windows based path tests
-
-    def test_win_join_path_clean(self):
-        self._is_win()
-        resp = reusables.join_paths('C:\\test', 'clean\\', 'path')
-        assert resp == 'C:\\test\\clean\\path', resp
-
-    def test_win_join_path_dirty(self):
-        self._is_win()
-        resp = reusables.join_paths('C:\\test\\', 'D:\\dirty', ' path.file ')
-        assert resp == 'D:\\dirty\\path.file', resp
-
-    def test_win_join_path_clean_strict(self):
-        self._is_win()
-        resp = reusables.join_paths('C:\\test', 'clean\\', 'path', strict=True)
-        assert resp == 'C:\\test\\clean\\path', resp
-
-    def test_win_join_path_dirty_strict(self):
-        self._is_win()
-        resp = reusables.join_paths('C:\\test\\', 'D:\\dirty',
-                                    ' path.file ', strict=True)
-        assert resp == 'D:\\dirty\\ path.file ', resp
-
-    def _is_win(self):
-        if not reusables.win_based and sys.version_info >= (2,7):
-            self.skipTest("Windows based test")
-        elif not reusables.win_based and sys.version_info < (2,7):
-            return "Windows based test"
-
-    def test_win_join_root(self):
-        if not reusables.win_based:
-            self.skipTest("Windows based test")
-        resp = reusables.join_root('clean\\')
-        path = os.path.abspath(os.path.join(".", 'clean\\'))
-        assert resp == path, (resp, path)
-
     def _extract_structure(self):
         tar = tarfile.open(test_structure_tar)
         tar.extractall(path=test_root)
@@ -243,7 +207,6 @@ Key2 = Value2
         assert os.path.isdir(test_structure)
 
     def _remove_structure(self):
-
         shutil.rmtree(test_structure)
         assert not os.path.exists(test_structure)
 
@@ -268,6 +231,33 @@ Key2 = Value2
         assert os.path.isdir(test_structure)
         shutil.rmtree(test_structure)
 
+if reusables.win_based:
+    class TestReuseWindows(unittest.TestCase):
+            # Windows based path tests
+
+        def test_win_join_path_clean(self):
+            resp = reusables.join_paths('C:\\test', 'clean\\', 'path')
+            assert resp == 'C:\\test\\clean\\path', resp
+
+        def test_win_join_path_dirty(self):
+            resp = reusables.join_paths('C:\\test\\', 'D:\\dirty', ' path.file ')
+            assert resp == 'D:\\dirty\\path.file', resp
+
+        def test_win_join_path_clean_strict(self):
+            resp = reusables.join_paths('C:\\test', 'clean\\', 'path', strict=True)
+            assert resp == 'C:\\test\\clean\\path', resp
+
+        def test_win_join_path_dirty_strict(self):
+            resp = reusables.join_paths('C:\\test\\', 'D:\\dirty',
+                                        ' path.file ', strict=True)
+            assert resp == 'D:\\dirty\\ path.file ', resp
+
+        def test_win_join_root(self):
+            if not reusables.win_based:
+                self.skipTest("Windows based test")
+            resp = reusables.join_root('clean\\')
+            path = os.path.abspath(os.path.join(".", 'clean\\'))
+            assert resp == path, (resp, path)
 
 if __name__ == "__main__":
     unittest.main()

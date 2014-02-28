@@ -1,6 +1,6 @@
 .PHONY: all test clean help register build
 
-all: clean test build
+all: clean test build register help upload develop
 
 clean:
 	python setup.py clean;

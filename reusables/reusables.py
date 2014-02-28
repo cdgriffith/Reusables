@@ -28,30 +28,61 @@ if python_version >= (2, 7):
     #Surpresses warning that no logger is found if a parent logger is not set
     logger.addHandler(logging.NullHandler())
 
- # http://msdn.microsoft.com/en-us/library/aa365247%28v=vs.85%29.aspx#file_and_directory_names
+# http://msdn.microsoft.com/en-us/library/aa365247%28v=vs.85%29.aspx
 
 reg_exps = {
-    "safe_filename": re.compile(r'^([ -~][^><:/"\\\|\?\*])+[^. ]$'),
-    "valid_path_windows": re.compile(r'^(\w:\\|\\\\?|\\\\\?\\|\\\\\.\\)\
-?((?!(CLOCK\$(\\|$)|(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]| )(\..*|(\\|$))|.*\.$))\
+    "path": {
+        #TODO add more windows tests
+        #TODO improve filename safe and valid
+        "windows": {
+            "valid": re.compile(r'^([a-zA-Z]:\\|\\\\?|\\\\\?\\|\\\\\.\\)?\
+((?!(CLOCK\$(\\|$)|(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]| )(\..*|(\\|$))|.*\.$))\
 (((?!([><:/"\\\|\?\*]))[\x20-\u10FFFF])+\\?))*$'),
-    "valid_path_nix": re.compile(r'^/?([\x01-\xFF]+/?)*$'),
-    "safe_path_windows":  re.compile(r'^[\w\d _\-\\\(\)]+$'),
-    "safe_path_nix": re.compile(r'^[\w\d\. _\-/\(\)]+$'),
-    "module_attributes": re.compile(r'__([a-z]+)__ *= *[\'"](.+)[\'"]')
+            "safe": re.compile(r'^([a-zA-Z]:\\)?[\w\d _\-\\\(\)]+$'),
+            "filename": re.compile(r'^((?![><:/"\\\|\?\*])[ -~])+$')
+        },
+        #TODO check linux compliance
+        "linux": {
+            "valid": re.compile(r'^/?([\x01-\xFF]+/?)*$'),
+            "safe": re.compile(r'^[\w\d\. _\-/\(\)]+$'),
+            "filename": re.compile(r'^((?![><:/"\\\|\?\*])[ -~])+$')
+        },
+        #TODO check mac compliance
+        "mac": {
+            "valid": re.compile(r'^/?([\x01-\xFF]+/?)*$'),
+            "safe": re.compile(r'^[\w\d\. _\-/\(\)]+$'),
+            "filename": re.compile(r'^((?![><:/"\\\|\?\*])[ -~])+$')
+        }
+    },
+    "python": {
+        #TODO add module tests
+        "module": {
+            "attributes": re.compile(r'__([a-z]+)__ *= *[\'"](.+)[\'"]'),
+            "imports": re.compile(r'^ *\t*(?:import|from)[ ]+(?:(\w+)[, ]*)+'),
+            "functions": re.compile(r'^ *\t*def +(\w+)\('),
+            "classes": re.compile(r'^ *\t*class +(\w+)\('),
+            "docstrings": re.compile(r'^ *\t*"""(.*)"""|\'\'\'(.*)\'\'\'')
+        }
+    },
+    "pii": {
+        #TODO add pii tests
+        "phone_number": {
+            "us": re.compile(r'(\(? ?\d{3} ?\)?[\. \-]?)?\d{3}[\. \-]?\d{4}')
+        }
+    }
 }
 
 common_exts = {
     "pictures": (".jpeg", ".jpg", ".png", ".gif", ".bmp", ".tif", ".tiff",
                  ".ico", ".mng", ".tga", ".psd", ".xcf", ".svg", ".icns"),
-    "video": (".mkv", ".avi", ".mp4", ".mov", ".flv", ".mpeg",  ".mpg", ".3gp",
+    "video": (".mkv", ".avi", ".mp4", ".mov", ".flv", ".mpeg", ".mpg", ".3gp",
               ".m4v", ".ogv", ".asf", ".m1v", ".m2v", ".mpe", ".ogv", ".wmv",
               ".rm", ".qt"),
     "music": (".mp3", ".ogg", ".wav", ".flac", ".aif", ".aiff", ".au", ".m4a",
               ".wma", ".mp2", ".m4a", ".m4p", ".aac", ".ra", ".mid", ".midi",
               ".mus", ".psf"),
     "documents": (".doc", ".docx", ".pdf", ".xls", ".xlsx", ".ppt", ".pptx",
-                  ".csv", ".epub", ".gdoc", ".odt", ".rtf",  ".txt", ".info",
+                  ".csv", ".epub", ".gdoc", ".odt", ".rtf", ".txt", ".info",
                   ".xps", ".gslides", ".gsheet"),
     "archives": (".zip", ".rar", ".7z", ".tar.gz", ".tgz", ".gz", ".bzip",
                  ".bzip2", ".bz2", ".xz", ".lzma", ".bin", ".tar"),
@@ -59,10 +90,14 @@ common_exts = {
 }
 
 common_variables = {
-    "empty_file_md5": "d41d8cd98f00b204e9800998ecf8427e",
-    "empty_file_sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
-    "empty_file_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca4959\
-91b7852b855"
+    "hashes": {
+        "empty_file": {
+            "md5": "d41d8cd98f00b204e9800998ecf8427e",
+            "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b\
+7852b855"
+        },
+    },
 }
 
 
@@ -76,6 +111,7 @@ class Namespace(dict):
         namespace['spam']['eggs']
         namespace['spam'].eggs
     """
+
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
             if isinstance(v, dict):
@@ -101,7 +137,7 @@ class Namespace(dict):
         del self.__dict__[item]
 
     def __repr__(self):
-        return "<Namespace: {0}>".format(str(self.to_dict()))
+        return "<Namespace: {0}...>".format(str(self.to_dict())[0:32])
 
     def __str__(self):
         return str(self.to_dict())
@@ -114,6 +150,20 @@ class Namespace(dict):
                 v = self.to_dict(v)
             out_dict[k] = v
         return out_dict
+
+    def tree_view(self):
+        base = self.to_dict()
+        tree_view(base)
+
+
+def tree_view(dictionary, level=0):
+    """
+    View a dictionary as a tree.
+    """
+    for key in dictionary:
+        print("{0}{1}".format("    " * level, key))
+        if isinstance(dictionary[key], dict):
+            tree_view(dictionary[key], level + 1)
 
 # Some may ask why make everything into namespaces, I ask why not
 regex = Namespace(**reg_exps)
@@ -133,7 +183,7 @@ def join_paths(*paths, **kwargs):
             kwargs.get('strict') else next_path
         path = os.path.join(path, next_path)
     if (not kwargs.get('strict') and
-                "." not in os.path.basename(path) and
+            "." not in os.path.basename(path) and
             not path.endswith(os.sep)):
         path += os.sep
     return path if kwargs.get('strict') else safe_path(path)
@@ -160,11 +210,11 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
     if not config_file:
         config_file = []
     try:
-        import ConfigParser as configparser
+        import ConfigParser
     except ImportError:
-        import configparser
+        import configparser as ConfigParser
 
-    cfg_parser = configparser.ConfigParser(**cfg_options)
+    cfg_parser = ConfigParser.ConfigParser(**cfg_options)
 
     cfg_files = []
 
@@ -190,8 +240,8 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
     else:
         cfg_parser.read(cfg_files)
 
-    return dict((section, dict((k, v) for (k, v) in
-               cfg_parser.items(section))) for section in cfg_parser.sections())
+    return dict((section, dict((k, v) for (k, v) in cfg_parser.items(section)))
+                for section in cfg_parser.sections())
 
 
 def config_namespace(config_file=None, auto_find=False,
@@ -200,7 +250,7 @@ def config_namespace(config_file=None, auto_find=False,
     Return configuration options as a Namespace.
     """
     return Namespace(**config_dict(config_file, auto_find,
-                                   verify,  **cfg_options))
+                                   verify, **cfg_options))
 
 
 def sort_by(unordered_list, key):
@@ -219,7 +269,7 @@ def check_filename(filename):
     """
     if not isinstance(filename, str):
         raise TypeError("filename must be a string")
-    if regex.safe_filename.search(filename):
+    if regex.path.linux.filename.search(filename):
         return True
     return False
 
@@ -232,13 +282,14 @@ def safe_filename(filename, replacement="_"):
     """
     if not isinstance(filename, str):
         raise TypeError("filename must be a string")
-    if regex.safe_filename.search(filename):
+    if regex.path.linux.filename.search(filename):
         return filename
     safe_name = ""
     for char in filename:
-        safe_name += char if regex.safe_filename.search(char) \
+        safe_name += char if regex.path.linux.filename.search(char) \
             else replacement
     return safe_name
+
 
 #TODO make safe path smarter
 def safe_path(path, replacement="_"):
@@ -256,7 +307,7 @@ def safe_path(path, replacement="_"):
     filename = safe_filename(os.path.basename(path))
     dirname = os.path.dirname(path)
     safe_dirname = ""
-    regexp = regex.safe_path_windows if win_based else regex.safe_path_nix
+    regexp = regex.path.windows.safe if win_based else regex.path.linux.safe
     if win_based and dirname.find(":\\") == 1 and dirname[0].isalpha():
         safe_dirname = dirname[0:3]
         dirname = dirname[3:]
@@ -378,7 +429,7 @@ def remove_empty_files(root_directory, dnd=False, ignore_errors=True):
         for file_name in files:
             file_path = join_paths(root, file_name, strict=True)
             if os.path.isfile(file_path) and not os.path.getsize(file_path):
-                if file_hash(file_path) == variables.empty_file_md5:
+                if file_hash(file_path) == variables.hashes.empty_file.md5:
                     file_list.append(file_path)
 
     file_list = sorted(set(file_list))
