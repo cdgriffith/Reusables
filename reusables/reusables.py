@@ -13,6 +13,7 @@ import sys
 import re
 import tempfile
 import logging
+from datetime import datetime as _datetime
 
 python_version = sys.version_info[0:3]
 version_string = ".".join([str(x) for x in python_version])
@@ -35,9 +36,9 @@ reg_exps = {
         #TODO add more windows tests
         #TODO improve filename safe and valid
         "windows": {
-            "valid": re.compile(r'^([a-zA-Z]:\\|\\\\?|\\\\\?\\|\\\\\.\\)?\
-((?!(CLOCK\$(\\|$)|(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]| )(\..*|(\\|$))|.*\.$))\
-(((?!([><:/"\\\|\?\*]))[\x20-\u10FFFF])+\\?))*$'),
+            "valid": re.compile(r'^(?:[a-zA-Z]:\\|\\\\?|\\\\\?\\|\\\\\.\\)\
+?(?:(?!(CLOCK\$(\\|$)|(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]| )\
+(?:\..*|(\\|$))|.*\.$))(?:(?:(?![><:/"\\\|\?\*])[\x20-\u10FFFF])+\\?))*$'),
             "safe": re.compile(r'^([a-zA-Z]:\\)?[\w\d _\-\\\(\)]+$'),
             "filename": re.compile(r'^((?![><:/"\\\|\?\*])[ -~])+$')
         },
@@ -500,6 +501,43 @@ spaces, hyphens, underscores, periods (unix), separator, and drive (win)")
         for path in args.path:
             print(safe_path(path))
 
+
+class DateTime(_datetime):
+
+    def __new__(cls, year=None, month=None, day=None, hour=0, minute=0,
+                second=0, microsecond=0, tzinfo=None):
+        return cls.now()if not year else _datetime.__new__(cls, year, month,
+               day, hour, minute, second, microsecond, tzinfo)
+
+    #TODO add format tests
+    def format(self, desired_format, *args, **kwargs):
+        df = re.sub(r"\{(?:12)?\-?hours?\}", "%H", desired_format)  # hour
+        df = re.sub(r"\{24\-?hours?\}", "%I", df)  # hour 24
+        df = re.sub(r"\{seco?n?d?s?\}", "%S", df)  # seconds
+        df = re.sub(r"\{minu?t?e?s?\}", "%m", df)  # minutes
+        df = re.sub(r"\{micro(?:second)?s?\}", "%f", df)  # microseconds
+        df = re.sub(r"\{(?:(tz|timezone))?\}", "%Z", df)  # timezone
+        df = re.sub(r"\{years?\}", "%y", df)  # years
+        df = re.sub(r"\{full\-?years?\}", "%Y", df)  # 4 digit years
+        df = re.sub(r"\{months?\}", "%m", df)  # months
+        df = re.sub(r"\{months?name\}", "%b", df)  # short month name
+        df = re.sub(r"\{months?fullname\}", "%B", df)  # full month name
+        df = re.sub(r"\{days?\}", "%d", df)  # day number
+        df = re.sub(r"\{weekdays?\}", "%w", df)  # day of week number
+        df = re.sub(r"\{yeardays?\}", "%j", df)  # day of year number
+        df = re.sub(r"\{(?:week)?days?name\}", "%a", df)  # day of week name
+        df = re.sub(r"\{(?:week)?days?fullname\}", "%A", df)  # weekday fullname
+        df = re.sub(r"\{weeks?\}", "%U", df)  # week of year starting on sunday
+        df = re.sub(r"\{mon(?:day)?weeks?\}", "%W", df)  # week starting moday
+        df = re.sub(r"\{date\}", "%x", df)
+        df = re.sub(r"\{time\}", "%X", df)
+        df = re.sub(r"\{datetime\}", "%c", df)
+        df = re.sub(r"\{(?:utc)?offset\}", "%z", df)
+        df = re.sub(r"\{periods?\}", "%p", df)
+        return self.strftime(df.format(*args, **kwargs))
+
+    #TODO add 'to dict' functionality
+    #TODO add 'to tuple' functionality / get position
 
 if __name__ == "__main__":
     main()
