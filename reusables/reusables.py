@@ -11,9 +11,10 @@ __version__ = "0.1.3"
 import os
 import sys
 import re
-import tempfile
-import logging
+import tempfile as _tempfile
+import logging as _logging
 from datetime import datetime as _datetime
+import time as _time
 
 python_version = sys.version_info[0:3]
 version_string = ".".join([str(x) for x in python_version])
@@ -22,12 +23,12 @@ python3x = python_version >= (3, 0)
 python2x = python_version < (3, 0)
 nix_based = os.name == "posix"
 win_based = os.name == "nt"
-temp_directory = tempfile.gettempdir()
+temp_directory = _tempfile.gettempdir()
 
-logger = logging.getLogger(__name__)
+logger = _logging.getLogger(__name__)
 if python_version >= (2, 7):
     #Surpresses warning that no logger is found if a parent logger is not set
-    logger.addHandler(logging.NullHandler())
+    logger.addHandler(_logging.NullHandler())
 
 # http://msdn.microsoft.com/en-us/library/aa365247%28v=vs.85%29.aspx
 
@@ -70,6 +71,31 @@ reg_exps = {
         "phone_number": {
             "us": re.compile(r'(\(? ?\d{3} ?\)?[\. \-]?)?\d{3}[\. \-]?\d{4}')
         }
+    },
+    "datetime": {
+        "%I": re.compile(r"\{(?:12)?\-?hours?\}"),
+        "%H": re.compile(r"\{24\-?hours?\}"),
+        "%S": re.compile(r"\{seco?n?d?s?\}"),
+        "%M": re.compile(r"\{minu?t?e?s?\}"),
+        "%f": re.compile(r"\{micro\-?(?:second)?s?\}"),
+        "%Z": re.compile(r"\{(?:(tz|time\-?zone))?\}"),
+        "%y": re.compile(r"\{years?\}"),
+        "%Y": re.compile(r"\{full\-?years?\}"),
+        "%m": re.compile(r"\{months?\}"),
+        "%b": re.compile(r"\{months?\-?name\}"),
+        "%B": re.compile(r"\{months?\-?fullname\}"),
+        "%d": re.compile(r"\{days?\}"),
+        "%w": re.compile(r"\{week\-?days?\}"),
+        "%j": re.compile(r"\{year\-?days?\}"),
+        "%a": re.compile(r"\{(?:week)?\-?days?\-?name\}"),
+        "%A": re.compile(r"\{(?:week)?\-?days?\-?fullname\}"),
+        "%U": re.compile(r"\{weeks?\}"),
+        "%W": re.compile(r"\{mon(?:day)?\-?weeks?\}"),
+        "%x": re.compile(r"\{date\}"),
+        "%X": re.compile(r"\{time\}"),
+        "%c": re.compile(r"\{date\-?time\}"),
+        "%z": re.compile(r"\{(?:utc)?\-?offset\}"),
+        "%p": re.compile(r"\{periods?\}"),
     }
 }
 
@@ -152,19 +178,46 @@ class Namespace(dict):
             out_dict[k] = v
         return out_dict
 
-    def tree_view(self):
+    def tree_view(self, sep="    "):
         base = self.to_dict()
-        tree_view(base)
+        tree_view(base, sep=sep)
 
 
-def tree_view(dictionary, level=0):
+def tree_view(dictionary, level=0, sep="|  "):
     """
     View a dictionary as a tree.
     """
     for key in dictionary:
-        print("{0}{1}".format("    " * level, key))
+        print("{0}{1}".format(sep * level, key))
         if isinstance(dictionary[key], dict):
             tree_view(dictionary[key], level + 1)
+
+#TODO add tests for os_tree
+def os_tree(directory, show_files=True):
+    full_list = []
+    for root, dirs, files in os.walk(directory):
+        full_list.extend([os.path.join(root, d) + os.sep for d in dirs])
+        full_list.extend([os.path.join(root, f) for f in files])
+    tree = dict(root=dict())
+    for item in full_list:
+        separated = item.split(os.sep)[1:]
+        is_dir = separated[-1:] == ['']
+        if is_dir:
+            separated = separated[:-1]
+        parent = tree['root']
+        length = len(separated)
+        for index, path in enumerate(separated):
+            if path in parent:
+                parent = parent[path]
+                continue
+            elif show_files or (not show_files and index+1 < length):
+                parent[path] = dict()
+            elif not show_files and index+1 == length:
+                break
+
+            parent = parent[path]
+    return tree
+
 
 # Some may ask why make everything into namespaces, I ask why not
 regex = Namespace(**reg_exps)
@@ -482,6 +535,47 @@ def extract_all(archive_file, path=".", dnd=True):
         archive.close()
 
 
+#TODO add datetime tests
+class DateTime(_datetime):
+
+    def __new__(cls, year=None, month=None, day=None, hour=0, minute=0,
+                second=0, microsecond=0, tzinfo=None):
+        #Taken from datetime.datetime.now()
+        if year is not None:
+            return super(DateTime, cls).__new__(cls, year, month, day, hour,
+                                                minute, second, microsecond,
+                                                tzinfo)
+        if tzinfo is not None and not isinstance(tzinfo, _datetime.tzinfo):
+            raise TypeError("tzinfo argument must be None or a tzinfo subclass")
+        converter = _time.localtime if tzinfo is None else _time.gmtime
+        t = _time.time()
+        t, frac = divmod(t, 1.0)
+        us = int(frac * 1e6)
+        tz = None
+        if us == 1000000:
+            t += 1
+            us = 0
+        y, m, d, hh, mm, ss, weekday, jday, dst = converter(t)
+        ss = min(ss, 59)
+        return super(DateTime, cls).__new__(cls, y, m, d, hh, mm, ss, us, tz)
+
+    def __init__(self):
+        self.__dict__ = dict(
+            year=self.year, month=self.month, day=self.day, hour=self.hour,
+            minute=self.minute, second=self.second,
+            microsecond=self.microsecond, timezone=self.tzinfo)
+
+    #TODO add format tests
+    def format(self, desired_format, *args, **kwargs):
+        for strf, exp in regex.datetime.items():
+            desired_format = exp.sub(strf, desired_format)
+        return self.strftime(desired_format.format(*args, **kwargs))
+
+    def __iter__(self):
+        for k, v in self.__dict__.items():
+            yield (k, v)
+
+
 def main(command_line_options=""):
     import argparse
 
@@ -501,43 +595,6 @@ spaces, hyphens, underscores, periods (unix), separator, and drive (win)")
         for path in args.path:
             print(safe_path(path))
 
-
-class DateTime(_datetime):
-
-    def __new__(cls, year=None, month=None, day=None, hour=0, minute=0,
-                second=0, microsecond=0, tzinfo=None):
-        return cls.now()if not year else _datetime.__new__(cls, year, month,
-               day, hour, minute, second, microsecond, tzinfo)
-
-    #TODO add format tests
-    def format(self, desired_format, *args, **kwargs):
-        df = re.sub(r"\{(?:12)?\-?hours?\}", "%H", desired_format)  # hour
-        df = re.sub(r"\{24\-?hours?\}", "%I", df)  # hour 24
-        df = re.sub(r"\{seco?n?d?s?\}", "%S", df)  # seconds
-        df = re.sub(r"\{minu?t?e?s?\}", "%m", df)  # minutes
-        df = re.sub(r"\{micro(?:second)?s?\}", "%f", df)  # microseconds
-        df = re.sub(r"\{(?:(tz|timezone))?\}", "%Z", df)  # timezone
-        df = re.sub(r"\{years?\}", "%y", df)  # years
-        df = re.sub(r"\{full\-?years?\}", "%Y", df)  # 4 digit years
-        df = re.sub(r"\{months?\}", "%m", df)  # months
-        df = re.sub(r"\{months?name\}", "%b", df)  # short month name
-        df = re.sub(r"\{months?fullname\}", "%B", df)  # full month name
-        df = re.sub(r"\{days?\}", "%d", df)  # day number
-        df = re.sub(r"\{weekdays?\}", "%w", df)  # day of week number
-        df = re.sub(r"\{yeardays?\}", "%j", df)  # day of year number
-        df = re.sub(r"\{(?:week)?days?name\}", "%a", df)  # day of week name
-        df = re.sub(r"\{(?:week)?days?fullname\}", "%A", df)  # weekday fullname
-        df = re.sub(r"\{weeks?\}", "%U", df)  # week of year starting on sunday
-        df = re.sub(r"\{mon(?:day)?weeks?\}", "%W", df)  # week starting moday
-        df = re.sub(r"\{date\}", "%x", df)
-        df = re.sub(r"\{time\}", "%X", df)
-        df = re.sub(r"\{datetime\}", "%c", df)
-        df = re.sub(r"\{(?:utc)?offset\}", "%z", df)
-        df = re.sub(r"\{periods?\}", "%p", df)
-        return self.strftime(df.format(*args, **kwargs))
-
-    #TODO add 'to dict' functionality
-    #TODO add 'to tuple' functionality / get position
 
 if __name__ == "__main__":
     main()
