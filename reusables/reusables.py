@@ -13,7 +13,8 @@ import sys
 import re
 import tempfile as _tempfile
 import logging as _logging
-from datetime import datetime as _datetime
+import datetime as _datetime
+#from datetime import tzinfo as _tzinfo
 import time as _time
 
 python_version = sys.version_info[0:3]
@@ -69,33 +70,40 @@ reg_exps = {
     "pii": {
         #TODO add pii tests
         "phone_number": {
-            "us": re.compile(r'(\(? ?\d{3} ?\)?[\. \-]?)?\d{3}[\. \-]?\d{4}')
+            "us": re.compile(r'((?:\(? ?\d{3} ?\)?[\. \-]?)?\d{3}[\. \-]?\d{4})')
         }
     },
     "datetime": {
-        "%I": re.compile(r"\{(?:12)?\-?hours?\}"),
-        "%H": re.compile(r"\{24\-?hours?\}"),
-        "%S": re.compile(r"\{seco?n?d?s?\}"),
-        "%M": re.compile(r"\{minu?t?e?s?\}"),
-        "%f": re.compile(r"\{micro\-?(?:second)?s?\}"),
-        "%Z": re.compile(r"\{(?:(tz|time\-?zone))?\}"),
-        "%y": re.compile(r"\{years?\}"),
-        "%Y": re.compile(r"\{full\-?years?\}"),
-        "%m": re.compile(r"\{months?\}"),
-        "%b": re.compile(r"\{months?\-?name\}"),
-        "%B": re.compile(r"\{months?\-?fullname\}"),
-        "%d": re.compile(r"\{days?\}"),
-        "%w": re.compile(r"\{week\-?days?\}"),
-        "%j": re.compile(r"\{year\-?days?\}"),
-        "%a": re.compile(r"\{(?:week)?\-?days?\-?name\}"),
-        "%A": re.compile(r"\{(?:week)?\-?days?\-?fullname\}"),
-        "%U": re.compile(r"\{weeks?\}"),
-        "%W": re.compile(r"\{mon(?:day)?\-?weeks?\}"),
-        "%x": re.compile(r"\{date\}"),
-        "%X": re.compile(r"\{time\}"),
-        "%c": re.compile(r"\{date\-?time\}"),
-        "%z": re.compile(r"\{(?:utc)?\-?offset\}"),
-        "%p": re.compile(r"\{periods?\}"),
+        "format": {
+            "%I": re.compile(r"\{(?:12)?\-?hours?\}"),
+            "%H": re.compile(r"\{24\-?hours?\}"),
+            "%S": re.compile(r"\{seco?n?d?s?\}"),
+            "%M": re.compile(r"\{minu?t?e?s?\}"),
+            "%f": re.compile(r"\{micro\-?(?:second)?s?\}"),
+            "%Z": re.compile(r"\{(?:(tz|time\-?zone))?\}"),
+            "%y": re.compile(r"\{years?\}"),
+            "%Y": re.compile(r"\{full\-?years?\}"),
+            "%m": re.compile(r"\{months?\}"),
+            "%b": re.compile(r"\{months?\-?name\}"),
+            "%B": re.compile(r"\{months?\-?fullname\}"),
+            "%d": re.compile(r"\{days?\}"),
+            "%w": re.compile(r"\{week\-?days?\}"),
+            "%j": re.compile(r"\{year\-?days?\}"),
+            "%a": re.compile(r"\{(?:week)?\-?days?\-?name\}"),
+            "%A": re.compile(r"\{(?:week)?\-?days?\-?fullname\}"),
+            "%U": re.compile(r"\{weeks?\}"),
+            "%W": re.compile(r"\{mon(?:day)?\-?weeks?\}"),
+            "%x": re.compile(r"\{date\}"),
+            "%X": re.compile(r"\{time\}"),
+            "%c": re.compile(r"\{date\-?time\}"),
+            "%z": re.compile(r"\{(?:utc)?\-?offset\}"),
+            "%p": re.compile(r"\{periods?\}"),
+            "%Y-%m-%dT%H:%M:%S": re.compile(r"\{iso-?(?:format)?\}")
+        },
+        #TODO add date and time tests
+        "date": re.compile(r"((?:[\d]{2}|[\d]{4})[\- _\\/]?[\d]{2}[\- _\\/]?[\d]{2})"),
+        "time": re.compile(r"([\d]{2}:[\d]{2}(?:\.[\d]{6})?)"),
+        "datetime": re.compile(r"((?:[\d]{2}|[\d]{4})[\- _\\/]?[\d]{2}[\- _\\/]?[\d]{2}T[\d]{2}:[\d]{2}(?:\.[\d]{6})?)")
     }
 }
 
@@ -214,7 +222,6 @@ def os_tree(directory, show_files=True):
                 parent[path] = dict()
             elif not show_files and index+1 == length:
                 break
-
             parent = parent[path]
     return tree
 
@@ -280,8 +287,6 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
                 raise TypeError("config_files must be a list or a string")
         else:
             cfg_files.extend(config_file)
-    else:
-        auto_find = True
 
     if auto_find:
         cfg_files.extend(find_all_files(current_root,
@@ -294,7 +299,7 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
     else:
         cfg_parser.read(cfg_files)
 
-    return dict((section, dict((k, v) for (k, v) in cfg_parser.items(section)))
+    return dict((section, dict(cfg_parser.items(section)))
                 for section in cfg_parser.sections())
 
 
@@ -411,7 +416,6 @@ def find_all_files_generator(directory=".", ext=None, name=None):
     Walk through a file directory and return an iterator of files
     that match requirements.
     """
-    print(ext)
     if ext and isinstance(ext, str):
         ext = [ext]
     elif ext and not isinstance(ext, (list, tuple)):
@@ -456,7 +460,6 @@ def remove_empty_directories(root_directory, dnd=False, ignore_errors=True):
                     else:
                         raise err
         elif directories and not files:
-            print(directories, files)
             for directory in directories:
                 directory = join_paths(root, directory, strict=True)
                 if (os.path.exists(directory) and os.path.isdir(directory) and
@@ -536,7 +539,7 @@ def extract_all(archive_file, path=".", dnd=True):
 
 
 #TODO add datetime tests
-class DateTime(_datetime):
+class DateTime(_datetime.datetime):
 
     def __new__(cls, year=None, month=None, day=None, hour=0, minute=0,
                 second=0, microsecond=0, tzinfo=None):
@@ -545,7 +548,8 @@ class DateTime(_datetime):
             return super(DateTime, cls).__new__(cls, year, month, day, hour,
                                                 minute, second, microsecond,
                                                 tzinfo)
-        if tzinfo is not None and not isinstance(tzinfo, _datetime.tzinfo):
+        if tzinfo is not None and not isinstance(tzinfo,
+                                                 _datetime.datetime.tzinfo):
             raise TypeError("tzinfo argument must be None or a tzinfo subclass")
         converter = _time.localtime if tzinfo is None else _time.gmtime
         t = _time.time()
@@ -559,7 +563,7 @@ class DateTime(_datetime):
         ss = min(ss, 59)
         return super(DateTime, cls).__new__(cls, y, m, d, hh, mm, ss, us, tz)
 
-    def __init__(self):
+    def __init__(self, *args):
         self.__dict__ = dict(
             year=self.year, month=self.month, day=self.day, hour=self.hour,
             minute=self.minute, second=self.second,
@@ -567,13 +571,24 @@ class DateTime(_datetime):
 
     #TODO add format tests
     def format(self, desired_format, *args, **kwargs):
-        for strf, exp in regex.datetime.items():
+        for strf, exp in regex.datetime.format.items():
             desired_format = exp.sub(strf, desired_format)
         return self.strftime(desired_format.format(*args, **kwargs))
 
     def __iter__(self):
         for k, v in self.__dict__.items():
             yield (k, v)
+
+    @classmethod
+    def fromiso(cls, datetime):
+        try:
+            assert regex.datetime.datetime.match(datetime).groups()[0]
+        except (ValueError, AssertionError, IndexError):
+            raise TypeError("String is not in ISO format")
+        try:
+            return cls.strptime(datetime, "%Y-%m-%dT%H:%M:%S.%f")
+        except ValueError:
+            return cls.strptime(datetime, "%Y-%m-%dT%H:%M:%S")
 
 
 def main(command_line_options=""):

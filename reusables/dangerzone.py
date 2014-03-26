@@ -15,7 +15,9 @@ Have fun!
 
 Copyright (c) 2014  - Chris Griffith - MIT License
 """
-
+import os
+import sys
+from reusables import Namespace, config_dict, python2x
 _reuse_cache = dict()  # Could use DefaultDict but eh, it's another import
 
 
@@ -56,33 +58,44 @@ def reuse(func):
         return result
     return wrapper
 
-#TODO complete import from github
-def import_from_github(github_url, file_location):
+#TODO change to memory import
+# That would allow for systems without disk access to work
+def url_import(url, import_name):
+    import tempfile
+    import importlib
     try:
-        import urllib2 as urllib
+        import urllib.request as urllib
     except ImportError:
         import urllib
 
-    github_url = github_url.lower().strip()
-
-    if not github_url.startswith("https://"):
-        github_url = "https://" + github_url
-
-#    if not "github" in github_url:
-#        github_url = github_url
-
-
-    if not github_url.endswith("archive.zip"):
-        github_url += "/master/archive.zip"
-
-    urllib.urlopen(github_url)
-
-#TODO Complete config dict writer
-def config_dict_write(config_dict, config_file, overwrite=True):
-    """
-    Write a config dictionary to a config file.
-    """
+    tmpdir = tempfile.gettempdir()
+    url = url.lower().strip()
+    data = urllib.urlopen(url)
+    filename = 'tempdir/{0}.py'.format(import_name)
+    with open(filename, 'w') as outfile:
+        outfile.write(data.read())
+    sys.path.append(tmpdir)
+    importlib.__import__(import_name)
     try:
-        import ConfigParser as configparser
-    except ImportError:
-        import configparser
+        os.unlink(filename)
+        os.rmdir(tmpdir)
+    except OSError:
+        print("Could not remove imported file")
+
+
+
+#TODO consider options for a true Config namespace
+class ConfigNamespace(Namespace):
+
+    def __init__(self, config_file=None, auto_find=False,
+                     verify=True, **cfg_options):
+        cd = config_dict(config_file=config_file,
+                         auto_find=auto_find,
+                         verify=verify,
+                         **cfg_options)
+        self.config_file = config_file
+        super(ConfigNamespace, self).__init__(**cd)
+
+    def save(self, filename=None):
+        if filename:
+            self.config_file = filename
