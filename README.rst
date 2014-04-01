@@ -52,6 +52,9 @@ treated as either a dict or a namespace when accessed.
         dict(namespace_breakfast.spam.eggs['sausage'])
         # {'bacon': 'yummy'}
 
+        repr(namespace_breakfast)
+        # "<Namespace: {'spam': {'eggs': {'sausage': {'...>"
+
 Additional Info
 ---------------
 

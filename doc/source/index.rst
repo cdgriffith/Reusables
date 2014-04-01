@@ -9,8 +9,20 @@ Commonly Consumed Code Commodities
 The reusables library is a reference of python functions and classes that
 programmers may find themselves often recreating.
 
-Example
-~~~~~~~
+It includes:
+
+- Archive extraction
+- Path (file and folders) management
+- Friendly datetime formatting
+- Easy config parsing
+- Common regular expressions and file extensions
+- Namespace class
+
+As well as other fun and useful features.
+
+
+Examples
+~~~~~~~~
 
 .. code:: python
 
@@ -25,40 +37,34 @@ Example
         reusables.find_all_files(".", ext=reusables.exts.pictures)
         # ['/home/user/background.jpg', '/home/user/private.png']
 
+		###
+		### DateTime Class - Adds easy formatting to datetime objects
+		###
+
+	    reusables.DateTime().format("It's already {month-fullname} but it doesn't feel like {year-fullname} to me yet")
+	    # "It's already April but it doesn't feel like 2014 to me yet"
+
+		current_time = reusables.DateTime.now() # same as datetime.datetime.now(), returned as DateTime object
+
+		current_time.format("Wake up {son}, it's {hours}:{minutes} {period}! I don't care if it's a {day-fullname}, {command}!",
+							son="John",
+							command="Get out of bed!")
+		# "Wake up John, it's 09:51 AM! I don't care if it's a Saturday, Get out of bed!!"
+
+		###
+		### Namespace Class - Making dicts into easy to reference objects
+		###
+
 
 Overview
 --------
 
-Most python libraries are designed with the mindset of 'do exactly what
-the input dictates, nothing else.' Which in general is the better way to
-approach the problem allowing for the developer to fix their code.
-However reusables is made to work with more human input. The idea is that it
-will be used in cases like reading user inputted options or working with
-python directly from the terminal or ipython.
+Reusables doesn't have an overall theme or niche of functionality. Python
+is often held high by developers that it is a 'batteries' included, and this
+is simply another assorted battery pack.
 
-Reusables with try smooth input into what you *really* wanted it to say.
-Let's use joining paths as an example, it's uncommon to join two root
-paths together and actually want just the second root path. Nor is it
-common to have spaces before and after the path or filename and actually
-want them there.
-
-Reusables fixes your blunders for you:
-
-.. code:: python
-
-        join_paths('/home', '/user/', ' Desktop/example.file ')
-        # '/home/user/Desktop/example.file'
-
-However in these cases there is also a 'strict' option provided, which
-should be used if you actually want exactly what you inputted, and are
-just using the library for reference convenience.
-
-.. code:: python
-
-        join_paths('/home', '/user/', ' Desktop/example.file ', strict=True)
-        # '/user/ Desktop/example.file '
-
-
+The main functions are all in a single file that can also be copied into
+any project, or simply copy the code you need directly into your project.
 
 License
 -------
