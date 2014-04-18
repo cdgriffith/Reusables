@@ -524,17 +524,15 @@ def extract_all(archive_file, path=".", dnd=True):
         raise TypeError("File is not a zip or tar archive")
 
     logger.debug("Extracting files to {0}".format(path))
+
     try:
         archive.extractall(path=path)
-    except Exception as err:
-        logger.exception("Could not unarchive file")
-        raise err
-    else:
-        if not dnd:
-            logger.debug("Archive {0} will now be deleted".format(archive_file))
-            os.unlink(archive_file)
     finally:
         archive.close()
+
+    if not dnd:
+        logger.debug("Archive {0} will now be deleted".format(archive_file))
+        os.unlink(archive_file)
 
 
 class DateTime(_datetime.datetime):

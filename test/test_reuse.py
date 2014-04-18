@@ -6,12 +6,14 @@ import os
 import sys
 import shutil
 import tarfile
+import tempfile
 import datetime
 import reusables
 
 test_root = os.path.abspath(os.path.dirname(__file__))
 
 test_structure_tar = os.path.join(test_root, "test_structure.tar.gz")
+test_structure_zip = os.path.join(test_root, "test_structure.zip")
 test_structure = os.path.join(test_root, "test_structure")
 
 
@@ -240,6 +242,36 @@ Key2 = Value2
         assert os.path.isdir(test_structure)
         shutil.rmtree(test_structure)
 
+    def test_extract_all_zip(self):
+        assert os.path.exists(test_structure_zip)
+        reusables.extract_all(test_structure_zip, path=test_root, dnd=True)
+        assert os.path.exists(test_structure)
+        assert os.path.isdir(test_structure)
+        shutil.rmtree(test_structure)
+
+    def test_extract_empty(self):
+        empt = tempfile.mktemp()
+        open(empt, "a").close()
+        try:
+            reusables.extract_all(empt)
+            assert False, "Should have failed"
+        except OSError:
+            assert True
+        os.unlink(empt)
+
+    def test_auto_delete(self):
+        tmpdir = tempfile.mkdtemp()
+        fname = tmpdir + "test.zip"
+        shutil.copy(test_structure_zip, fname)
+        reusables.extract_all(fname, path=tmpdir, dnd=False)
+        assert not os.path.exists(fname)
+        shutil.rmtree(tmpdir)
+
+    def test_datetime_iter(self):
+        for k, v in reusables.DateTime():
+            if k is not "timezone":
+                assert v is not None, k
+
     def test_datetime_new(self):
         now = reusables.DateTime()
         today = datetime.datetime.now()
@@ -253,7 +285,6 @@ Key2 = Value2
         assert now.format("{hour}:{minute}:{hour}:{24hour}:{24-hour}") == now.strftime("%I:%M:%I:%H:%H"), now.format("{hour}:{minute}:{hour}:{24hour}:{24-hour}")
 
     def test_os_tree(self):
-        import tempfile
         dir = tempfile.mkdtemp(suffix="dir1")
         dir2 = tempfile.mkdtemp(suffix="dir2", dir=dir)
         without_files = reusables.os_tree(dir)
