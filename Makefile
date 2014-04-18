@@ -22,9 +22,9 @@ clean:
 	rm -rf dist;
 
 test:
-	for python in $(PYTHONS); do\
+	(set -e; for python in $(PYTHONS); do\
 		PYTHONPATH=$(CWD) "$$python" setup.py test; \
-	done
+	done)
 
 
 build:

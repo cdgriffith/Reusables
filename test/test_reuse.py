@@ -176,11 +176,10 @@ Key2 = Value2
         assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
 
     def test_main(self):
-        if sys.version_info >= (2, 7):
-            reusables.main(["--safe-filename",
-                            "tease.txt",
-                            "--safe-path",
-                            "/var/lib"])
+        reusables.main(["--safe-filename",
+                        "tease.txt",
+                         "--safe-path",
+                        "/var/lib"])
 
     def test_namespace(self):
         test_dict = {'key1': 'value1',
@@ -269,7 +268,7 @@ Key2 = Value2
 
     def test_datetime_iter(self):
         for k, v in reusables.DateTime():
-            if k is not "timezone":
+            if k != "timezone":
                 assert v is not None, k
 
     def test_datetime_new(self):
