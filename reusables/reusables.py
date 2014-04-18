@@ -75,10 +75,10 @@ reg_exps = {
             "%f": re.compile(r"\{micro\-?(?:second)?s?\}"),
             "%Z": re.compile(r"\{(?:(tz|time\-?zone))?\}"),
             "%y": re.compile(r"\{years?\}"),
-            "%Y": re.compile(r"\{full\-?years?\}"),
+            "%Y": re.compile(r"\{years?\-?(?:(full|name|full\-?name))?s?\}"),
             "%m": re.compile(r"\{months?\}"),
             "%b": re.compile(r"\{months?\-?name\}"),
-            "%B": re.compile(r"\{months?\-?fullname\}"),
+            "%B": re.compile(r"\{months?\-?(?:(full|full\-?name))?s?\}"),
             "%d": re.compile(r"\{days?\}"),
             "%w": re.compile(r"\{week\-?days?\}"),
             "%j": re.compile(r"\{year\-?days?\}"),
@@ -586,6 +586,8 @@ class DateTime(_datetime.datetime):
             return cls.strptime(datetime, "%Y-%m-%dT%H:%M:%S.%f")
         except ValueError:
             return cls.strptime(datetime, "%Y-%m-%dT%H:%M:%S")
+
+    #TODO add a 'from datetime'
 
 
 def main(command_line_options=""):
