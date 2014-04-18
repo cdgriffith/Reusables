@@ -14,7 +14,6 @@ import re
 import tempfile as _tempfile
 import logging as _logging
 import datetime as _datetime
-#from datetime import tzinfo as _tzinfo
 import time as _time
 
 python_version = sys.version_info[0:3]
@@ -35,8 +34,6 @@ if python_version >= (2, 7):
 
 reg_exps = {
     "path": {
-        #TODO add more windows tests
-        #TODO improve filename safe and valid
         "windows": {
             "valid": re.compile(r'^(?:[a-zA-Z]:\\|\\\\?|\\\\\?\\|\\\\\.\\)\
 ?(?:(?!(CLOCK\$(\\|$)|(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]| )\
@@ -44,13 +41,11 @@ reg_exps = {
             "safe": re.compile(r'^([a-zA-Z]:\\)?[\w\d _\-\\\(\)]+$'),
             "filename": re.compile(r'^((?![><:/"\\\|\?\*])[ -~])+$')
         },
-        #TODO check linux compliance
         "linux": {
             "valid": re.compile(r'^/?([\x01-\xFF]+/?)*$'),
             "safe": re.compile(r'^[\w\d\. _\-/\(\)]+$'),
             "filename": re.compile(r'^((?![><:/"\\\|\?\*])[ -~])+$')
         },
-        #TODO check mac compliance
         "mac": {
             "valid": re.compile(r'^/?([\x01-\xFF]+/?)*$'),
             "safe": re.compile(r'^[\w\d\. _\-/\(\)]+$'),
@@ -58,7 +53,6 @@ reg_exps = {
         }
     },
     "python": {
-        #TODO add module tests
         "module": {
             "attributes": re.compile(r'__([a-z]+)__ *= *[\'"](.+)[\'"]'),
             "imports": re.compile(r'^ *\t*(?:import|from)[ ]+(?:(\w+)[, ]*)+'),
@@ -68,7 +62,6 @@ reg_exps = {
         }
     },
     "pii": {
-        #TODO add pii tests
         "phone_number": {
             "us": re.compile(r'((?:\(? ?\d{3} ?\)?[\. \-]?)?\d{3}[\. \-]?\d{4})')
         }
@@ -100,7 +93,6 @@ reg_exps = {
             "%p": re.compile(r"\{periods?\}"),
             "%Y-%m-%dT%H:%M:%S": re.compile(r"\{iso-?(?:format)?\}")
         },
-        #TODO add date and time tests
         "date": re.compile(r"((?:[\d]{2}|[\d]{4})[\- _\\/]?[\d]{2}[\- _\\/]?[\d]{2})"),
         "time": re.compile(r"([\d]{2}:[\d]{2}(?:\.[\d]{6})?)"),
         "datetime": re.compile(r"((?:[\d]{2}|[\d]{4})[\- _\\/]?[\d]{2}[\- _\\/]?[\d]{2}T[\d]{2}:[\d]{2}(?:\.[\d]{6})?)")
@@ -177,6 +169,12 @@ class Namespace(dict):
     def __str__(self):
         return str(self.to_dict())
 
+    @classmethod
+    def from_dict(cls, dictionary):
+        if not isinstance(dictionary, dict):
+            raise TypeError("Must be a dictionary")
+        return cls(**dictionary)
+
     def to_dict(self, in_dict=None):
         in_dict = in_dict if in_dict else self.__dict__
         out_dict = dict()
@@ -188,40 +186,44 @@ class Namespace(dict):
 
     def tree_view(self, sep="    "):
         base = self.to_dict()
-        tree_view(base, sep=sep)
+        return tree_view(base, sep=sep)
 
 
 def tree_view(dictionary, level=0, sep="|  "):
     """
     View a dictionary as a tree.
     """
-    for key in dictionary:
-        print("{0}{1}".format(sep * level, key))
-        if isinstance(dictionary[key], dict):
-            tree_view(dictionary[key], level + 1)
+    return "".join(["{0}{1}\n{2}".format(sep * level, k, tree_view(v, level + 1, sep=sep) if isinstance(v, dict)
+           else "{0}{1}\n".format(sep, v)) for k, v in dictionary.items()])
 
-#TODO add tests for os_tree
-def os_tree(directory, show_files=True):
+
+def os_tree(directory):
+    """
+    Return a directories contents as a dictionary hierarchy.
+    """
+    if not os.path.exists(directory):
+        raise OSError("Directory does not exist")
+    if not os.path.isdir(directory):
+        raise OSError("Path is not a directory")
+
     full_list = []
     for root, dirs, files in os.walk(directory):
-        full_list.extend([os.path.join(root, d) + os.sep for d in dirs])
-        full_list.extend([os.path.join(root, f) for f in files])
-    tree = dict(root=dict())
+        full_list.extend([os.path.join(root, d).lstrip(directory) + os.sep for d in dirs])
+    tree = {os.path.basename(directory): {}}
+    if not full_list:
+        return {}
     for item in full_list:
-        separated = item.split(os.sep)[1:]
+        separated = item.split(os.sep)
         is_dir = separated[-1:] == ['']
         if is_dir:
             separated = separated[:-1]
-        parent = tree['root']
-        length = len(separated)
+        parent = tree[os.path.basename(directory)]
         for index, path in enumerate(separated):
             if path in parent:
                 parent = parent[path]
                 continue
-            elif show_files or (not show_files and index+1 < length):
+            else:
                 parent[path] = dict()
-            elif not show_files and index+1 == length:
-                break
             parent = parent[path]
     return tree
 
@@ -317,7 +319,7 @@ def sort_by(unordered_list, key):
     Sort a list of dicts, tuples or lists by the provided dict key, or list/
     tuple position.
     """
-    return sorted(unordered_list, key=lambda x: x[key])
+    return sorted(unordered_list, key=lambda y: y[key])
 
 
 def check_filename(filename):
@@ -350,12 +352,9 @@ def safe_filename(filename, replacement="_"):
     return safe_name
 
 
-#TODO make safe path smarter
 def safe_path(path, replacement="_"):
     """
-    Replace unsafe path characters with underscores. Note that this does not
-    test for "legal" characters, but a more restricted set of:
-    Letters, numbers, space, hyphen, underscore, period, separator, and drive
+    Replace unsafe path characters with underscores.
 
     Supports windows and *nix systems.
     """
@@ -492,12 +491,12 @@ def remove_empty_files(root_directory, dnd=False, ignore_errors=True):
     file_list = sorted(set(file_list))
 
     if not dnd:
-        for file in file_list:
+        for afile in file_list:
             try:
-                os.unlink(file)
+                os.unlink(afile)
             except OSError as err:
                 if ignore_errors:
-                    logger.info("File {0} could not be deleted".format(file))
+                    logger.info("File {0} could not be deleted".format(afile))
                 else:
                     raise err
 
@@ -538,7 +537,6 @@ def extract_all(archive_file, path=".", dnd=True):
         archive.close()
 
 
-#TODO add datetime tests
 class DateTime(_datetime.datetime):
 
     def __new__(cls, year=None, month=None, day=None, hour=0, minute=0,
@@ -569,7 +567,6 @@ class DateTime(_datetime.datetime):
             minute=self.minute, second=self.second,
             microsecond=self.microsecond, timezone=self.tzinfo)
 
-    #TODO add format tests
     def format(self, desired_format, *args, **kwargs):
         for strf, exp in regex.datetime.format.items():
             desired_format = exp.sub(strf, desired_format)
@@ -580,10 +577,10 @@ class DateTime(_datetime.datetime):
             yield (k, v)
 
     @classmethod
-    def fromiso(cls, datetime):
+    def from_iso(cls, datetime):
         try:
             assert regex.datetime.datetime.match(datetime).groups()[0]
-        except (ValueError, AssertionError, IndexError):
+        except (ValueError, AssertionError, IndexError, AttributeError):
             raise TypeError("String is not in ISO format")
         try:
             return cls.strptime(datetime, "%Y-%m-%dT%H:%M:%S.%f")

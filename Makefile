@@ -1,41 +1,53 @@
+HOME ?= $HOME
+CWD = $(shell pwd)
+VENVS ?= $(HOME)/.virtualenvs
+PYTHON2 = $(VENVS)/builder2.7/bin/python2.7
+PYTHON3 = $(VENVS)/builder3.4/bin/python3.4
+PYTHONS = $(VENVS)/builder2.6/bin/python2.6 $(VENVS)/builder2.7/bin/python2.7 $(VENVS)/builder3.2/bin/python3.2 $(VENVS)/builder3.3/bin/python3.3 $(VENVS)/builder3.4/bin/python3.4
+
 .PHONY: all test clean help register build
 
-all: clean test build register help upload develop
+all: clean test build register help upload develop environment
+
+environment:
+	echo "HOME $(HOME)"
+	echo "VENVS $(VENVS)"
+	echo "PYTHONS $(PYTHONS)"
 
 clean:
-	python setup.py clean;
+	$(PYTHON2) setup.py clean;
 	rm -rf *.egg-info;
 	rm -rf *.egg;
 	rm -rf build;
 	rm -rf dist;
 
 test:
-	python2.6 setup.py test;
-	python2.7 setup.py test;
-	python3.2 setup.py test;
-	python3.3 setup.py test;
-	pypy setup.py test;
+	for python in $(PYTHONS); do\
+		PYTHONPATH=$(CWD) "$$python" setup.py test; \
+	done
+
 
 build:
-	python setup.py sdist;
-	python2.6 setup.py bdist_egg;
-	python2.7 setup.py bdist_egg;
-	python3.2 setup.py bdist_egg;
-	python3.3 setup.py bdist_egg;
-	pypy setup.py bdist_egg;
+	$(PYTHON2) setup.py sdist;
+	for python in $(PYTHONS); do\
+		"$$python" setup.py bdist_egg; \
+	done
+	$(PYTHON2) setup.py bdist_wheel;
+	$(PYTHON3) setup.py bdist_wheel;
 
 register:
-	python2.7 setup.py register;
+	$(PYTHON2) setup.py register;
 
 install:
-	sudo python setup.py build install;
+	sudo $(PYTHON2) setup.py build install;
 
-upload: clean test register
-	python setup.py sdist upload --sign;
-	python2.6 setup.py bdist_egg upload --sign;
-	python2.7 setup.py bdist_egg upload --sign;
-	python3.2 setup.py bdist_egg upload --sign;
-	python3.3 setup.py bdist_egg upload --sign;
+upload: clean test register build
+	$(PYTHON2) setup.py sdist upload --sign;
+	for python in $(PYTHONS); do\
+		"$$python" setup.py bdist_egg  upload --sign; \
+	done
+	$(PYTHON2) setup.py bdist_wheel upload --sign;
+	$(PYTHON3) setup.py bdist_wheel upload --sign;
 
 help:
 	@echo "Reusables"
@@ -50,4 +62,5 @@ help:
 develop:
 	sudo add-apt-repository ppa:fkrull/deadsnakes;
 	sudo apt-get update;
-	sudo apt-get install python2.6 python2.7 python3.2 python3.3 pypy;
+	sudo apt-get install python2.6 python2.7 python3.2 python3.3 python3.4 pypy;
+

@@ -6,7 +6,7 @@ import os
 import sys
 import shutil
 import tarfile
-
+import datetime
 import reusables
 
 test_root = os.path.abspath(os.path.dirname(__file__))
@@ -195,6 +195,15 @@ Key2 = Value2
         assert "'key1': 'value1'" in str(namespace)
         assert repr(namespace).startswith("<Namespace:")
 
+    def test_namespace_tree(self):
+        test_dict = {'key1': 'value1',
+                     "Key 2": {"Key 3": "Value 3",
+                               "Key4": {"Key5": "Value5"}}}
+        namespace = reusables.Namespace(**test_dict)
+        result = namespace.tree_view(sep="    ")
+        assert result.startswith("key1\n") or result.startswith("Key 2\n")
+        assert "Key4" in result and "    Value5\n" in result
+
     def test_path_single(self):
         resp = reusables.safe_path('path')
         assert resp == 'path', resp
@@ -230,6 +239,55 @@ Key2 = Value2
         assert os.path.exists(test_structure)
         assert os.path.isdir(test_structure)
         shutil.rmtree(test_structure)
+
+    def test_datetime_new(self):
+        now = reusables.DateTime()
+        today = datetime.datetime.now()
+        assert now.day == today.day
+        assert now.year == today.year
+        assert now.hour == today.hour
+
+    def test_datetime_format(self):
+        now = reusables.DateTime()
+        assert now.format("{hour}:{minute}:{second}") == now.strftime("%I:%M:%S"), (now.strftime("%I:%M:%S"), now.format("{hour}:{minute}:{second}"))
+        assert now.format("{hour}:{minute}:{hour}:{24hour}:{24-hour}") == now.strftime("%I:%M:%I:%H:%H"), now.format("{hour}:{minute}:{hour}:{24hour}:{24-hour}")
+
+    def test_os_tree(self):
+        import tempfile
+        dir = tempfile.mkdtemp(suffix="dir1")
+        dir2 = tempfile.mkdtemp(suffix="dir2", dir=dir)
+        without_files = reusables.os_tree(dir)
+        answer = {dir.replace(tempfile.tempdir, "", 1).lstrip(os.sep): {dir2.lstrip(dir).lstrip(os.sep): {}}}
+        assert without_files == answer, "{0} != {1}".format(without_files, answer)
+
+    def test_namespace_from_dict(self):
+        ns = reusables.Namespace.from_dict({"k1": "v1", "k2": {"k3": "v2"}})
+        assert ns.k2.k3 == "v2"
+
+    def test_namespace_from_bad_dict(self):
+        try:
+            ns = reusables.Namespace.from_dict('{"k1": "v1", "k2": {"k3": "v2"}}')
+        except TypeError:
+            assert True
+        else:
+            assert False, "Should have raised type error"
+
+    def test_datetime_from_iso(self):
+        import datetime
+        test = datetime.datetime.now()
+        testiso = test.isoformat()
+        dt = reusables.DateTime.from_iso(testiso)
+        assert dt.hour == dt.hour
+        assert test == dt
+        assert isinstance(dt, reusables.DateTime)
+
+    def test_datetime_from_bad_iso(self):
+        try:
+            reusables.DateTime.from_iso("hehe not a real time")
+        except TypeError:
+            assert True
+        else:
+            assert False, "How is that a datetime???"
 
 if reusables.win_based:
     class TestReuseWindows(unittest.TestCase):

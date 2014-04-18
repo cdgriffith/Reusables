@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Version 0.1.4
+-------------
+
+- Added DateTime class
+- Added and rearranged several regular expression
+- Added tree_view of dictionaries
+- Added os_tree of a directory to a dictionary
+
 Version 0.1.3
 -------------
 
