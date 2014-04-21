@@ -18,6 +18,7 @@ clean:
 	$(PYTHON2) setup.py clean;
 	rm -rf *.egg-info;
 	rm -rf *.egg;
+	rm -rf cover;
 	rm -rf build;
 	rm -rf dist;
 

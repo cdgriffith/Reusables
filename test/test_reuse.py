@@ -203,7 +203,7 @@ Key2 = Value2
         namespace = reusables.Namespace(**test_dict)
         result = namespace.tree_view(sep="    ")
         assert result.startswith("key1\n") or result.startswith("Key 2\n")
-        assert "Key4" in result and "    Value5\n" in result
+        assert "Key4" in result and "    Value5\n" not in result
 
     def test_path_single(self):
         resp = reusables.safe_path('path')

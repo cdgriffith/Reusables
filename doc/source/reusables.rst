@@ -1,6 +1,2 @@
-.. currentmodule:: reusables
-
-.. autoclass:: reusables.Namespace
-
-.. autoclass:: reusables.DateTime
-
+.. automodule:: reusables
+	:members:

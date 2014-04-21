@@ -25,8 +25,8 @@ setup(
     url='https://github.com/cdgriffith/Reusables',
     license='MIT',
     author=attrs['author'],
-    tests_require=["nose >= 1.3", "coverage >= 3.6"],
-    install_requires=[],
+    tests_require=["nose >= 1.3", "coverage >= 3.6", "argparse"],
+    install_requires=["argparse"],
     author_email='chris@cdgriffith.com',
     description='Commonly Consumed Code Commodities',
     long_description=long_description,
@@ -50,6 +50,6 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
         ],
     extras_require={
-        'testing': ["nose >= 1.3", "coverage >= 3.6"],
+        'testing': ["nose >= 1.3", "coverage >= 3.6", "argparse"],
         },
 )
