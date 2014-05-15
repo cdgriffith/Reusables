@@ -43,12 +43,12 @@ install:
 	sudo $(PYTHON2) setup.py build install;
 
 upload: clean test register build
-	$(PYTHON2) setup.py sdist upload --sign;
+	$(PYTHON2) setup.py sdist upload;
 	for python in $(PYTHONS); do\
-		"$$python" setup.py bdist_egg  upload --sign; \
+		"$$python" setup.py bdist_egg  upload; \
 	done
-	$(PYTHON2) setup.py bdist_wheel upload --sign;
-	$(PYTHON3) setup.py bdist_wheel upload --sign;
+	$(PYTHON2) setup.py bdist_wheel upload;
+	$(PYTHON3) setup.py bdist_wheel upload;
 
 help:
 	@echo "Reusables"
