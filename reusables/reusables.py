@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Reusables - Commonly Consumed Code Commodities
 
@@ -27,7 +27,7 @@ temp_directory = _tempfile.gettempdir()
 
 logger = _logging.getLogger(__name__)
 if python_version >= (2, 7):
-    #Surpresses warning that no logger is found if a parent logger is not set
+    # Surpresses warning that no logger is found if a parent logger is not set
     logger.addHandler(_logging.NullHandler())
 
 # http://msdn.microsoft.com/en-us/library/aa365247%28v=vs.85%29.aspx
@@ -393,21 +393,49 @@ def file_hash(path, hash_type="md5", block_size=65536):
     """
     import hashlib
 
-    hashes = {"md5": hashlib.md5,
-              "sha1": hashlib.sha1,
-              "sha224": hashlib.sha224,
-              "sha256": hashlib.sha256,
-              "sha384": hashlib.sha384,
-              "sha512": hashlib.sha512}
-    if hash_type not in hashes:
+    if hash_type not in hashlib.algorithms_available:
         raise ValueError("Invalid hash type \"{0}\"".format(hash_type))
-    hashed = hashes[hash_type]()
+    hashed = hashlib.new(hash_type)
     with open(path, "rb") as infile:
         buf = infile.read(block_size)
         while len(buf) > 0:
             hashed.update(buf)
             buf = infile.read(block_size)
     return hashed.hexdigest()
+
+
+def count_all_files(directory=".", ext=None, name=None):
+    """
+    Perform the same operation as 'find_all_files' but return an integer count instead of a list.
+
+    :param directory: Top location to recursively search for matching files
+    :param ext: Extensions of the file you are looking for
+    :param name: Part of the file name
+    :type directory: str
+    :type ext: str
+    :type name: str
+    :return: count of files matching requirements
+    :rtype: int
+    """
+
+    if ext and isinstance(ext, str):
+        ext = [ext]
+    elif ext and not isinstance(ext, (list, tuple)):
+        raise TypeError("extension must be either one extension or a list")
+    count = 0
+    for root, dirs, files in os.walk(directory):
+        for file_name in files:
+            if ext:
+                for end in ext:
+                    if file_name.lower().endswith(end):
+                        break
+                else:
+                    continue
+            if name:
+                if name.lower() not in file_name.lower():
+                    continue
+            count += 1
+    return count
 
 
 def find_all_files_generator(directory=".", ext=None, name=None):

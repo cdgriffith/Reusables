@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
+
 from setuptools import setup
 import os
 
@@ -34,7 +35,7 @@ setup(
     include_package_data=True,
     platforms='any',
     test_suite='nose.collector',
-    classifiers = [
+    classifiers=[
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',

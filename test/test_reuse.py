@@ -148,9 +148,12 @@ Key2 = Value2
         os.unlink(os.path.join(test_root, "test_hash"))
         assert resp == valid, (resp, valid)
 
-
     def test_bad_hash_type(self):
         self.assertRaises(ValueError, reusables.file_hash, "", hash_type="sham5")
+
+    def test_count_files(self):
+        resp = reusables.count_all_files(test_root, ext=".cfg")
+        assert resp == 1, resp
 
     def test_find_files(self):
         resp = reusables.find_all_files(test_root, ext=".cfg")
@@ -324,7 +327,7 @@ if reusables.win_based:
             # Windows based path tests
 
         def test_win_join_path_clean(self):
-            resp = reusables.join_paths('C:\\test', 'clean\\', 'path')
+            resp = reusables.join_paths('C:\\test', 'clean\\', 'path').rstrip("\\")
             assert resp == 'C:\\test\\clean\\path', resp
 
         def test_win_join_path_dirty(self):
@@ -332,7 +335,7 @@ if reusables.win_based:
             assert resp == 'D:\\dirty\\path.file', resp
 
         def test_win_join_path_clean_strict(self):
-            resp = reusables.join_paths('C:\\test', 'clean\\', 'path', strict=True)
+            resp = reusables.join_paths('C:\\test', 'clean\\', 'path', strict=True).rstrip("\\")
             assert resp == 'C:\\test\\clean\\path', resp
 
         def test_win_join_path_dirty_strict(self):
