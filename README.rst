@@ -47,7 +47,7 @@ treated as either a dict or a namespace when accessed.
 
         from reusables import Namespace
 
-        my_breakfast = {"spam" : {"eggs": {"sausage": {"bacon": "yummy"}}}}
+        my_breakfast = {"spam": {"eggs": {"sausage": {"bacon": "yummy"}}}}
         namespace_breakfast = Namespace(**my_breakfast)
 
         print(namespace_breakfast.spam.eggs.sausage.bacon)

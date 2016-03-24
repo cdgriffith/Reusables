@@ -143,29 +143,52 @@ class Namespace(dict):
         namespace['spam'].eggs
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
+        if len(args) == 1 and isinstance(args[0], dict):
+            kwargs = args[0]
         for k, v in kwargs.items():
             if isinstance(v, dict):
-                v = Namespace(**v)
+                v = Namespace(v)
             setattr(self, k, v)
-        super(Namespace, self).__init__(**kwargs)
 
     def __contains__(self, item):
-        return self.__dict__.__contains__(item)
-
-    def __getitem__(self, item):
-        return self.__dict__[item]
+        try:
+            return dict.__contains__(self, item) or hasattr(self, item)
+        except Exception:
+            return False
 
     def __getattr__(self, item):
-        return self.__dict__[item]
+        try:
+            return object.__getattribute__(self, item)
+        except AttributeError:
+            try:
+                return self[item]
+            except KeyError:
+                raise AttributeError(item)
 
     def __setattr__(self, key, value):
         if isinstance(value, dict):
             value = Namespace(**value)
-        self.__dict__[key] = value
+        try:
+            object.__getattribute__(self, key)
+        except AttributeError:
+            try:
+                self[key] = value
+            except Exception:
+                raise AttributeError(key)
+        else:
+            object.__setattr__(self, key, value)
 
     def __delattr__(self, item):
-        del self.__dict__[item]
+        try:
+            object.__getattribute__(self, item)
+        except AttributeError:
+            try:
+                del self[item]
+            except KeyError:
+                raise AttributeError(item)
+        else:
+            object.__delattr__(self, item)
 
     def __repr__(self):
         return "<Namespace: {0}...>".format(str(self.to_dict())[0:32])
@@ -177,10 +200,10 @@ class Namespace(dict):
     def from_dict(cls, dictionary):
         if not isinstance(dictionary, dict):
             raise TypeError("Must be a dictionary")
-        return cls(**dictionary)
+        return cls(dictionary)
 
     def to_dict(self, in_dict=None):
-        in_dict = in_dict if in_dict else self.__dict__
+        in_dict = in_dict if in_dict else self
         out_dict = dict()
         for k, v in in_dict.items():
             if isinstance(v, Namespace):
@@ -235,9 +258,9 @@ def os_tree(directory):
 
 
 # Some may ask why make everything into namespaces, I ask why not
-regex = Namespace(**reg_exps)
-exts = Namespace(**common_exts)
-variables = Namespace(**common_variables)
+regex = Namespace(reg_exps)
+exts = Namespace(common_exts)
+variables = Namespace(common_variables)
 
 
 def join_paths(*paths, **kwargs):
@@ -398,8 +421,11 @@ def file_hash(path, hash_type="md5", block_size=65536):
     This function is designed to be non memory intensive.
     """
     import hashlib
-
-    if hash_type not in hashlib.algorithms_available:
+    if (python_version >= (2, 7) and
+            hash_type not in hashlib.algorithms_available):
+        raise ValueError("Invalid hash type \"{0}\"".format(hash_type))
+    elif hash_type not in ("md5", "sha1", "sha224",
+                           "sha256", "sha384", "sha512"):
         raise ValueError("Invalid hash type \"{0}\"".format(hash_type))
     hashed = hashlib.new(hash_type)
     with open(path, "rb") as infile:
