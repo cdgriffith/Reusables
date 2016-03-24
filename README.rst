@@ -9,12 +9,22 @@ Overview
 The reusables library is a reference of python functions and classes that
 programmers may find themselves often recreating.
 
+It is designed to not require any imports outside the standard library*,
+but can be supplemented with those in the requirements.txt file for additional
+functionality.
+
+\* python 2.6 requires argparse
+
+
 Example
 ~~~~~~~
 
 .. code:: python
 
         import reusables
+
+        reusables.extract_all("test/test_structure.zip", "my_archive")
+        # All files in that zip will be extracted into directory "my_archive"
 
         reusables.config_dict('my_config.cfg')
         # {'Section 1': {'key 1': 'value 1', 'key2': 'Value2'}, 'Section 2': {}}

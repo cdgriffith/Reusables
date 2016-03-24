@@ -3,11 +3,8 @@
 """
 Reusables - Commonly Consumed Code Commodities
 
-Copyright (c) 2014  - Chris Griffith - MIT License
+Copyright (c) 2014-2016 - Chris Griffith - MIT License
 """
-__author__ = "Chris Griffith"
-__version__ = "0.2.0"
-
 import os
 import sys
 import re
@@ -15,6 +12,9 @@ import tempfile as _tempfile
 import logging as _logging
 import datetime as _datetime
 import time as _time
+
+__author__ = "Chris Griffith"
+__version__ = "0.2.0"
 
 python_version = sys.version_info[0:3]
 version_string = ".".join([str(x) for x in python_version])
@@ -27,7 +27,7 @@ temp_directory = _tempfile.gettempdir()
 
 logger = _logging.getLogger(__name__)
 if python_version >= (2, 7):
-    # Surpresses warning that no logger is found if a parent logger is not set
+    # Suppresses warning that no logger is found if a parent logger is not set
     logger.addHandler(_logging.NullHandler())
 
 # http://msdn.microsoft.com/en-us/library/aa365247%28v=vs.85%29.aspx
@@ -35,9 +35,10 @@ if python_version >= (2, 7):
 reg_exps = {
     "path": {
         "windows": {
-            "valid": re.compile(r'^(?:[a-zA-Z]:\\|\\\\?|\\\\\?\\|\\\\\.\\)\
-?(?:(?!(CLOCK\$(\\|$)|(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]| )\
-(?:\..*|(\\|$))|.*\.$))(?:(?:(?![><:/"\\\|\?\*])[\x20-\u10FFFF])+\\?))*$'),
+            "valid": re.compile(r'^(?:[a-zA-Z]:\\|\\\\?|\\\\\?\\|\\\\\.\\)?'
+                r'(?:(?!(CLOCK\$(\\|$)|(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]| )'
+                r'(?:\..*|(\\|$))|.*\.$))'
+                r'(?:(?:(?![><:/"\\\|\?\*])[\x20-\u10FFFF])+\\?))*$'),
             "safe": re.compile(r'^([a-zA-Z]:\\)?[\w\d _\-\\\(\)]+$'),
             "filename": re.compile(r'^((?![><:/"\\\|\?\*])[ -~])+$')
         },
@@ -63,7 +64,8 @@ reg_exps = {
     },
     "pii": {
         "phone_number": {
-            "us": re.compile(r'((?:\(? ?\d{3} ?\)?[\. \-]?)?\d{3}[\. \-]?\d{4})')
+            "us": re.compile(r'((?:\(? ?\d{3} ?\)?[\. \-]?)?\d{3}'
+                             r'[\. \-]?\d{4})')
         }
     },
     "datetime": {
@@ -93,9 +95,11 @@ reg_exps = {
             "%p": re.compile(r"\{periods?\}"),
             "%Y-%m-%dT%H:%M:%S": re.compile(r"\{iso-?(?:format)?\}")
         },
-        "date": re.compile(r"((?:[\d]{2}|[\d]{4})[\- _\\/]?[\d]{2}[\- _\\/]?[\d]{2})"),
+        "date": re.compile(r"((?:[\d]{2}|[\d]{4})[\- _\\/]?[\d]{2}[\- _\\/]?"
+                           r"\n[\d]{2})"),
         "time": re.compile(r"([\d]{2}:[\d]{2}(?:\.[\d]{6})?)"),
-        "datetime": re.compile(r"((?:[\d]{2}|[\d]{4})[\- _\\/]?[\d]{2}[\- _\\/]?[\d]{2}T[\d]{2}:[\d]{2}(?:\.[\d]{6})?)")
+        "datetime": re.compile(r"((?:[\d]{2}|[\d]{4})[\- _\\/]?[\d]{2}[\- _\\/]"
+                               r"?[\d]{2}T[\d]{2}:[\d]{2}(?:\.[\d]{6})?)")
     }
 }
 
@@ -180,7 +184,7 @@ class Namespace(dict):
         out_dict = dict()
         for k, v in in_dict.items():
             if isinstance(v, Namespace):
-                v = self.to_dict(v)
+                v = v.to_dict()
             out_dict[k] = v
         return out_dict
 
@@ -193,8 +197,9 @@ def tree_view(dictionary, level=0, sep="|  "):
     """
     View a dictionary as a tree.
     """
-    return "".join(["{0}{1}\n{2}".format(sep * level, k, tree_view(v, level + 1, sep=sep) if isinstance(v, dict)
-           else "") for k, v in dictionary.items()])
+    return "".join(["{0}{1}\n{2}".format(sep * level, k,
+                   tree_view(v, level + 1, sep=sep) if isinstance(v, dict)
+                   else "") for k, v in dictionary.items()])
 
 
 def os_tree(directory):
@@ -208,7 +213,8 @@ def os_tree(directory):
 
     full_list = []
     for root, dirs, files in os.walk(directory):
-        full_list.extend([os.path.join(root, d).lstrip(directory) + os.sep for d in dirs])
+        full_list.extend([os.path.join(root, d).lstrip(directory) + os.sep
+                          for d in dirs])
     tree = {os.path.basename(directory): {}}
     if not full_list:
         return {}
@@ -406,7 +412,8 @@ def file_hash(path, hash_type="md5", block_size=65536):
 
 def count_all_files(directory=".", ext=None, name=None):
     """
-    Perform the same operation as 'find_all_files' but return an integer count instead of a list.
+    Perform the same operation as 'find_all_files' but return an integer count
+    instead of a list.
 
     :param directory: Top location to recursively search for matching files
     :param ext: Extensions of the file you are looking for
@@ -442,6 +449,16 @@ def find_all_files_generator(directory=".", ext=None, name=None):
     """
     Walk through a file directory and return an iterator of files
     that match requirements.
+
+    :param directory: Top location to recursively search for matching files
+    :param ext: Extensions of the file you are looking for
+    :param name: Part of the file name
+    :type directory: str
+    :type ext: str
+    :type name: str
+    :return: generator of all files in the specified directory
+    :rtype: generator
+
     """
     if ext and isinstance(ext, str):
         ext = [ext]
@@ -465,6 +482,15 @@ def find_all_files(directory=".", ext=None, name=None):
     """
     Returns a list of all files in a sub directory that match an extension
     and or part of a filename.
+
+    :param directory: Top location to recursively search for matching files
+    :param ext: Extensions of the file you are looking for
+    :param name: Part of the file name
+    :type directory: str
+    :type ext: str
+    :type name: str
+    :return: list of all files in the specified directory
+    :rtype: list
     """
     return list(find_all_files_generator(directory, ext=ext, name=name))
 
@@ -472,6 +498,16 @@ def find_all_files(directory=".", ext=None, name=None):
 def remove_empty_directories(root_directory, dnd=False, ignore_errors=True):
     """
     Remove all empty folders from a path. Returns list of empty directories.
+    dnd = 'do not delete' aka perform a try run if set to True.
+
+    :param root_directory: base directory to start at
+    :param dnd: 'do not delete', just return a list of what would be removed
+    :param ignore_errors: Permissions are a pain, just ignore if you blocked
+    :type root_directory: str
+    :type dnd: bool
+    :type ignore_errors: bool
+    :return: list of removed directories
+    :rtype: list
     """
     directory_list = []
     for root, directories, files in os.walk(root_directory, topdown=False):
@@ -507,6 +543,16 @@ def remove_empty_directories(root_directory, dnd=False, ignore_errors=True):
 def remove_empty_files(root_directory, dnd=False, ignore_errors=True):
     """
     Remove all empty files from a path. Returns list of the empty files removed.
+    dnd = 'do not delete' aka perform a try run if set to True.
+
+    :param root_directory: base directory to start at
+    :param dnd: 'do not delete', just return a list of what would be removed
+    :param ignore_errors: Permissions are a pain, just ignore if you blocked
+    :type root_directory: str
+    :type dnd: bool
+    :type ignore_errors: bool
+    :return: list of removed files
+    :rtype: list
     """
     file_list = []
     for root, directories, files in os.walk(root_directory):
@@ -531,7 +577,7 @@ def remove_empty_files(root_directory, dnd=False, ignore_errors=True):
     return file_list
 
 
-def extract_all(archive_file, path=".", dnd=True):
+def extract_all(archive_file, path=".", dnd=True, enable_rar=False):
     """
     Automatically detect archive type and extract all files to specified path.
     """
@@ -542,14 +588,21 @@ def extract_all(archive_file, path=".", dnd=True):
         logger.error("File {0} unextractable".format(archive_file))
         raise OSError("File does not exist or has zero size")
 
+    archive = None
     if zipfile.is_zipfile(archive_file):
         logger.debug("File {0} detected as a zip file".format(archive_file))
         archive = zipfile.ZipFile(archive_file)
     elif tarfile.is_tarfile(archive_file):
         logger.debug("File {0} detected as a tar file".format(archive_file))
         archive = tarfile.open(archive_file)
-    else:
-        raise TypeError("File is not a zip or tar archive")
+    elif enable_rar:
+        import rarfile
+        if rarfile.is_rarfile(archive_file):
+            logger.debug("File {0} detected as a rar file".format(archive_file))
+            archive = rarfile.RarFile(archive_file)
+
+    if not archive:
+        raise TypeError("File is not a known archive")
 
     logger.debug("Extracting files to {0}".format(path))
 
@@ -567,7 +620,7 @@ class DateTime(_datetime.datetime):
 
     def __new__(cls, year=None, month=None, day=None, hour=0, minute=0,
                 second=0, microsecond=0, tzinfo=None):
-        #Taken from datetime.datetime.now()
+        #  Taken from datetime.datetime.now()
         if year is not None:
             return super(DateTime, cls).__new__(cls, year, month, day, hour,
                                                 minute, second, microsecond,
@@ -603,17 +656,20 @@ class DateTime(_datetime.datetime):
             yield (k, v)
 
     @classmethod
-    def from_iso(cls, datetime):
+    def from_iso(cls, iso_datetime):
+        """
+        :type iso_datetime: str
+        """
         try:
-            assert regex.datetime.datetime.match(datetime).groups()[0]
+            assert regex.datetime.datetime.match(iso_datetime).groups()[0]
         except (ValueError, AssertionError, IndexError, AttributeError):
             raise TypeError("String is not in ISO format")
         try:
-            return cls.strptime(datetime, "%Y-%m-%dT%H:%M:%S.%f")
+            return cls.strptime(iso_datetime, "%Y-%m-%dT%H:%M:%S.%f")
         except ValueError:
-            return cls.strptime(datetime, "%Y-%m-%dT%H:%M:%S")
+            return cls.strptime(iso_datetime, "%Y-%m-%dT%H:%M:%S")
 
-    #TODO add a 'from datetime'
+    # TODO add a 'from datetime'
 
 
 def main(command_line_options=""):

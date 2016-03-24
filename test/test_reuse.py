@@ -3,7 +3,6 @@
 
 import unittest
 import os
-import sys
 import shutil
 import tarfile
 import tempfile
@@ -198,6 +197,20 @@ Key2 = Value2
         assert isinstance(namespace['Key 2'].Key4, reusables.Namespace)
         assert "'key1': 'value1'" in str(namespace)
         assert repr(namespace).startswith("<Namespace:")
+
+    def test_namespace_modifiy_at_depth(self):
+        test_dict = {'key1': 'value1',
+                     "Key 2": {"Key 3": "Value 3",
+                               "Key4": {"Key5": "Value5"}}}
+
+        namespace = reusables.Namespace(**test_dict)
+        namespace['Key 2'].new_thing = "test"
+        assert namespace['Key 2'].new_thing == "test"
+        namespace['Key 2'].new_thing += "2"
+        assert namespace['Key 2'].new_thing == "test2"
+        assert namespace['Key 2'].to_dict()['new_thing'] == "test2"
+        assert namespace.to_dict()['Key 2']['new_thing'] == "test2"
+
 
     def test_namespace_tree(self):
         test_dict = {'key1': 'value1',
