@@ -13,6 +13,13 @@ It is designed to not require any imports outside the standard library*,
 but can be supplemented with those in the requirements.txt file for additional
 functionality.
 
+Tested on:
+
+* Python 2.6+
+* Python 3.3+
+* Pypy
+
+
 \* python 2.6 requires argparse
 
 
@@ -36,12 +43,11 @@ Example
         # ['/home/user/background.jpg', '/home/user/private.png']
 
 
-Extras
-~~~~~~
+Namespace
+~~~~~~~~~
 
 Also included is a Namespace class, similar to Bunch but designed so
-that dictionaries are recursively made into namespaces, and can be
-treated as either a dict or a namespace when accessed.
+that dictionaries are recursively made into namespaces.
 
 .. code:: python
 
@@ -59,11 +65,17 @@ treated as either a dict or a namespace when accessed.
         str(namespace_breakfast['spam'].eggs)
         # "{'sausage': {'bacon': 'yummy'}}"
 
-        dict(namespace_breakfast.spam.eggs['sausage'])
-        # {'bacon': 'yummy'}
-
         repr(namespace_breakfast)
         # "<Namespace: {'spam': {'eggs': {'sausage': {'...>"
+
+        namespace_breakfast.to_dict()
+        #{'spam': {'eggs': {'sausage': {'bacon': 'yummy'}}}}
+
+        dict(namespace_breakfast)
+        # {'spam': <Namespace: {'eggs': {'sausage': {'bacon': '...>}
+        # This is NOT the same as .to_dict() as it is not recursive
+
+
 
 Additional Info
 ---------------
@@ -73,7 +85,7 @@ way to implement these useful snippets, this is simply designed for easy
 reference. Any contributions that would help add functionality or
 improve existing code is warmly welcomed!
 
-Copyright (c) 2014 - Chris Griffith - MIT License
+Copyright (c) 2014-2016 - Chris Griffith - MIT License
 
 .. |Build Status| image:: https://travis-ci.org/cdgriffith/Reusables.png?branch=master
    :target: https://travis-ci.org/cdgriffith/Reusables

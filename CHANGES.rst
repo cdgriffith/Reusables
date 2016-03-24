@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Version 0.2.1
+-------------
+
+- Namespace re-written to be more compatible with built-in dict
+
+
 Version 0.2.0
 -------------
 
