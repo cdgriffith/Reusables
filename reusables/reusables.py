@@ -14,13 +14,13 @@ import datetime as _datetime
 import time as _time
 
 __author__ = "Chris Griffith"
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 python_version = sys.version_info[0:3]
 version_string = ".".join([str(x) for x in python_version])
 current_root = os.path.abspath(".")
-python3x = python_version >= (3, 0)
-python2x = python_version < (3, 0)
+python3x = PY3 = python_version >= (3, 0)
+python2x = PY2 = python_version < (3, 0)
 nix_based = os.name == "posix"
 win_based = os.name == "nt"
 temp_directory = _tempfile.gettempdir()
