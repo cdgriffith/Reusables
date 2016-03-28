@@ -11,7 +11,7 @@ programmers may find themselves often recreating.
 
 It includes:
 
-- Archive extraction
+- Archive extraction (zip, tar, rar)
 - Path (file and folders) management
 - Friendly datetime formatting
 - Easy config parsing
@@ -44,10 +44,41 @@ Adds easy formatting to datetime objects. It also adds auto parsing for ISO form
 
         current_time = reusables.DateTime() # same as datetime.datetime.now(), returned as DateTime object
 
-        current_time.format("Wake up {son}, it's {hours}:{minutes} {period}! I don't care if it's a {day-fullname}, {command}!",
+        current_time.format("Wake up {son}, it's {hours}:{minutes} {periods}! I don't care if it's a {day-fullname},
+        {command}!",
                             son="John",
                             command="Get out of bed!")
         # "Wake up John, it's 09:51 AM! I don't care if it's a Saturday, Get out of bed!!"
+
+
+Examples based on : Mon Mar 28 13:27:11 2016
+
+===================== =================== ===========================
+ Format                Mapping             Example
+--------------------- ------------------- ---------------------------
+{12-hour}               %I                 01
+{24-hour}               %H                 13
+{seconds}               %S                 14
+{minutes}               %M                 20
+{microseconds}          %f                 320944
+{time-zone}             %Z
+{years}                 %y                 16
+{years-full}            %Y                 2016
+{months}                %m                 03
+{months-name}           %b                 Mar
+{months-full}           %B                 March
+{days}                  %d                 28
+{week-days}             %w                 1
+{year-days}             %j                 088
+{days-name}             %a                 Mon
+{days-full}             %A                 Monday
+{mon-weeks}             %W                 13
+{date}                  %x                 03/28/16
+{time}                  %X                 13:27:11
+{date-time}             %C                 Mon Mar 28 13:27:11 2016
+{utc-offset}            %Z
+{periods}               %p                 PM
+{iso-format}            %Y-%m-%dT%H:%M:%S  2016-03-28T13:27:11
 
 
 Namespace Class
@@ -90,7 +121,7 @@ License
 
 The MIT License (MIT)
 
-Copyright (c) 2014 Chris Griffith
+Copyright (c) 2014-2016 Chris Griffith
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in

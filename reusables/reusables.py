@@ -85,7 +85,7 @@ reg_exps = {
             "%w": re.compile(r"\{week\-?days?\}"),
             "%j": re.compile(r"\{year\-?days?\}"),
             "%a": re.compile(r"\{(?:week)?\-?days?\-?name\}"),
-            "%A": re.compile(r"\{(?:week)?\-?days?\-?fullname\}"),
+            "%A": re.compile(r"\{(?:week)?\-?days?\-(?:(full|full\-?name))?s?\}"),
             "%U": re.compile(r"\{weeks?\}"),
             "%W": re.compile(r"\{mon(?:day)?\-?weeks?\}"),
             "%x": re.compile(r"\{date\}"),
