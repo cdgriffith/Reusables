@@ -44,8 +44,8 @@ Adds easy formatting to datetime objects. It also adds auto parsing for ISO form
 
         current_time = reusables.DateTime() # same as datetime.datetime.now(), returned as DateTime object
 
-        current_time.format("Wake up {son}, it's {hours}:{minutes} {periods}! I don't care if it's a {day-fullname},
-        {command}!",
+        current_time.format("Wake up {son}, it's {hours}:{minutes} {periods}!"
+                            "I don't care if it's a {day-fullname}, {command}!",
                             son="John",
                             command="Get out of bed!")
         # "Wake up John, it's 09:51 AM! I don't care if it's a Saturday, Get out of bed!!"
@@ -79,6 +79,7 @@ Examples based on : Mon Mar 28 13:27:11 2016
 {utc-offset}            %Z
 {periods}               %p                 PM
 {iso-format}            %Y-%m-%dT%H:%M:%S  2016-03-28T13:27:11
+===================== =================== ===========================
 
 
 Namespace Class
