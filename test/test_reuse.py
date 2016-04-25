@@ -13,6 +13,7 @@ test_root = os.path.abspath(os.path.dirname(__file__))
 
 test_structure_tar = os.path.join(test_root, "test_structure.tar.gz")
 test_structure_zip = os.path.join(test_root, "test_structure.zip")
+test_structure_rar = os.path.join(test_root, "test_structure.rar")
 test_structure = os.path.join(test_root, "test_structure")
 
 
@@ -151,8 +152,23 @@ Key2 = Value2
         self.assertRaises(ValueError, reusables.file_hash, "", hash_type="sham5")
 
     def test_count_files(self):
+        self._extract_structure()
         resp = reusables.count_all_files(test_root, ext=".cfg")
         assert resp == 1, resp
+
+    def test_count_name(self):
+        self._extract_structure()
+        resp = reusables.count_all_files(test_root, name="file_")
+        assert resp == 4, resp
+
+    def test_fail_count_files(self):
+        self._extract_structure()
+        try:
+            reusables.count_all_files(test_root, ext={"ext": ".cfg"})
+        except TypeError:
+            pass
+        else:
+            raise AssertionError("Should raise type error")
 
     def test_find_files(self):
         resp = reusables.find_all_files(test_root, ext=".cfg")
@@ -204,13 +220,31 @@ Key2 = Value2
                                "Key4": {"Key5": "Value5"}}}
 
         namespace = reusables.Namespace(**test_dict)
+        assert 'key1' in namespace
+        assert 'key2' not in namespace
         namespace['Key 2'].new_thing = "test"
         assert namespace['Key 2'].new_thing == "test"
         namespace['Key 2'].new_thing += "2"
         assert namespace['Key 2'].new_thing == "test2"
         assert namespace['Key 2'].to_dict()['new_thing'] == "test2"
         assert namespace.to_dict()['Key 2']['new_thing'] == "test2"
+        namespace.__setattr__('key1', 1)
+        assert namespace['key1'] == 1
+        namespace.__delattr__('key1')
+        assert 'key1' not in namespace
 
+    def test_error_namespace(self):
+        test_dict = {'key1': 'value1',
+                     "Key 2": {"Key 3": "Value 3",
+                               "Key4": {"Key5": "Value5"}}}
+
+        namespace = reusables.Namespace(**test_dict)
+        try:
+            getattr(namespace, 'hello')
+        except AttributeError:
+            pass
+        else:
+            raise AssertionError("Should not find 'hello' in the test dict")
 
     def test_namespace_tree(self):
         test_dict = {'key1': 'value1',
@@ -263,6 +297,25 @@ Key2 = Value2
         assert os.path.exists(test_structure)
         assert os.path.isdir(test_structure)
         shutil.rmtree(test_structure)
+
+
+    def test_extract_all_rar(self):
+        assert os.path.exists(test_structure_rar)
+        reusables.extract_all(test_structure_rar, path=test_root, dnd=True, enable_rar=True)
+        assert os.path.exists(test_structure)
+        assert os.path.isdir(test_structure)
+        shutil.rmtree(test_structure)
+
+    def test_extract_all_bad(self):
+        self._extract_structure()
+        path = os.path.join(test_structure, "Files", "file_1")
+        assert os.path.exists(path)
+        try:
+            reusables.extract_all(path, path=test_root, dnd=True)
+        except TypeError:
+            pass
+        else:
+            raise AssertionError("Extracted a bad file?")
 
     def test_extract_empty(self):
         empt = tempfile.mktemp()
@@ -325,6 +378,17 @@ Key2 = Value2
         dt = reusables.DateTime.from_iso(testiso)
         assert dt.hour == dt.hour
         assert test == dt
+        assert isinstance(dt, reusables.DateTime)
+
+    def test_datetime_from_iso_v2(self):
+        import datetime
+        test = datetime.datetime.now()
+        testiso = test.isoformat()
+        testiso = testiso.rsplit(".", 1)[0]
+        dt = reusables.DateTime.from_iso(testiso)
+        assert dt.hour == test.hour
+        assert test.minute == dt.minute
+        assert dt.microsecond == 0, dt.microsecond
         assert isinstance(dt, reusables.DateTime)
 
     def test_datetime_from_bad_iso(self):
