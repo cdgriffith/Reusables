@@ -1,11 +1,12 @@
 Changelog
 =========
 
-Version 0.2.1
+Version 0.3.0
 -------------
 
 - Namespace re-written to be more compatible with built-in dict
-
+- Adding logging features
+- Separating functionality to individual files
 
 Version 0.2.0
 -------------

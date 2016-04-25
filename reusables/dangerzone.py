@@ -12,8 +12,9 @@ reiterate this point:
 
 Have fun!
 
+Part of the Reusables package.
 
-Copyright (c) 2014  - Chris Griffith - MIT License
+Copyright (c) 2014-2016  - Chris Griffith - MIT License
 """
 _reuse_cache = dict()  # Could use DefaultDict but eh, it's another import
 
