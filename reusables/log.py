@@ -20,10 +20,10 @@ log_detailed_format = '%(asctime)s : %(relativeCreated)5d %(threadName)s : ' \
                       '%(name)s %(levelname)s %(message)s'
 
 
-def get_stream_handler(stream=sys.stdout, level=_logging.INFO,
+def get_stream_handler(stream=sys.stderr, level=_logging.INFO,
                        log_format=log_easy_read_format):
 
-    sh = _logging.StreamHandler(stream=stream)
+    sh = _logging.StreamHandler(stream)
     sh.setLevel(level)
     sh.setFormatter(_logging.Formatter(log_format))
     return sh
@@ -53,3 +53,24 @@ def get_logger(module_name=__name__, level=_logging.INFO, stream=sys.stderr,
     if level > 0:
         new_logger.setLevel(level)
     return new_logger
+
+
+def remove_stream_handlers(logger):
+    new_handlers = []
+    for handler in logger.handlers:
+        if not isinstance(handler, _logging.StreamHandler):
+            new_handlers.append(handler)
+    logger.handlers = new_handlers
+
+
+def remove_file_handlers(logger):
+    new_handlers = []
+    for handler in logger.handlers:
+        if not isinstance(handler, _logging.FileHandler):
+            new_handlers.append(handler)
+    logger.handlers = new_handlers
+
+
+def remove_all_handlers(logger):
+    logger.handlers = []
+

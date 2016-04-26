@@ -9,7 +9,18 @@ Overview
 The reusables library is a reference of python functions and classes that
 programmers may find themselves often recreating.
 
-It is designed to not require any imports outside the standard library*,
+It includes:
+
+- Archive extraction (zip, tar, rar)
+- Path (file and folders) management
+- Friendly datetime formatting
+- Easy config parsing
+- Common regular expressions and file extensions
+- Namespace class
+- Fast logging setup
+- Additional fun and useful features
+
+Reusables is designed to not require any imports outside the standard library*,
 but can be supplemented with those in the requirements.txt file for additional
 functionality.
 
@@ -23,19 +34,28 @@ Tested on:
 \* python 2.6 requires argparse
 
 
-Example
-~~~~~~~
+Examples
+--------
+
+Important first step
 
 .. code:: python
 
         import reusables
 
+
+.. code:: python
         reusables.extract_all("test/test_structure.zip", "my_archive")
         # All files in that zip will be extracted into directory "my_archive"
 
         reusables.config_dict('my_config.cfg')
         # {'Section 1': {'key 1': 'value 1', 'key2': 'Value2'}, 'Section 2': {}}
 
+
+File Management
+
+
+.. code:: python
         reusables.safe_path('/home/user/eViL User\0\\/newdir$^&*/new^%file.txt')
         # '/home/user/eViL User__/newdir____/new__file.txt'
 
@@ -43,18 +63,13 @@ Example
         # ['/home/user/background.jpg', '/home/user/private.png']
 
 
-Namespace
-~~~~~~~~~
-
-Also included is a Namespace class, similar to Bunch but designed so
+Namespace class, similar to Bunch, but designed so
 that dictionaries are recursively made into namespaces.
 
 .. code:: python
 
-        from reusables import Namespace
-
         my_breakfast = {"spam": {"eggs": {"sausage": {"bacon": "yummy"}}}}
-        namespace_breakfast = Namespace(**my_breakfast)
+        namespace_breakfast = reusables.Namespace(**my_breakfast)
 
         print(namespace_breakfast.spam.eggs.sausage.bacon)
         # yummy
@@ -65,15 +80,89 @@ that dictionaries are recursively made into namespaces.
         str(namespace_breakfast['spam'].eggs)
         # "{'sausage': {'bacon': 'yummy'}}"
 
-        repr(namespace_breakfast)
-        # "<Namespace: {'spam': {'eggs': {'sausage': {'...>"
-
         namespace_breakfast.to_dict()
         #{'spam': {'eggs': {'sausage': {'bacon': 'yummy'}}}}
 
         dict(namespace_breakfast)
         # {'spam': <Namespace: {'eggs': {'sausage': {'bacon': '...>}
         # This is NOT the same as .to_dict() as it is not recursive
+
+DateTime adds easy formatting to datetime objects. It also adds auto parsing for ISO formatted time.
+
+.. code:: python
+
+        current_time = reusables.DateTime() # same as datetime.datetime.now(), returned as DateTime object
+
+        current_time.format("Wake up {son}, it's {hours}:{minutes} {periods}!"
+                            "I don't care if it's a {day-fullname}, {command}!",
+                            son="John",
+                            command="Get out of bed!")
+        # "Wake up John, it's 09:51 AM! I don't care if it's a Saturday, Get out of bed!!"
+
+
+Examples based on : Mon Mar 28 13:27:11 2016
+
+===================== =================== ===========================
+ Format                Mapping             Example
+--------------------- ------------------- ---------------------------
+{12-hour}               %I                 01
+{24-hour}               %H                 13
+{seconds}               %S                 14
+{minutes}               %M                 20
+{microseconds}          %f                 320944
+{time-zone}             %Z
+{years}                 %y                 16
+{years-full}            %Y                 2016
+{months}                %m                 03
+{months-name}           %b                 Mar
+{months-full}           %B                 March
+{days}                  %d                 28
+{week-days}             %w                 1
+{year-days}             %j                 088
+{days-name}             %a                 Mon
+{days-full}             %A                 Monday
+{mon-weeks}             %W                 13
+{date}                  %x                 03/28/16
+{time}                  %X                 13:27:11
+{date-time}             %C                 Mon Mar 28 13:27:11 2016
+{utc-offset}            %Z
+{periods}               %p                 PM
+{iso-format}            %Y-%m-%dT%H:%M:%S  2016-03-28T13:27:11
+===================== =================== ===========================
+
+
+Logging helpers
+
+.. code:: python
+
+        logger = reusables.get_logger(__name__)
+        # By default it adds a stream logger to sys.stderr
+
+        logger.info("Test")
+        # 2016-04-25 19:32:45,542 __main__     INFO     Test
+
+There are multiple log formatters provided, as well as additional helper functions
+
+.. code:: python
+
+        reusables.remove_stream_handlers(logger)
+        # remove_file_handlers() and remove_all_handlers() also available
+
+        stream_handler = reusables.get_stream_handler(log_format=reusables.log_detailed_format)
+        logger.addHandler(stream_handler)
+        logger.info("Example log entry")
+        # 2016-04-25 19:42:52,633 : 315147 MainThread : reusables.log INFO Example log entry
+
+
+
+
+Common Issues
+~~~~~~~~~~~~~
+
+Issue: rarfile.RarCannotExec: Unrar not installed? (rarfile.UNRAR_TOOL='unrar')
+
+Solution: Could not execute rar command, probably because unrar is not downloaded or linked properly. Download UnRAR
+from http://www.rarlab.com/rar_add.htm and follow these instructions before trying again: http://rarfile.readthedocs.org/en/latest/faq.html?highlight=windows#how-can-i-get-it-work-on-windows
 
 
 

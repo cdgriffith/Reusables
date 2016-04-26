@@ -3,6 +3,7 @@
 
 from setuptools import setup
 import os
+import re
 
 # Fix for issues with nosetests, experienced on win7
 import multiprocessing
@@ -12,7 +13,6 @@ root = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(root, "reusables", "reusables.py"), "r") as reuse_file:
     reuse_content = reuse_file.read()
 
-import re
 attrs = dict(re.findall(r"__([a-z]+)__ *= *['\"](.+)['\"]", reuse_content))
 
 with open("README.rst", "r") as readme_file:
@@ -26,7 +26,7 @@ setup(
     url='https://github.com/cdgriffith/Reusables',
     license='MIT',
     author=attrs['author'],
-    tests_require=["nose >= 1.3", "coverage >= 3.6", "argparse"],
+    tests_require=["nose >= 1.3", "coverage >= 3.6", "argparse", "rarfile"],
     install_requires=["argparse"],
     author_email='chris@cdgriffith.com',
     description='Commonly Consumed Code Commodities',
@@ -51,6 +51,6 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
         ],
     extras_require={
-        'testing': ["nose >= 1.3", "coverage >= 3.6", "argparse"],
+        'testing': ["nose >= 1.3", "coverage >= 3.6", "argparse", "rarfile"],
         },
 )
