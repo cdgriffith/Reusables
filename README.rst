@@ -37,23 +37,22 @@ Tested on:
 Examples
 --------
 
-Important first step
+General Helpers
+~~~~~~~~~~~~~~~
 
 .. code:: python
 
         import reusables
 
-
-.. code:: python
         reusables.extract_all("test/test_structure.zip", "my_archive")
-        # All files in that zip will be extracted into directory "my_archive"
+        # All files in the zip will be extracted into directory "my_archive"
 
         reusables.config_dict('my_config.cfg')
         # {'Section 1': {'key 1': 'value 1', 'key2': 'Value2'}, 'Section 2': {}}
 
 
 File Management
-
+~~~~~~~~~~~~~~~
 
 .. code:: python
         reusables.safe_path('/home/user/eViL User\0\\/newdir$^&*/new^%file.txt')
@@ -63,8 +62,13 @@ File Management
         # ['/home/user/background.jpg', '/home/user/private.png']
 
 
-Namespace class, similar to Bunch, but designed so
-that dictionaries are recursively made into namespaces.
+
+
+Namespace
+~~~~~~~~~
+
+Dictionary management class, similar to Bunch, but designed so
+that sub-dictionaries are recursively made into namespaces.
 
 .. code:: python
 
@@ -87,7 +91,13 @@ that dictionaries are recursively made into namespaces.
         # {'spam': <Namespace: {'eggs': {'sausage': {'bacon': '...>}
         # This is NOT the same as .to_dict() as it is not recursive
 
-DateTime adds easy formatting to datetime objects. It also adds auto parsing for ISO formatted time.
+
+
+DateTime
+~~~~~~~~
+
+Easy formatting for datetime objects. It also adds auto parsing for ISO formatted time.
+
 
 .. code:: python
 
@@ -98,6 +108,7 @@ DateTime adds easy formatting to datetime objects. It also adds auto parsing for
                             son="John",
                             command="Get out of bed!")
         # "Wake up John, it's 09:51 AM! I don't care if it's a Saturday, Get out of bed!!"
+
 
 
 Examples based on : Mon Mar 28 13:27:11 2016
@@ -131,7 +142,8 @@ Examples based on : Mon Mar 28 13:27:11 2016
 ===================== =================== ===========================
 
 
-Logging helpers
+Logging
+~~~~~~~
 
 .. code:: python
 
@@ -141,7 +153,9 @@ Logging helpers
         logger.info("Test")
         # 2016-04-25 19:32:45,542 __main__     INFO     Test
 
+
 There are multiple log formatters provided, as well as additional helper functions
+
 
 .. code:: python
 
