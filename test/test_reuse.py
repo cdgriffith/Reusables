@@ -314,31 +314,6 @@ Key2 = Value2
         else:
             assert False
 
-    def test_cant_delete_empty_file(self):
-        dir = tempfile.mkdtemp(suffix="a_dir")
-        tf = os.path.join(dir, "test_file")
-        file = open(tf, "w")
-        try:
-            os.chmod(tf, 0o444)
-        except Exception:
-            pass
-
-        try:
-            reusables.remove_empty_files(dir, ignore_errors=False)
-        except OSError:
-            return True
-        else:
-            assert False
-        finally:
-            file.close()
-
-    def test_cant_delete_empty_file_ignore_errors(self):
-        dir = tempfile.mkdtemp(suffix="a_dir")
-        file = open(os.path.join(dir, "test_file"), "w")
-        try:
-            reusables.remove_empty_files(dir, ignore_errors=True)
-        finally:
-            file.close()
 
 if reusables.win_based:
     class TestReuseWindows(unittest.TestCase):
@@ -367,6 +342,32 @@ if reusables.win_based:
             resp = reusables.join_root('clean\\')
             path = os.path.abspath(os.path.join(".", 'clean\\'))
             assert resp == path, (resp, path)
+
+        def test_cant_delete_empty_file(self):
+            dir = tempfile.mkdtemp(suffix="a_dir")
+            tf = os.path.join(dir, "test_file")
+            file = open(tf, "w")
+            try:
+                os.chmod(tf, 0o444)
+            except Exception:
+                pass
+
+            try:
+                reusables.remove_empty_files(dir, ignore_errors=False)
+            except OSError:
+                return True
+            else:
+                assert False
+            finally:
+                file.close()
+
+        def test_cant_delete_empty_file_ignore_errors(self):
+            dir = tempfile.mkdtemp(suffix="a_dir")
+            file = open(os.path.join(dir, "test_file"), "w")
+            try:
+                reusables.remove_empty_files(dir, ignore_errors=True)
+            finally:
+                file.close()
 
 if __name__ == "__main__":
     unittest.main()
