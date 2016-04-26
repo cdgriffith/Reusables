@@ -6,7 +6,6 @@ import os
 import shutil
 import tarfile
 import tempfile
-import datetime
 import reusables
 
 test_root = os.path.abspath(os.path.dirname(__file__))
@@ -199,62 +198,6 @@ Key2 = Value2
                          "--safe-path",
                         "/var/lib"])
 
-    def test_namespace(self):
-        test_dict = {'key1': 'value1',
-                     "Key 2": {"Key 3": "Value 3",
-                               "Key4": {"Key5": "Value5"}}}
-        namespace = reusables.Namespace(**test_dict)
-        assert namespace.key1 == test_dict['key1']
-        assert dict(getattr(namespace, 'Key 2')) == test_dict['Key 2']
-        setattr(namespace, 'TEST_KEY', 'VALUE')
-        assert namespace.TEST_KEY == 'VALUE'
-        delattr(namespace, 'TEST_KEY')
-        assert 'TEST_KEY' not in namespace.to_dict()
-        assert isinstance(namespace['Key 2'].Key4, reusables.Namespace)
-        assert "'key1': 'value1'" in str(namespace)
-        assert repr(namespace).startswith("<Namespace:")
-
-    def test_namespace_modifiy_at_depth(self):
-        test_dict = {'key1': 'value1',
-                     "Key 2": {"Key 3": "Value 3",
-                               "Key4": {"Key5": "Value5"}}}
-
-        namespace = reusables.Namespace(**test_dict)
-        assert 'key1' in namespace
-        assert 'key2' not in namespace
-        namespace['Key 2'].new_thing = "test"
-        assert namespace['Key 2'].new_thing == "test"
-        namespace['Key 2'].new_thing += "2"
-        assert namespace['Key 2'].new_thing == "test2"
-        assert namespace['Key 2'].to_dict()['new_thing'] == "test2"
-        assert namespace.to_dict()['Key 2']['new_thing'] == "test2"
-        namespace.__setattr__('key1', 1)
-        assert namespace['key1'] == 1
-        namespace.__delattr__('key1')
-        assert 'key1' not in namespace
-
-    def test_error_namespace(self):
-        test_dict = {'key1': 'value1',
-                     "Key 2": {"Key 3": "Value 3",
-                               "Key4": {"Key5": "Value5"}}}
-
-        namespace = reusables.Namespace(**test_dict)
-        try:
-            getattr(namespace, 'hello')
-        except AttributeError:
-            pass
-        else:
-            raise AssertionError("Should not find 'hello' in the test dict")
-
-    def test_namespace_tree(self):
-        test_dict = {'key1': 'value1',
-                     "Key 2": {"Key 3": "Value 3",
-                               "Key4": {"Key5": "Value5"}}}
-        namespace = reusables.Namespace(**test_dict)
-        result = namespace.tree_view(sep="    ")
-        assert result.startswith("key1\n") or result.startswith("Key 2\n")
-        assert "Key4" in result and "    Value5\n" not in result
-
     def test_path_single(self):
         resp = reusables.safe_path('path')
         assert resp == 'path', resp
@@ -298,8 +241,9 @@ Key2 = Value2
         assert os.path.isdir(test_structure)
         shutil.rmtree(test_structure)
 
-
     def test_extract_all_rar(self):
+        import rarfile
+        rarfile.UNRAR_TOOL = "UnRAR.exe"
         assert os.path.exists(test_structure_rar)
         reusables.extract_all(test_structure_rar, path=test_root, dnd=True, enable_rar=True)
         assert os.path.exists(test_structure)
@@ -335,23 +279,6 @@ Key2 = Value2
         assert not os.path.exists(fname)
         shutil.rmtree(tmpdir)
 
-    def test_datetime_iter(self):
-        for k, v in reusables.DateTime():
-            if k != "timezone":
-                assert v is not None, k
-
-    def test_datetime_new(self):
-        now = reusables.DateTime()
-        today = datetime.datetime.now()
-        assert now.day == today.day
-        assert now.year == today.year
-        assert now.hour == today.hour
-
-    def test_datetime_format(self):
-        now = reusables.DateTime()
-        assert now.format("{hour}:{minute}:{second}") == now.strftime("%I:%M:%S"), (now.strftime("%I:%M:%S"), now.format("{hour}:{minute}:{second}"))
-        assert now.format("{hour}:{minute}:{hour}:{24hour}:{24-hour}") == now.strftime("%I:%M:%I:%H:%H"), now.format("{hour}:{minute}:{hour}:{24hour}:{24-hour}")
-
     def test_os_tree(self):
         dir = tempfile.mkdtemp(suffix="dir1")
         dir2 = tempfile.mkdtemp(suffix="dir2", dir=dir)
@@ -359,45 +286,52 @@ Key2 = Value2
         answer = {dir.replace(tempfile.tempdir, "", 1).lstrip(os.sep): {dir2.lstrip(dir).lstrip(os.sep): {}}}
         assert without_files == answer, "{0} != {1}".format(without_files, answer)
 
-    def test_namespace_from_dict(self):
-        ns = reusables.Namespace.from_dict({"k1": "v1", "k2": {"k3": "v2"}})
-        assert ns.k2.k3 == "v2"
-
-    def test_namespace_from_bad_dict(self):
+    def test_os_tree_bad_dir(self):
+        lol_Im_not_a_dir = open("fake_dir", "w")
         try:
-            ns = reusables.Namespace.from_dict('{"k1": "v1", "k2": {"k3": "v2"}}')
-        except TypeError:
-            assert True
+            reusables.os_tree("fake_dir")
+        except OSError:
+            return True
         else:
-            assert False, "Should have raised type error"
+            assert False
+        finally:
+            lol_Im_not_a_dir.close()
 
-    def test_datetime_from_iso(self):
-        import datetime
-        test = datetime.datetime.now()
-        testiso = test.isoformat()
-        dt = reusables.DateTime.from_iso(testiso)
-        assert dt.hour == dt.hour
-        assert test == dt
-        assert isinstance(dt, reusables.DateTime)
-
-    def test_datetime_from_iso_v2(self):
-        import datetime
-        test = datetime.datetime.now()
-        testiso = test.isoformat()
-        testiso = testiso.rsplit(".", 1)[0]
-        dt = reusables.DateTime.from_iso(testiso)
-        assert dt.hour == test.hour
-        assert test.minute == dt.minute
-        assert dt.microsecond == 0, dt.microsecond
-        assert isinstance(dt, reusables.DateTime)
-
-    def test_datetime_from_bad_iso(self):
+    def test_os_tree_no_dir(self):
         try:
-            reusables.DateTime.from_iso("hehe not a real time")
-        except TypeError:
-            assert True
+            reusables.os_tree("I am pretty sure this directory does not exist, at least I hope not, dear goodness")
+        except OSError:
+            return True
         else:
-            assert False, "How is that a datetime???"
+            assert False
+
+    def test_bad_file_hash_type(self):
+        try:
+            reusables.file_hash("test_file", hash_type="There is no way this is a valid hash type")
+        except ValueError:
+            return True
+        else:
+            assert False
+
+    def test_cant_delete_empty_file(self):
+        dir = tempfile.mkdtemp(suffix="a_dir")
+        file = open(os.path.join(dir, "test_file"), "w")
+        try:
+            reusables.remove_empty_files(dir, ignore_errors=False)
+        except OSError:
+            return True
+        else:
+            assert False
+        finally:
+            file.close()
+
+    def test_cant_delete_empty_file_ignore_errors(self):
+        dir = tempfile.mkdtemp(suffix="a_dir")
+        file = open(os.path.join(dir, "test_file"), "w")
+        try:
+            reusables.remove_empty_files(dir, ignore_errors=True)
+        finally:
+            file.close()
 
 if reusables.win_based:
     class TestReuseWindows(unittest.TestCase):

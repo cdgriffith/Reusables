@@ -72,15 +72,13 @@ def remove_file_handlers(logger):
     new_handlers = []
     for handler in logger.handlers:
         if isinstance(handler, _logging.FileHandler):
-            try:
-                handler.close()
-            except Exception:
-                pass
+            handler.close()
         else:
             new_handlers.append(handler)
     logger.handlers = new_handlers
 
 
 def remove_all_handlers(logger):
+    remove_file_handlers(logger)
     logger.handlers = []
 
