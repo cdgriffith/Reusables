@@ -242,8 +242,9 @@ Key2 = Value2
         shutil.rmtree(test_structure)
 
     def test_extract_all_rar(self):
-        import rarfile
-        rarfile.UNRAR_TOOL = "UnRAR.exe"
+        if reusables.win_based:
+            import rarfile
+            rarfile.UNRAR_TOOL = "UnRAR.exe"
         assert os.path.exists(test_structure_rar)
         reusables.extract_all(test_structure_rar, path=test_root, dnd=True, enable_rar=True)
         assert os.path.exists(test_structure)
@@ -315,7 +316,13 @@ Key2 = Value2
 
     def test_cant_delete_empty_file(self):
         dir = tempfile.mkdtemp(suffix="a_dir")
-        file = open(os.path.join(dir, "test_file"), "w")
+        tf = os.path.join(dir, "test_file")
+        file = open(tf, "w")
+        try:
+            os.chmod(tf, 0o444)
+        except Exception:
+            pass
+
         try:
             reusables.remove_empty_files(dir, ignore_errors=False)
         except OSError:

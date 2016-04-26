@@ -19,6 +19,13 @@ log_easy_thread_format = '%(relativeCreated)5d %(name)-12s ' \
 log_detailed_format = '%(asctime)s : %(relativeCreated)5d %(threadName)s : ' \
                       '%(name)s %(levelname)s %(message)s'
 
+if sys.version_info < (2, 7):
+    class NullHandler(_logging.Handler):
+        def emit(self, record):
+            pass
+
+    _logging.NullHandler = NullHandler
+
 
 def get_stream_handler(stream=sys.stderr, level=_logging.INFO,
                        log_format=log_easy_read_format):

@@ -6,9 +6,17 @@ import unittest
 import os
 import logging
 import reusables
+import sys
 
 test_root = os.path.abspath(os.path.dirname(__file__))
 my_stream_path = os.path.join(test_root, "my_stream.log")
+
+if sys.version_info < (2, 7):
+    class NullHandler(logging.Handler):
+        def emit(self, record):
+            pass
+
+    logging.NullHandler = NullHandler
 
 
 class TestReuseLogging(unittest.TestCase):
