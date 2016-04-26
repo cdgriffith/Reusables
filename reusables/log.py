@@ -58,7 +58,12 @@ def get_logger(module_name=__name__, level=_logging.INFO, stream=sys.stderr,
 def remove_stream_handlers(logger):
     new_handlers = []
     for handler in logger.handlers:
-        if not isinstance(handler, _logging.StreamHandler):
+        # FileHandler is a subclass of StreamHandler so
+        # 'if not a StreamHandler' does not work
+        if (isinstance(handler, _logging.FileHandler) or
+            isinstance(handler, _logging.NullHandler) or
+            (isinstance(handler, _logging.Handler) and not
+                isinstance(handler, _logging.StreamHandler))):
             new_handlers.append(handler)
     logger.handlers = new_handlers
 
@@ -66,7 +71,12 @@ def remove_stream_handlers(logger):
 def remove_file_handlers(logger):
     new_handlers = []
     for handler in logger.handlers:
-        if not isinstance(handler, _logging.FileHandler):
+        if isinstance(handler, _logging.FileHandler):
+            try:
+                handler.close()
+            except Exception:
+                pass
+        else:
             new_handlers.append(handler)
     logger.handlers = new_handlers
 
