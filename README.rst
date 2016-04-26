@@ -171,10 +171,9 @@ There are multiple log formatters provided, as well as additional helper functio
 Common Issues
 -------------
 
-UnRAR path issues
-~~~~~~~~~~~~~~~~~
+**UnRAR path issues**
 
-A common error to see, espeically on Windows based systems, is: `rarfile.RarCannotExec: Unrar not installed? (rarfile.UNRAR_TOOL='unrar')`
+A common error to see, espeically on Windows based systems, is: "rarfile.RarCannotExec: Unrar not installed? (rarfile.UNRAR_TOOL='unrar')"
 
 This is probably because unrar is not downloaded or linked properly. Download UnRAR
 from http://www.rarlab.com/rar_add.htm and follow these instructions before trying again: http://rarfile.readthedocs.org/en/latest/faq.html?highlight=windows#how-can-i-get-it-work-on-windows
