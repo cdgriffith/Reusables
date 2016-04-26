@@ -55,12 +55,12 @@ File Management
 ~~~~~~~~~~~~~~~
 
 .. code:: python
+
         reusables.safe_path('/home/user/eViL User\0\\/newdir$^&*/new^%file.txt')
         # '/home/user/eViL User__/newdir____/new__file.txt'
 
         reusables.find_all_files(".", ext=reusables.exts.pictures)
         # ['/home/user/background.jpg', '/home/user/private.png']
-
 
 
 
@@ -168,14 +168,15 @@ There are multiple log formatters provided, as well as additional helper functio
         # 2016-04-25 19:42:52,633 : 315147 MainThread : reusables.log INFO Example log entry
 
 
-
-
 Common Issues
-~~~~~~~~~~~~~
+-------------
 
-Issue: rarfile.RarCannotExec: Unrar not installed? (rarfile.UNRAR_TOOL='unrar')
+UnRAR path issues
+~~~~~~~~~~~~~~~~~
 
-Solution: Could not execute rar command, probably because unrar is not downloaded or linked properly. Download UnRAR
+A common error to see, espeically on Windows based systems, is: `rarfile.RarCannotExec: Unrar not installed? (rarfile.UNRAR_TOOL='unrar')`
+
+This is probably because unrar is not downloaded or linked properly. Download UnRAR
 from http://www.rarlab.com/rar_add.htm and follow these instructions before trying again: http://rarfile.readthedocs.org/en/latest/faq.html?highlight=windows#how-can-i-get-it-work-on-windows
 
 
