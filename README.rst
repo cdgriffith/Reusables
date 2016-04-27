@@ -183,7 +183,7 @@ It's common to be looking for a specific type of file.
         if file.endswith(reusables.exts.pictures):
             print("{} is a picture file".format(file))
 
-That's right, str.endswith (as well as str.startswith) accept a tuple to seach over.
+That's right, `str.endswith <https://docs.python.org/2/library/stdtypes.html#str.endswith>` (as well as str.startswith) accept a tuple to search.
 
 ===================== =================== 
  File Type             Extensions
