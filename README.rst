@@ -177,6 +177,7 @@ There are multiple log formatters provided, as well as additional helper functio
 | Formatter Name         |  Example output                                                                                       |
 +========================+=======================================================================================================+
 | log_easy_read_format   |  2016-04-26 21:17:51,225 - example_logger  INFO      This is my example log message                   |
+|                        |                                                                                                       |
 |                        |  2016-04-26 21:17:59,074 - example_logger  ERROR     Something went wrong                             |
 +------------------------+-------------------------------------------------------------------------------------------------------+
 | log_detailed_format    |  2016-04-26 21:17:51,225 :  7020 MainThread : example_logger INFO This is my example log message      |
