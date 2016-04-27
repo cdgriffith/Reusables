@@ -121,7 +121,7 @@ Examples based on : Mon Mar 28 13:27:11 2016
 
 ===================== =================== ===========================
  Format                Mapping             Example
---------------------- ------------------- ---------------------------
+===================== =================== ===========================
 {12-hour}               %I                 01
 {24-hour}               %H                 13
 {seconds}               %S                 14
@@ -187,22 +187,27 @@ That's right, `str.endswith <https://docs.python.org/2/library/stdtypes.html#str
 
 ===================== =================== 
  File Type             Extensions
---------------------- -------------------
+===================== ===================
  pictures              .jpeg .jpg .png .gif .bmp .tif .tiff
                        .ico .mng .tga .psd .xcf .svg .icns
+--------------------- -------------------
  video                 .mkv .avi .mp4 .mov .flv .mpeg .mpg .3gp
                        .m4v .ogv .asf .m1v .m2v .mpe .ogv .wmv
                        .rm .qt
+--------------------- -------------------
  music                 .mp3 .ogg .wav .flac .aif .aiff .au .m4a
                        .wma .mp2 .m4a .m4p .aac .ra .mid .midi
                        .mus .psf
+--------------------- -------------------
  documents             .doc .docx .pdf .xls .xlsx .ppt .pptx
                        .csv .epub .gdoc .odt .rtf .txt .info
                        .xps .gslides .gsheet
+--------------------- -------------------
  archives              .zip .rar .7z .tar.gz .tgz .gz .bzip
                        .bzip2 .bz2 .xz .lzma .bin .tar
+--------------------- -------------------
  cd_images             .iso .nrg .img .mds .mdf .cue .daa
---------------------- ------------------
+===================== ===================
 
 
 Common Issues
