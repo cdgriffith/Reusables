@@ -287,3 +287,4 @@ improve existing code is warmly welcomed!
    datetime
    namespace
    dangerzone
+   changelog
