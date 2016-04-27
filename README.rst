@@ -62,6 +62,12 @@ File Management
         reusables.find_all_files(".", ext=reusables.exts.pictures)
         # ['/home/user/background.jpg', '/home/user/private.png']
 
+        reusables.count_all_files(".")
+        # 405
+
+        reusables.file_hash("test_structure.zip", hash_type="sha256")
+        # 'bc11af55928ab89771b9a141fa526a5b8a3dbc7d6870fece9b91af5d345a75ea'
+
 
 
 Namespace
@@ -166,6 +172,37 @@ There are multiple log formatters provided, as well as additional helper functio
         logger.addHandler(stream_handler)
         logger.info("Example log entry")
         # 2016-04-25 19:42:52,633 : 315147 MainThread : reusables.log INFO Example log entry
+
+Extension Groups
+~~~~~~~~~~~~~~~~
+
+It's common to be looking for a specific type of file.
+
+.. code:: python
+
+        if file.endswith(reusables.exts.pictures):
+            print("{} is a picture file".format(file))
+
+That's right, str.endswith (as well as str.startswith) accept a tuple to seach over.
+
+===================== =================== 
+ File Type             Extensions
+--------------------- -------------------
+ pictures              .jpeg .jpg .png .gif .bmp .tif .tiff
+                       .ico .mng .tga .psd .xcf .svg .icns
+ video                 .mkv .avi .mp4 .mov .flv .mpeg .mpg .3gp
+                       .m4v .ogv .asf .m1v .m2v .mpe .ogv .wmv
+                       .rm .qt
+ music                 .mp3 .ogg .wav .flac .aif .aiff .au .m4a
+                       .wma .mp2 .m4a .m4p .aac .ra .mid .midi
+                       .mus .psf
+ documents             .doc .docx .pdf .xls .xlsx .ppt .pptx
+                       .csv .epub .gdoc .odt .rtf .txt .info
+                       .xps .gslides .gsheet
+ archives              .zip .rar .7z .tar.gz .tgz .gz .bzip
+                       .bzip2 .bz2 .xz .lzma .bin .tar
+ cd_images             .iso .nrg .img .mds .mdf .cue .daa
+--------------------- ------------------
 
 
 Common Issues
