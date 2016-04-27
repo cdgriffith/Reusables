@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Reusables - Commonly Consumed Code Commodities
+#
+# Reusables - Commonly Consumed Code Commodities
+#
+# Copyright (c) 2014-2016 - Chris Griffith - MIT License
 
-Copyright (c) 2014-2016 - Chris Griffith - MIT License
-"""
 import os
 import sys
 import re

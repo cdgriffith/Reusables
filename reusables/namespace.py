@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
+#
+# Part of the Reusables package.
+#
+# Copyright (c) 2014-2016 - Chris Griffith - MIT License
 """
 Improved dictionary management. Inspired by
 javascript style referencing, as it's one of the few things they got right.
-
-Part of the Reusables package.
-
-Copyright (c) 2014-2016 - Chris Griffith - MIT License
 """
 
 
@@ -16,9 +16,9 @@ class Namespace(dict):
     Allows access to attributes by either class dot notation or item reference
 
     All valid:
-        namespace.spam.eggs
-        namespace['spam']['eggs']
-        namespace['spam'].eggs
+        - namespace.spam.eggs
+        - namespace['spam']['eggs']
+        - namespace['spam'].eggs
     """
 
     def __init__(self, *args, **kwargs):
@@ -81,6 +81,13 @@ class Namespace(dict):
         return cls(dictionary)
 
     def to_dict(self, in_dict=None):
+        """
+        Turn the Namespace and sub Namespaces back into a native
+        python dictionary.
+
+        :param in_dict: Do not use, for self recursion
+        :return: python dictionary of this Namespace
+        """
         in_dict = in_dict if in_dict else self
         out_dict = dict()
         for k, v in in_dict.items():

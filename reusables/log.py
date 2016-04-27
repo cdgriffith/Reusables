@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
+#
+# Part of the Reusables package.
+#
+# Copyright (c) 2014-2016 - Chris Griffith - MIT License
 """
 Logging helper functions and common log formats.
-
-Part of the Reusables package.
-
-Copyright (c) 2014-2016 - Chris Griffith - MIT License
 """
 import logging as _logging
 import sys

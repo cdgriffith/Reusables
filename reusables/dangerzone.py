@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#
+# Part of the Reusables package.
+#
+# Copyright (c) 2014-2016  - Chris Griffith - MIT License
 """
 Code in the dangerzone is either inherently dangerous by design or not fully
 tested and should never be used in production code. This may sound like a
@@ -9,10 +13,6 @@ reiterate this point:
     This code will muck up your project if you use it.
 
 Have fun!
-
-Part of the Reusables package.
-
-Copyright (c) 2014-2016  - Chris Griffith - MIT License
 """
 _reuse_cache = dict()  # Could use DefaultDict but eh, it's another import
 

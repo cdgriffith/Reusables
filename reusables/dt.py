@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
+#
+# Part of the Reusables package.
+#
+# Copyright (c) 2014-2016 - Chris Griffith - MIT License
 """
 A hopefully easier to use formatting system for datetime.
-
-Part of the Reusables package.
-
-Copyright (c) 2014-2016 - Chris Griffith - MIT License
 """
-
-
 import datetime as _datetime
 import time as _time
 import re
@@ -54,6 +52,10 @@ datetime_regex = Namespace(**dt_exps)
 
 
 class DateTime(_datetime.datetime):
+    """
+    Custom DateTime object compatible with datetime.datetime that adds easy
+    string formatting and ISO string parsing.
+    """
 
     def __new__(cls, year=None, month=None, day=None, hour=0, minute=0,
                 second=0, microsecond=0, tzinfo=None):

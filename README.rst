@@ -107,7 +107,7 @@ Easy formatting for datetime objects. It also adds auto parsing for ISO formatte
 
 .. code:: python
 
-        current_time = reusables.DateTime() # same as datetime.datetime.now(), returned as DateTime object
+        current_time = reusables.DateTime() # same as datetime.datetime.now(), as DateTime object
 
         current_time.format("Wake up {son}, it's {hours}:{minutes} {periods}!"
                             "I don't care if it's a {day-fullname}, {command}!",
