@@ -38,3 +38,5 @@ nosetests.xml
 .pypirc
 
 *.exe
+.eggs/
+index.rst

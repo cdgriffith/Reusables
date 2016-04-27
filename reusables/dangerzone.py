@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Dangerzone
-
 Code in the dangerzone is either inherently dangerous by design or not fully
 tested and should never be used in production code. This may sound like a
 generic warning like you would find with release candidate code, so let me

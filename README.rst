@@ -237,16 +237,6 @@ This is probably because unrar is not downloaded or linked properly. Download Un
 from http://www.rarlab.com/rar_add.htm and follow these instructions before
 trying again: http://rarfile.readthedocs.org/en/latest/faq.html?highlight=windows#how-can-i-get-it-work-on-windows
 
-
-
-Additional Info
----------------
-
-This does not claim to provide the most accurate, fastest or most 'pythonic'
-way to implement these useful snippets, this is simply designed for easy
-reference. Any contributions that would help add functionality or
-improve existing code is warmly welcomed!
-
 License
 -------
 
@@ -278,3 +268,20 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
    :target: https://coveralls.io/r/cdgriffith/Reusables?branch=master
 .. _str.endswith: https://docs.python.org/2/library/stdtypes.html#str.endswith
 .. _str.startswith: https://docs.python.org/2/library/stdtypes.html#str.startswith
+
+Additional Info
+---------------
+
+This does not claim to provide the most accurate, fastest or most 'pythonic'
+way to implement these useful snippets, this is simply designed for easy
+reference. Any contributions that would help add functionality or
+improve existing code is warmly welcomed!
+
+.. toctree::
+   :maxdepth: 2
+
+   reusables
+   log
+   datetime
+   namespace
+   dangerzone
