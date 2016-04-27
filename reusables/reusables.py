@@ -95,10 +95,18 @@ common_variables = {
     },
 }
 
+# Some may ask why make everything into namespaces, I ask why not
+regex = Namespace(reg_exps)
+exts = Namespace(common_exts)
+variables = Namespace(common_variables)
+
 
 def os_tree(directory):
     """
     Return a directories contents as a dictionary hierarchy.
+
+    :param directory: path to directory to created the tree of.
+    :return: dictionary of the directory
     """
     if not os.path.exists(directory):
         raise OSError("Directory does not exist")
@@ -128,40 +136,42 @@ def os_tree(directory):
     return tree
 
 
-# Some may ask why make everything into namespaces, I ask why not
-regex = Namespace(reg_exps)
-exts = Namespace(common_exts)
-variables = Namespace(common_variables)
-
-
-def join_paths(*paths, **kwargs):
+def join_paths(*paths, strict=False):
     """
     Join multiple paths together and return the absolute path of them. This
     function will 'clean' the path as well unless the option of 'strict' is
     provided.
+
+    :param paths: paths to join together
+    :param strict: automatically make them into a safe path unless set True
+    :return: path as string
     """
     path = os.path.abspath(paths[0])
     for next_path in paths[1:]:
         next_path = next_path.lstrip(os.sep).strip() if not \
-            kwargs.get('strict') else next_path
+            strict else next_path
         path = os.path.join(path, next_path)
-    if (not kwargs.get('strict') and
+    if (not strict and
             "." not in os.path.basename(path) and
             not path.endswith(os.sep)):
         path += os.sep
-    return path if kwargs.get('strict') else safe_path(path)
+    return path if strict else safe_path(path)
 
 
-def join_root(*paths, **kwargs):
+def join_root(*paths, strict=False):
     """
     Join any path or paths as a sub directory of the current file's directory.
+
+    :param paths: paths to join together
+    :param strict: automatically make them into a safe path unless set True
+    :return: path as string
     """
     path = os.path.abspath(".")
     for next_path in paths:
         next_path = next_path.lstrip(os.sep).strip() if not \
-            kwargs.get('strict') else next_path
+            strict else next_path
         path = os.path.abspath(os.path.join(path, next_path))
-    return path if kwargs.get('strict') else safe_path(path)
+    return path if strict else safe_path(path)
 
 
 def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
@@ -169,6 +179,12 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
     Return configuration options as dictionary. Accepts either a single
     config file or a list of files. Auto find will search for all .cfg, .config
     and .ini in the execution directory and package root (unsafe but handy).
+
+    :param config_file: path or paths to the files location
+    :param auto_find: look for a config type file at this location or below
+    :param verify: make sure the file exists before trying to read
+    :param cfg_options: options to pass to the parser
+    :return: dictionary of the config files
     """
     if not config_file:
         config_file = []
@@ -209,24 +225,38 @@ def config_namespace(config_file=None, auto_find=False,
                      verify=True, **cfg_options):
     """
     Return configuration options as a Namespace.
+
+    :param config_file: path or paths to the files location
+    :param auto_find: look for a config type file at this location or below
+    :param verify: make sure the file exists before trying to read
+    :param cfg_options: options to pass to the parser
+    :return: Namespace of the config files
     """
     return Namespace(**config_dict(config_file, auto_find,
                                    verify, **cfg_options))
 
 
-def sort_by(unordered_list, key):
+def sort_by(unordered_list, key, **sort_args):
     """
     Sort a list of dicts, tuples or lists by the provided dict key, or list/
     tuple position.
+
+    :param unordered_list: list to sort
+    :param key: key to sort on from the list
+    :param sort_args: additional options to pass to sort, like 'reverse'
+    :return: sorted list
     """
-    return sorted(unordered_list, key=lambda y: y[key])
+    return sorted(unordered_list, key=lambda y: y[key], **sort_args)
 
 
 def check_filename(filename):
     """
     Returns a boolean stating if the filename is safe to use or not. Note that
     this does not test for "legal" names accepted, but a more restricted set of:
-    Letters, numbers, spaces, hyphens, underscores and periods
+    Letters, numbers, spaces, hyphens, underscores and periods.
+
+    :param filename: name of a file as a string
+    :return: boolean if it is a safe file name
     """
     if not isinstance(filename, str):
         raise TypeError("filename must be a string")
@@ -239,7 +269,11 @@ def safe_filename(filename, replacement="_"):
     """
     Replace unsafe filename characters with underscores. Note that this does not
     test for "legal" names accepted, but a more restricted set of:
-    Letters, numbers, spaces, hyphens, underscores and periods
+    Letters, numbers, spaces, hyphens, underscores and periods.
+
+    :param filename: name of a file as a string
+    :param replacement: character to use as a replacement of bad characters
+    :return: safe filename string
     """
     if not isinstance(filename, str):
         raise TypeError("filename must be a string")
@@ -254,9 +288,15 @@ def safe_filename(filename, replacement="_"):
 
 def safe_path(path, replacement="_"):
     """
-    Replace unsafe path characters with underscores.
+    Replace unsafe path characters with underscores. Do NOT use this
+    with existing paths that cannot be modified, this to to help generate
+    new, clean paths.
 
     Supports windows and *nix systems.
+
+    :param path: path as a string
+    :param replacement: character to use in place of bad characters
+    :return: a safer path
     """
     if not isinstance(path, str):
         raise TypeError("path must be a string")
@@ -290,6 +330,11 @@ def file_hash(path, hash_type="md5", block_size=65536):
     Hash a given file with sha256 and return the hex digest.
 
     This function is designed to be non memory intensive.
+
+    :param path: location of the file to hash
+    :param hash_type: string name of the hash to use
+    :param block_size: amount of bytes to add to hasher at a time
+    :return: file's hash
     """
     import hashlib
     if (python_version >= (2, 7) and
@@ -477,6 +522,11 @@ def remove_empty_files(root_directory, dnd=False, ignore_errors=True):
 def extract_all(archive_file, path=".", dnd=True, enable_rar=False):
     """
     Automatically detect archive type and extract all files to specified path.
+
+    :param archive_file: path to file to extract
+    :param path: location to extract to
+    :param dnd: "Do not delete" - will delete the archive if set to False
+    :param enable_rar: include the rarfile import and extract
     """
     import zipfile
     import tarfile

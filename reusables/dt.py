@@ -84,6 +84,15 @@ class DateTime(_datetime.datetime):
             microsecond=self.microsecond, timezone=self.tzinfo)
 
     def format(self, desired_format, *args, **kwargs):
+        """
+        Replaces format style phrases (listed in the dt_exps dictionary)
+        with this datetime instance's information.
+
+        :param desired_format: string to add datetime details too
+        :param args: additional args to pass to str.format
+        :param kwargs: additional kwargs to pass to str format
+        :return: formatted string
+        """
         for strf, exp in datetime_regex.datetime.format.items():
             desired_format = exp.sub(strf, desired_format)
         return self.strftime(desired_format.format(*args, **kwargs))
@@ -95,7 +104,10 @@ class DateTime(_datetime.datetime):
     @classmethod
     def from_iso(cls, iso_datetime):
         """
-        :type iso_datetime: str
+        Create a DateTime object from a ISO string
+
+        :param iso_datetime: string of an ISO datetime
+        :return: DateTime object
         """
         try:
             assert datetime_regex.datetime.datetime.match(

@@ -29,7 +29,14 @@ if sys.version_info < (2, 7):
 
 def get_stream_handler(stream=sys.stderr, level=_logging.INFO,
                        log_format=log_easy_read_format):
+    """
+    Returns a set up stream handler to add to a logger.
 
+    :param stream: which stream to use, defaults to sys.stderr
+    :param level: logging level to set handler at
+    :param log_format: formatter to use
+    :return: stream handler
+    """
     sh = _logging.StreamHandler(stream)
     sh.setLevel(level)
     sh.setFormatter(_logging.Formatter(log_format))
@@ -38,7 +45,14 @@ def get_stream_handler(stream=sys.stderr, level=_logging.INFO,
 
 def get_file_handler(file_path="out.log", level=_logging.INFO,
                      log_format=log_easy_read_format):
+    """
+    Set up a file handler to add to a logger.
 
+    :param file_path: file to write the log to
+    :param level: logging level to set handler at
+    :param log_format: formatter to use
+    :return: file handler
+    """
     fh = _logging.FileHandler(file_path)
     fh.setLevel(level)
     fh.setFormatter(_logging.Formatter(log_format))
@@ -48,7 +62,18 @@ def get_file_handler(file_path="out.log", level=_logging.INFO,
 def get_logger(module_name=__name__, level=_logging.INFO, stream=sys.stderr,
                file_path=None, log_format=log_easy_read_format,
                suppress_warning=True):
+    """
+    Grabs the specified logger and adds wanted handlers to it. Will
+    default to adding a stream handler.
 
+    :param module_name: logger name to use
+    :param level: logging level to set logger at
+    :param stream: stream to log to, or None
+    :param file_path: file path to log to, or None
+    :param log_format: format to set the handlers to use
+    :param suppress_warning: add a NullHandler if no other handler is specified
+    :return: configured logger
+    """
     new_logger = _logging.getLogger(module_name)
     if stream:
         new_logger.addHandler(get_stream_handler(stream, level, log_format))
@@ -63,6 +88,12 @@ def get_logger(module_name=__name__, level=_logging.INFO, stream=sys.stderr,
 
 
 def remove_stream_handlers(logger):
+    """
+    Remove only stream handlers from the specified logger
+
+    :param logger: logging object to modify
+    :return: streamless logger
+    """
     new_handlers = []
     for handler in logger.handlers:
         # FileHandler is a subclass of StreamHandler so
@@ -76,6 +107,13 @@ def remove_stream_handlers(logger):
 
 
 def remove_file_handlers(logger):
+    """
+    Remove only file handlers from the specified logger. Will go through
+    and close each handler for safety.
+
+    :param logger: logging object to modify
+    :return: fileless logger
+    """
     new_handlers = []
     for handler in logger.handlers:
         if isinstance(handler, _logging.FileHandler):
@@ -86,6 +124,12 @@ def remove_file_handlers(logger):
 
 
 def remove_all_handlers(logger):
+    """
+    Safely remove all handlers from the logger
+
+    :param logger: logging object to modify
+    :return: handle-less logger
+    """
     remove_file_handlers(logger)
     logger.handlers = []
 

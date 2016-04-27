@@ -117,7 +117,7 @@ Easy formatting for datetime objects. It also adds auto parsing for ISO formatte
 
 
 
-Examples based on : Mon Mar 28 13:27:11 2016
+Examples based on  Mon Mar 28 13:27:11 2016
 
 ===================== =================== ===========================
  Format                Mapping             Example
@@ -173,6 +173,7 @@ There are multiple log formatters provided, as well as additional helper functio
         logger.info("Example log entry")
         # 2016-04-25 19:42:52,633 : 315147 MainThread : reusables.log INFO Example log entry
 
+
 Extension Groups
 ~~~~~~~~~~~~~~~~
 
@@ -180,8 +181,8 @@ It's common to be looking for a specific type of file.
 
 .. code:: python
 
-        if file.endswith(reusables.exts.pictures):
-            print("{} is a picture file".format(file))
+        if file_path.endswith(reusables.exts.pictures):
+            print("{} is a picture file".format(file_path))
 
 That's right, str.endswith_ (as well as str.startswith_) accept a tuple to search.
 
@@ -202,10 +203,12 @@ Common Issues
 
 **UnRAR path issues**
 
-A common error to see, espeically on Windows based systems, is: "rarfile.RarCannotExec: Unrar not installed? (rarfile.UNRAR_TOOL='unrar')"
+A common error to see, especially on Windows based systems,
+ is: "rarfile.RarCannotExec: Unrar not installed? (rarfile.UNRAR_TOOL='unrar')"
 
 This is probably because unrar is not downloaded or linked properly. Download UnRAR
-from http://www.rarlab.com/rar_add.htm and follow these instructions before trying again: http://rarfile.readthedocs.org/en/latest/faq.html?highlight=windows#how-can-i-get-it-work-on-windows
+from http://www.rarlab.com/rar_add.htm and follow these instructions before
+trying again: http://rarfile.readthedocs.org/en/latest/faq.html?highlight=windows#how-can-i-get-it-work-on-windows
 
 
 
