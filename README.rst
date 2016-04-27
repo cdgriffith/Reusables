@@ -174,31 +174,31 @@ There are multiple log formatters provided, as well as additional helper functio
         # 2016-04-25 19:42:52,633 : 315147 MainThread : reusables.log INFO Example log entry
 
 +------------------------+-------------------------------------------------------------------------------------------------------+
-| Formatter Name         |  Example output                                                                                       |
+| Formatter              |  Example Output                                                                                       |
 +========================+=======================================================================================================+
-| log_easy_read_format   |  2016-04-26 21:17:51,225 - example_logger  INFO      This is my example log message                   |
+| log_easy_read_format   |  2016-04-26 21:17:51,225 - example_logger  INFO      example log message                              |
 |                        |                                                                                                       |
-|                        |  2016-04-26 21:17:59,074 - example_logger  ERROR     Something went wrong                             |
+|                        |  2016-04-26 21:17:59,074 - example_logger  ERROR     Something broke                                  |
 +------------------------+-------------------------------------------------------------------------------------------------------+
-| log_detailed_format    |  2016-04-26 21:17:51,225 :  7020 MainThread : example_logger INFO This is my example log message      |
+| log_detailed_format    |  2016-04-26 21:17:51,225 :  7020 MainThread : example_logger INFO example log message                 |
 |                        |                                                                                                       |
-|                        |  2016-04-26 21:17:59,074 : 14868 MainThread : example_logger ERROR Something went wrong               |
+|                        |  2016-04-26 21:17:59,074 : 14868 MainThread : example_logger ERROR Something broke                    |
 +------------------------+-------------------------------------------------------------------------------------------------------+
-| log_level_first_format |  INFO - example_logger - 2016-04-26 21:17:51,225 - This is my example log message                     |
+| log_level_first_format |  INFO - example_logger - 2016-04-26 21:17:51,225 - example log message                                |
 |                        |                                                                                                       |
-|                        |  ERROR - example_logger - 2016-04-26 21:17:59,074 - Something went wrong                              |
+|                        |  ERROR - example_logger - 2016-04-26 21:17:59,074 - Something broke                                   |
 +------------------------+-------------------------------------------------------------------------------------------------------+
-| log_threaded_format    |  7020 MainThread : This is my example log message                                                     |
+| log_threaded_format    |  7020 MainThread : example log message                                                                |
 |                        |                                                                                                       |
-|                        |  14868 MainThread : Something went wrong                                                              |
+|                        |  14868 MainThread : Something broke                                                                   |
 +------------------------+-------------------------------------------------------------------------------------------------------+
-| log_easy_thread_format |   7020 MainThread : example_logger  INFO      This is my example log message                          |
+| log_easy_thread_format |  7020 MainThread : example_logger  INFO      example log message                                      |
 |                        |                                                                                                       |
-|                        |  14868 MainThread : example_logger  ERROR     Something went wrong                                    |
+|                        |  14868 MainThread : example_logger  ERROR     Something broke                                         |
 +------------------------+-------------------------------------------------------------------------------------------------------+
-| log_common_format      |  2016-04-26 21:17:51,225 - example_logger - INFO - This is my example log message                     |
+| log_common_format      |  2016-04-26 21:17:51,225 - example_logger - INFO - example log message                                |
 |                        |                                                                                                       |
-|                        |  2016-04-26 21:17:59,074 - example_logger - ERROR - Something went wrong                              |
+|                        |  2016-04-26 21:17:59,074 - example_logger - ERROR - Something broke                                   |
 +------------------------+-------------------------------------------------------------------------------------------------------+
 
 Extension Groups
