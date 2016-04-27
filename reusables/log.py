@@ -12,10 +12,11 @@ import sys
 
 log_common_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 log_level_first_format = '%(levelname)s - %(name)s - %(asctime)s - %(message)s'
-log_threaded_format = '%(relativeCreated)6d %(threadName)s %(message)s'
-log_easy_read_format = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
-log_easy_thread_format = '%(relativeCreated)5d %(name)-12s ' \
-                         '%(levelname)-8s %(message)s'
+log_threaded_format = '%(relativeCreated)d %(threadName)s : %(message)s'
+log_easy_read_format = '%(asctime)s - %(name)-12s  %(levelname)-8s ' \
+                       ' %(message)s'
+log_easy_thread_format = '%(relativeCreated)8d %(threadName)s : %(name)-12s ' \
+                         ' %(levelname)-8s  %(message)s'
 log_detailed_format = '%(asctime)s : %(relativeCreated)5d %(threadName)s : ' \
                       '%(name)s %(levelname)s %(message)s'
 

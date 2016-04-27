@@ -34,8 +34,8 @@ Tested on:
 \* python 2.6 requires argparse
 
 
-Examples
---------
+What's in the box
+-----------------
 
 General Helpers
 ~~~~~~~~~~~~~~~
@@ -174,6 +174,23 @@ There are multiple log formatters provided, as well as additional helper functio
         # 2016-04-25 19:42:52,633 : 315147 MainThread : reusables.log INFO Example log entry
 
 
+======================= ================
+ Formatter Name          Example output
+======================= ================
+log_easy_read_format     2016-04-26 21:17:51,225 - example_logger  INFO      This is my example log message
+                         2016-04-26 21:17:59,074 - example_logger  ERROR     Something went wrong
+log_detailed_format      2016-04-26 21:17:51,225 :  7020 MainThread : example_logger INFO This is my example log message
+                         2016-04-26 21:17:59,074 : 14868 MainThread : example_logger ERROR Something went wrong
+log_level_first_format   INFO - example_logger - 2016-04-26 21:17:51,225 - This is my example log message
+                         ERROR - example_logger - 2016-04-26 21:17:59,074 - Something went wrong
+log_threaded_format      7020 MainThread : This is my example log message
+                         14868 MainThread : Something went wrong
+log_easy_thread_format    7020 MainThread : example_logger  INFO      This is my example log message
+                         14868 MainThread : example_logger  ERROR     Something went wrong
+log_common_format        2016-04-26 21:17:51,225 - example_logger - INFO - This is my example log message
+                         2016-04-26 21:17:59,074 - example_logger - ERROR - Something went wrong
+======================= ================
+
 Extension Groups
 ~~~~~~~~~~~~~~~~
 
@@ -203,8 +220,8 @@ Common Issues
 
 **UnRAR path issues**
 
-A common error to see, especially on Windows based systems,
- is: "rarfile.RarCannotExec: Unrar not installed? (rarfile.UNRAR_TOOL='unrar')"
+
+A common error to see, especially on Windows based systems, is: "rarfile.RarCannotExec: Unrar not installed? (rarfile.UNRAR_TOOL='unrar')"
 
 This is probably because unrar is not downloaded or linked properly. Download UnRAR
 from http://www.rarlab.com/rar_add.htm and follow these instructions before
@@ -220,7 +237,30 @@ way to implement these useful snippets, this is simply designed for easy
 reference. Any contributions that would help add functionality or
 improve existing code is warmly welcomed!
 
-Copyright (c) 2014-2016 - Chris Griffith - MIT License
+License
+-------
+
+The MIT License (MIT)
+
+Copyright (c) 2014-2016 Chris Griffith
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 .. |Build Status| image:: https://travis-ci.org/cdgriffith/Reusables.png?branch=master
    :target: https://travis-ci.org/cdgriffith/Reusables

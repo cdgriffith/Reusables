@@ -136,42 +136,45 @@ def os_tree(directory):
     return tree
 
 
-def join_paths(*paths, strict=False):
+def join_paths(*paths, **kwargs):
     """
     Join multiple paths together and return the absolute path of them. This
     function will 'clean' the path as well unless the option of 'strict' is
-    provided.
+    provided as True.
+
+    Would like to do 'strict=False' instead of '**kwargs' but stupider versions
+    of python *cough 2.6* don't like that after '*paths'.
 
     :param paths: paths to join together
-    :param strict: automatically make them into a safe path unless set True
+    :param kwargs: 'strict', make them into a safe path unless set True
     :return: path as string
     """
     path = os.path.abspath(paths[0])
     for next_path in paths[1:]:
         next_path = next_path.lstrip(os.sep).strip() if not \
-            strict else next_path
+            kwargs.get('strict') else next_path
         path = os.path.join(path, next_path)
-    if (not strict and
-            "." not in os.path.basename(path) and
+    if (not kwargs.get('strict') and
+        "." not in os.path.basename(path) and
             not path.endswith(os.sep)):
         path += os.sep
-    return path if strict else safe_path(path)
+    return path if kwargs.get('strict') else safe_path(path)
 
 
-def join_root(*paths, strict=False):
+def join_root(*paths, **kwargs):
     """
     Join any path or paths as a sub directory of the current file's directory.
 
     :param paths: paths to join together
-    :param strict: automatically make them into a safe path unless set True
+    :param kwargs: 'strict', make them into a safe path unless set True
     :return: path as string
     """
     path = os.path.abspath(".")
     for next_path in paths:
         next_path = next_path.lstrip(os.sep).strip() if not \
-            strict else next_path
+            kwargs.get('strict') else next_path
         path = os.path.abspath(os.path.join(path, next_path))
-    return path if strict else safe_path(path)
+    return path if kwargs.get('strict') else safe_path(path)
 
 
 def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
