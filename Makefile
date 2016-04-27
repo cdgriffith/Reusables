@@ -2,8 +2,9 @@ HOME ?= $HOME
 CWD = $(shell pwd)
 VENVS ?= $(HOME)/.virtualenvs
 PYTHON2 = $(VENVS)/builder2.7/bin/python2.7
-PYTHON3 = $(VENVS)/builder3.4/bin/python3.4
-PYTHONS = $(VENVS)/builder2.6/bin/python2.6 $(VENVS)/builder2.7/bin/python2.7 $(VENVS)/builder3.2/bin/python3.2 $(VENVS)/builder3.3/bin/python3.3 $(VENVS)/builder3.4/bin/python3.4
+PYTHON3 = $(VENVS)/builder3.5/bin/python3.5
+PYTHONS = $(VENVS)/builder2.6/bin/python2.6 $(VENVS)/builder2.7/bin/python2.7 $(VENVS)/builder3.5/bin/python3.5 $(VENVS)/builder3.3/bin/python3.3 $(VENVS)/builder3.4/bin/python3.4
+PYPY = $(VENVS)/builderpypy/bin/python
 
 .PHONY: all test clean help register build
 
@@ -30,11 +31,12 @@ test:
 
 build:
 	$(PYTHON2) setup.py sdist;
-	for python in $(PYTHONS); do\
-		"$$python" setup.py bdist_egg; \
-	done
 	$(PYTHON2) setup.py bdist_wheel;
 	$(PYTHON3) setup.py bdist_wheel;
+# for python in $(PYTHONS); do\
+ 	"$$python" setup.py bdist_egg; \
+ done
+
 
 register:
 	$(PYTHON2) setup.py register;
@@ -44,11 +46,12 @@ install:
 
 upload: clean test register build
 	$(PYTHON2) setup.py sdist upload;
-	for python in $(PYTHONS); do\
-		"$$python" setup.py bdist_egg  upload; \
-	done
 	$(PYTHON2) setup.py bdist_wheel upload;
 	$(PYTHON3) setup.py bdist_wheel upload;
+
+# for python in $(PYTHONS); do\
+	 "$$python" setup.py bdist_egg  upload; \
+ done
 
 help:
 	@echo "Reusables"
@@ -63,5 +66,13 @@ help:
 develop:
 	sudo add-apt-repository ppa:fkrull/deadsnakes;
 	sudo apt-get update;
-	sudo apt-get install python2.6 python2.7 python3.2 python3.3 python3.4 pypy;
-
+	sudo apt-get install python2.6 python2.7 python3.5 python3.3 python3.4 pypy;
+	sudo pip install virtualenv --upgrade;
+	rm -rf $(VENVS);
+	mkdir -p $(VENVS);
+	virtualenv -p python2.6 $(VENVS)/builder2.6;
+	virtualenv -p python2.7 $(VENVS)/builder2.7;
+	virtualenv -p python3.3 $(VENVS)/builder3.3;
+	virtualenv -p python3.4 $(VENVS)/builder3.4;
+	virtualenv -p python3.5 $(VENVS)/builder3.5;
+	virtualenv -p pypy $(VENVS)/builderpypy;
