@@ -2,4 +2,5 @@ Namespace
 =========
 
 .. automodule:: reusables.namespace
-	:members:
+   :members:
+   :undoc-members:

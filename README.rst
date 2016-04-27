@@ -174,7 +174,7 @@ There are multiple log formatters provided, as well as additional helper functio
         # 2016-04-25 19:42:52,633 : 315147 MainThread : reusables.log INFO Example log entry
 
 
-Because GitHub's ReStructuredText tables don't preserve whitespace (even with literals), which is important to show distinction in these formatters, here's it in a code block instead.
+Because ReStructuredText tables don't preserve whitespace (even with literals), which is important to show distinction in these formatters, here's it in a code block instead.
 
 .. code::
 

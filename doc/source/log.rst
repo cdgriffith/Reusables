@@ -2,4 +2,5 @@ Logging
 =======
 
 .. automodule:: reusables.log
-	:members:
+   :members:
+   :undoc-members:

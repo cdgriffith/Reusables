@@ -2,4 +2,5 @@ Dangerzone
 ==========
 
 .. automodule:: reusables.dangerzone
-	:members:
+   :members:
+   :undoc-members:

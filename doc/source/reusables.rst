@@ -2,4 +2,6 @@ File Management and General Helpers
 ===================================
 
 .. automodule:: reusables.reusables
-	:members:
+   :members:
+   :undoc-members:
+

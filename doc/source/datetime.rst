@@ -2,4 +2,5 @@ DateTime
 ========
 
 .. automodule:: reusables.dt
-	:members:
+   :members:
+   :undoc-members:
