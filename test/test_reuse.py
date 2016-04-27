@@ -3,17 +3,16 @@
 
 import unittest
 import os
-import sys
 import shutil
 import tarfile
 import tempfile
-import datetime
 import reusables
 
 test_root = os.path.abspath(os.path.dirname(__file__))
 
 test_structure_tar = os.path.join(test_root, "test_structure.tar.gz")
 test_structure_zip = os.path.join(test_root, "test_structure.zip")
+test_structure_rar = os.path.join(test_root, "test_structure.rar")
 test_structure = os.path.join(test_root, "test_structure")
 
 
@@ -148,9 +147,27 @@ Key2 = Value2
         os.unlink(os.path.join(test_root, "test_hash"))
         assert resp == valid, (resp, valid)
 
-
     def test_bad_hash_type(self):
         self.assertRaises(ValueError, reusables.file_hash, "", hash_type="sham5")
+
+    def test_count_files(self):
+        self._extract_structure()
+        resp = reusables.count_all_files(test_root, ext=".cfg")
+        assert resp == 1, resp
+
+    def test_count_name(self):
+        self._extract_structure()
+        resp = reusables.count_all_files(test_root, name="file_")
+        assert resp == 4, resp
+
+    def test_fail_count_files(self):
+        self._extract_structure()
+        try:
+            reusables.count_all_files(test_root, ext={"ext": ".cfg"})
+        except TypeError:
+            pass
+        else:
+            raise AssertionError("Should raise type error")
 
     def test_find_files(self):
         resp = reusables.find_all_files(test_root, ext=".cfg")
@@ -180,30 +197,6 @@ Key2 = Value2
                         "tease.txt",
                          "--safe-path",
                         "/var/lib"])
-
-    def test_namespace(self):
-        test_dict = {'key1': 'value1',
-                     "Key 2": {"Key 3": "Value 3",
-                               "Key4": {"Key5": "Value5"}}}
-        namespace = reusables.Namespace(**test_dict)
-        assert namespace.key1 == test_dict['key1']
-        assert dict(getattr(namespace, 'Key 2')) == test_dict['Key 2']
-        setattr(namespace, 'TEST_KEY', 'VALUE')
-        assert namespace.TEST_KEY == 'VALUE'
-        delattr(namespace, 'TEST_KEY')
-        assert 'TEST_KEY' not in namespace.to_dict()
-        assert isinstance(namespace['Key 2'].Key4, reusables.Namespace)
-        assert "'key1': 'value1'" in str(namespace)
-        assert repr(namespace).startswith("<Namespace:")
-
-    def test_namespace_tree(self):
-        test_dict = {'key1': 'value1',
-                     "Key 2": {"Key 3": "Value 3",
-                               "Key4": {"Key5": "Value5"}}}
-        namespace = reusables.Namespace(**test_dict)
-        result = namespace.tree_view(sep="    ")
-        assert result.startswith("key1\n") or result.startswith("Key 2\n")
-        assert "Key4" in result and "    Value5\n" not in result
 
     def test_path_single(self):
         resp = reusables.safe_path('path')
@@ -248,6 +241,27 @@ Key2 = Value2
         assert os.path.isdir(test_structure)
         shutil.rmtree(test_structure)
 
+    def test_extract_all_rar(self):
+        if reusables.win_based:
+            import rarfile
+            rarfile.UNRAR_TOOL = "UnRAR.exe"
+        assert os.path.exists(test_structure_rar)
+        reusables.extract_all(test_structure_rar, path=test_root, dnd=True, enable_rar=True)
+        assert os.path.exists(test_structure)
+        assert os.path.isdir(test_structure)
+        shutil.rmtree(test_structure)
+
+    def test_extract_all_bad(self):
+        self._extract_structure()
+        path = os.path.join(test_structure, "Files", "file_1")
+        assert os.path.exists(path)
+        try:
+            reusables.extract_all(path, path=test_root, dnd=True)
+        except TypeError:
+            pass
+        else:
+            raise AssertionError("Extracted a bad file?")
+
     def test_extract_empty(self):
         empt = tempfile.mktemp()
         open(empt, "a").close()
@@ -266,23 +280,6 @@ Key2 = Value2
         assert not os.path.exists(fname)
         shutil.rmtree(tmpdir)
 
-    def test_datetime_iter(self):
-        for k, v in reusables.DateTime():
-            if k != "timezone":
-                assert v is not None, k
-
-    def test_datetime_new(self):
-        now = reusables.DateTime()
-        today = datetime.datetime.now()
-        assert now.day == today.day
-        assert now.year == today.year
-        assert now.hour == today.hour
-
-    def test_datetime_format(self):
-        now = reusables.DateTime()
-        assert now.format("{hour}:{minute}:{second}") == now.strftime("%I:%M:%S"), (now.strftime("%I:%M:%S"), now.format("{hour}:{minute}:{second}"))
-        assert now.format("{hour}:{minute}:{hour}:{24hour}:{24-hour}") == now.strftime("%I:%M:%I:%H:%H"), now.format("{hour}:{minute}:{hour}:{24hour}:{24-hour}")
-
     def test_os_tree(self):
         dir = tempfile.mkdtemp(suffix="dir1")
         dir2 = tempfile.mkdtemp(suffix="dir2", dir=dir)
@@ -290,41 +287,40 @@ Key2 = Value2
         answer = {dir.replace(tempfile.tempdir, "", 1).lstrip(os.sep): {dir2.lstrip(dir).lstrip(os.sep): {}}}
         assert without_files == answer, "{0} != {1}".format(without_files, answer)
 
-    def test_namespace_from_dict(self):
-        ns = reusables.Namespace.from_dict({"k1": "v1", "k2": {"k3": "v2"}})
-        assert ns.k2.k3 == "v2"
-
-    def test_namespace_from_bad_dict(self):
+    def test_os_tree_bad_dir(self):
+        lol_Im_not_a_dir = open("fake_dir", "w")
         try:
-            ns = reusables.Namespace.from_dict('{"k1": "v1", "k2": {"k3": "v2"}}')
-        except TypeError:
-            assert True
+            reusables.os_tree("fake_dir")
+        except OSError:
+            return True
         else:
-            assert False, "Should have raised type error"
+            assert False
+        finally:
+            lol_Im_not_a_dir.close()
 
-    def test_datetime_from_iso(self):
-        import datetime
-        test = datetime.datetime.now()
-        testiso = test.isoformat()
-        dt = reusables.DateTime.from_iso(testiso)
-        assert dt.hour == dt.hour
-        assert test == dt
-        assert isinstance(dt, reusables.DateTime)
-
-    def test_datetime_from_bad_iso(self):
+    def test_os_tree_no_dir(self):
         try:
-            reusables.DateTime.from_iso("hehe not a real time")
-        except TypeError:
-            assert True
+            reusables.os_tree("I am pretty sure this directory does not exist, at least I hope not, dear goodness")
+        except OSError:
+            return True
         else:
-            assert False, "How is that a datetime???"
+            assert False
+
+    def test_bad_file_hash_type(self):
+        try:
+            reusables.file_hash("test_file", hash_type="There is no way this is a valid hash type")
+        except ValueError:
+            return True
+        else:
+            assert False
+
 
 if reusables.win_based:
     class TestReuseWindows(unittest.TestCase):
             # Windows based path tests
 
         def test_win_join_path_clean(self):
-            resp = reusables.join_paths('C:\\test', 'clean\\', 'path')
+            resp = reusables.join_paths('C:\\test', 'clean\\', 'path').rstrip("\\")
             assert resp == 'C:\\test\\clean\\path', resp
 
         def test_win_join_path_dirty(self):
@@ -332,7 +328,7 @@ if reusables.win_based:
             assert resp == 'D:\\dirty\\path.file', resp
 
         def test_win_join_path_clean_strict(self):
-            resp = reusables.join_paths('C:\\test', 'clean\\', 'path', strict=True)
+            resp = reusables.join_paths('C:\\test', 'clean\\', 'path', strict=True).rstrip("\\")
             assert resp == 'C:\\test\\clean\\path', resp
 
         def test_win_join_path_dirty_strict(self):
@@ -346,6 +342,32 @@ if reusables.win_based:
             resp = reusables.join_root('clean\\')
             path = os.path.abspath(os.path.join(".", 'clean\\'))
             assert resp == path, (resp, path)
+
+        def test_cant_delete_empty_file(self):
+            dir = tempfile.mkdtemp(suffix="a_dir")
+            tf = os.path.join(dir, "test_file")
+            file = open(tf, "w")
+            try:
+                os.chmod(tf, 0o444)
+            except Exception:
+                pass
+
+            try:
+                reusables.remove_empty_files(dir, ignore_errors=False)
+            except OSError:
+                return True
+            else:
+                assert False
+            finally:
+                file.close()
+
+        def test_cant_delete_empty_file_ignore_errors(self):
+            dir = tempfile.mkdtemp(suffix="a_dir")
+            file = open(os.path.join(dir, "test_file"), "w")
+            try:
+                reusables.remove_empty_files(dir, ignore_errors=True)
+            finally:
+                file.close()
 
 if __name__ == "__main__":
     unittest.main()

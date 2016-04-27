@@ -1,6 +1,16 @@
 Changelog
 =========
 
+Version 0.3.0
+-------------
+
+- Namespace re-written to be more compatible with built-in dict
+- Added support for rarfile extraction
+- Adding PY2, PY3 as compliments of the booleans python3x to be similar to the six package
+- Adding logging features
+- Separating functionality to individual files
+- Adding sphinx generated API documentation
+
 Version 0.2.0
 -------------
 

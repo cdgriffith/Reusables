@@ -1,9 +1,11 @@
 #!/usr/bin/env python
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
+#
+# Part of the Reusables package.
+#
+# Copyright (c) 2014-2016  - Chris Griffith - MIT License
 """
-Dangerzone
-
-Code in the dangerzone is either inherently dangerous by design  or not fully
+Code in the dangerzone is either inherently dangerous by design or not fully
 tested and should never be used in production code. This may sound like a
 generic warning like you would find with release candidate code, so let me
 reiterate this point:
@@ -11,13 +13,7 @@ reiterate this point:
     This code will muck up your project if you use it.
 
 Have fun!
-
-
-Copyright (c) 2014  - Chris Griffith - MIT License
 """
-import os
-import sys
-from reusables import Namespace, config_dict, python2x
 _reuse_cache = dict()  # Could use DefaultDict but eh, it's another import
 
 

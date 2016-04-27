@@ -1,43 +1,41 @@
 #!/usr/bin/env python
-#-*- coding: utf-8 -*-
-"""
-Reusables - Commonly Consumed Code Commodities
-
-Copyright (c) 2014  - Chris Griffith - MIT License
-"""
-__author__ = "Chris Griffith"
-__version__ = "0.2.0"
+# -*- coding: utf-8 -*-
+#
+# Reusables - Commonly Consumed Code Commodities
+#
+# Copyright (c) 2014-2016 - Chris Griffith - MIT License
 
 import os
 import sys
 import re
 import tempfile as _tempfile
-import logging as _logging
-import datetime as _datetime
-import time as _time
+
+from .namespace import Namespace
+from .log import get_logger
+
+__author__ = "Chris Griffith"
+__version__ = "0.3.0"
 
 python_version = sys.version_info[0:3]
 version_string = ".".join([str(x) for x in python_version])
 current_root = os.path.abspath(".")
-python3x = python_version >= (3, 0)
-python2x = python_version < (3, 0)
+python3x = PY3 = python_version >= (3, 0)
+python2x = PY2 = python_version < (3, 0)
 nix_based = os.name == "posix"
 win_based = os.name == "nt"
 temp_directory = _tempfile.gettempdir()
 
-logger = _logging.getLogger(__name__)
-if python_version >= (2, 7):
-    #Surpresses warning that no logger is found if a parent logger is not set
-    logger.addHandler(_logging.NullHandler())
+logger = get_logger(__name__)
 
 # http://msdn.microsoft.com/en-us/library/aa365247%28v=vs.85%29.aspx
 
 reg_exps = {
     "path": {
         "windows": {
-            "valid": re.compile(r'^(?:[a-zA-Z]:\\|\\\\?|\\\\\?\\|\\\\\.\\)\
-?(?:(?!(CLOCK\$(\\|$)|(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]| )\
-(?:\..*|(\\|$))|.*\.$))(?:(?:(?![><:/"\\\|\?\*])[\x20-\u10FFFF])+\\?))*$'),
+            "valid": re.compile(r'^(?:[a-zA-Z]:\\|\\\\?|\\\\\?\\|\\\\\.\\)?'
+                r'(?:(?!(CLOCK\$(\\|$)|(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]| )'
+                r'(?:\..*|(\\|$))|.*\.$))'
+                r'(?:(?:(?![><:/"\\\|\?\*])[\x20-\u10FFFF])+\\?))*$'),
             "safe": re.compile(r'^([a-zA-Z]:\\)?[\w\d _\-\\\(\)]+$'),
             "filename": re.compile(r'^((?![><:/"\\\|\?\*])[ -~])+$')
         },
@@ -63,40 +61,10 @@ reg_exps = {
     },
     "pii": {
         "phone_number": {
-            "us": re.compile(r'((?:\(? ?\d{3} ?\)?[\. \-]?)?\d{3}[\. \-]?\d{4})')
+            "us": re.compile(r'((?:\(? ?\d{3} ?\)?[\. \-]?)?\d{3}'
+                             r'[\. \-]?\d{4})')
         }
     },
-    "datetime": {
-        "format": {
-            "%I": re.compile(r"\{(?:12)?\-?hours?\}"),
-            "%H": re.compile(r"\{24\-?hours?\}"),
-            "%S": re.compile(r"\{seco?n?d?s?\}"),
-            "%M": re.compile(r"\{minu?t?e?s?\}"),
-            "%f": re.compile(r"\{micro\-?(?:second)?s?\}"),
-            "%Z": re.compile(r"\{(?:(tz|time\-?zone))?\}"),
-            "%y": re.compile(r"\{years?\}"),
-            "%Y": re.compile(r"\{years?\-?(?:(full|name|full\-?name))?s?\}"),
-            "%m": re.compile(r"\{months?\}"),
-            "%b": re.compile(r"\{months?\-?name\}"),
-            "%B": re.compile(r"\{months?\-?(?:(full|full\-?name))?s?\}"),
-            "%d": re.compile(r"\{days?\}"),
-            "%w": re.compile(r"\{week\-?days?\}"),
-            "%j": re.compile(r"\{year\-?days?\}"),
-            "%a": re.compile(r"\{(?:week)?\-?days?\-?name\}"),
-            "%A": re.compile(r"\{(?:week)?\-?days?\-?fullname\}"),
-            "%U": re.compile(r"\{weeks?\}"),
-            "%W": re.compile(r"\{mon(?:day)?\-?weeks?\}"),
-            "%x": re.compile(r"\{date\}"),
-            "%X": re.compile(r"\{time\}"),
-            "%c": re.compile(r"\{date\-?time\}"),
-            "%z": re.compile(r"\{(?:utc)?\-?offset\}"),
-            "%p": re.compile(r"\{periods?\}"),
-            "%Y-%m-%dT%H:%M:%S": re.compile(r"\{iso-?(?:format)?\}")
-        },
-        "date": re.compile(r"((?:[\d]{2}|[\d]{4})[\- _\\/]?[\d]{2}[\- _\\/]?[\d]{2})"),
-        "time": re.compile(r"([\d]{2}:[\d]{2}(?:\.[\d]{6})?)"),
-        "datetime": re.compile(r"((?:[\d]{2}|[\d]{4})[\- _\\/]?[\d]{2}[\- _\\/]?[\d]{2}T[\d]{2}:[\d]{2}(?:\.[\d]{6})?)")
-    }
 }
 
 common_exts = {
@@ -127,79 +95,18 @@ common_variables = {
     },
 }
 
-
-class Namespace(dict):
-    """
-    Namespace container.
-    Allows access to attributes by either class dot notation or item reference
-
-    All valid:
-        namespace.spam.eggs
-        namespace['spam']['eggs']
-        namespace['spam'].eggs
-    """
-
-    def __init__(self, **kwargs):
-        for k, v in kwargs.items():
-            if isinstance(v, dict):
-                v = Namespace(**v)
-            setattr(self, k, v)
-        super(Namespace, self).__init__(**kwargs)
-
-    def __contains__(self, item):
-        return self.__dict__.__contains__(item)
-
-    def __getitem__(self, item):
-        return self.__dict__[item]
-
-    def __getattr__(self, item):
-        return self.__dict__[item]
-
-    def __setattr__(self, key, value):
-        if isinstance(value, dict):
-            value = Namespace(**value)
-        self.__dict__[key] = value
-
-    def __delattr__(self, item):
-        del self.__dict__[item]
-
-    def __repr__(self):
-        return "<Namespace: {0}...>".format(str(self.to_dict())[0:32])
-
-    def __str__(self):
-        return str(self.to_dict())
-
-    @classmethod
-    def from_dict(cls, dictionary):
-        if not isinstance(dictionary, dict):
-            raise TypeError("Must be a dictionary")
-        return cls(**dictionary)
-
-    def to_dict(self, in_dict=None):
-        in_dict = in_dict if in_dict else self.__dict__
-        out_dict = dict()
-        for k, v in in_dict.items():
-            if isinstance(v, Namespace):
-                v = self.to_dict(v)
-            out_dict[k] = v
-        return out_dict
-
-    def tree_view(self, sep="    "):
-        base = self.to_dict()
-        return tree_view(base, sep=sep)
-
-
-def tree_view(dictionary, level=0, sep="|  "):
-    """
-    View a dictionary as a tree.
-    """
-    return "".join(["{0}{1}\n{2}".format(sep * level, k, tree_view(v, level + 1, sep=sep) if isinstance(v, dict)
-           else "") for k, v in dictionary.items()])
+# Some may ask why make everything into namespaces, I ask why not
+regex = Namespace(reg_exps)
+exts = Namespace(common_exts)
+variables = Namespace(common_variables)
 
 
 def os_tree(directory):
     """
     Return a directories contents as a dictionary hierarchy.
+
+    :param directory: path to directory to created the tree of.
+    :return: dictionary of the directory
     """
     if not os.path.exists(directory):
         raise OSError("Directory does not exist")
@@ -208,7 +115,8 @@ def os_tree(directory):
 
     full_list = []
     for root, dirs, files in os.walk(directory):
-        full_list.extend([os.path.join(root, d).lstrip(directory) + os.sep for d in dirs])
+        full_list.extend([os.path.join(root, d).lstrip(directory) + os.sep
+                          for d in dirs])
     tree = {os.path.basename(directory): {}}
     if not full_list:
         return {}
@@ -228,17 +136,18 @@ def os_tree(directory):
     return tree
 
 
-# Some may ask why make everything into namespaces, I ask why not
-regex = Namespace(**reg_exps)
-exts = Namespace(**common_exts)
-variables = Namespace(**common_variables)
-
-
 def join_paths(*paths, **kwargs):
     """
     Join multiple paths together and return the absolute path of them. This
     function will 'clean' the path as well unless the option of 'strict' is
-    provided.
+    provided as True.
+
+    Would like to do 'strict=False' instead of '**kwargs' but stupider versions
+    of python *cough 2.6* don't like that after '*paths'.
+
+    :param paths: paths to join together
+    :param kwargs: 'strict', make them into a safe path unless set True
+    :return: path as string
     """
     path = os.path.abspath(paths[0])
     for next_path in paths[1:]:
@@ -246,7 +155,7 @@ def join_paths(*paths, **kwargs):
             kwargs.get('strict') else next_path
         path = os.path.join(path, next_path)
     if (not kwargs.get('strict') and
-            "." not in os.path.basename(path) and
+        "." not in os.path.basename(path) and
             not path.endswith(os.sep)):
         path += os.sep
     return path if kwargs.get('strict') else safe_path(path)
@@ -255,6 +164,10 @@ def join_paths(*paths, **kwargs):
 def join_root(*paths, **kwargs):
     """
     Join any path or paths as a sub directory of the current file's directory.
+
+    :param paths: paths to join together
+    :param kwargs: 'strict', make them into a safe path unless set True
+    :return: path as string
     """
     path = os.path.abspath(".")
     for next_path in paths:
@@ -269,6 +182,12 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
     Return configuration options as dictionary. Accepts either a single
     config file or a list of files. Auto find will search for all .cfg, .config
     and .ini in the execution directory and package root (unsafe but handy).
+
+    :param config_file: path or paths to the files location
+    :param auto_find: look for a config type file at this location or below
+    :param verify: make sure the file exists before trying to read
+    :param cfg_options: options to pass to the parser
+    :return: dictionary of the config files
     """
     if not config_file:
         config_file = []
@@ -309,24 +228,38 @@ def config_namespace(config_file=None, auto_find=False,
                      verify=True, **cfg_options):
     """
     Return configuration options as a Namespace.
+
+    :param config_file: path or paths to the files location
+    :param auto_find: look for a config type file at this location or below
+    :param verify: make sure the file exists before trying to read
+    :param cfg_options: options to pass to the parser
+    :return: Namespace of the config files
     """
     return Namespace(**config_dict(config_file, auto_find,
                                    verify, **cfg_options))
 
 
-def sort_by(unordered_list, key):
+def sort_by(unordered_list, key, **sort_args):
     """
     Sort a list of dicts, tuples or lists by the provided dict key, or list/
     tuple position.
+
+    :param unordered_list: list to sort
+    :param key: key to sort on from the list
+    :param sort_args: additional options to pass to sort, like 'reverse'
+    :return: sorted list
     """
-    return sorted(unordered_list, key=lambda y: y[key])
+    return sorted(unordered_list, key=lambda y: y[key], **sort_args)
 
 
 def check_filename(filename):
     """
     Returns a boolean stating if the filename is safe to use or not. Note that
     this does not test for "legal" names accepted, but a more restricted set of:
-    Letters, numbers, spaces, hyphens, underscores and periods
+    Letters, numbers, spaces, hyphens, underscores and periods.
+
+    :param filename: name of a file as a string
+    :return: boolean if it is a safe file name
     """
     if not isinstance(filename, str):
         raise TypeError("filename must be a string")
@@ -339,7 +272,11 @@ def safe_filename(filename, replacement="_"):
     """
     Replace unsafe filename characters with underscores. Note that this does not
     test for "legal" names accepted, but a more restricted set of:
-    Letters, numbers, spaces, hyphens, underscores and periods
+    Letters, numbers, spaces, hyphens, underscores and periods.
+
+    :param filename: name of a file as a string
+    :param replacement: character to use as a replacement of bad characters
+    :return: safe filename string
     """
     if not isinstance(filename, str):
         raise TypeError("filename must be a string")
@@ -354,9 +291,15 @@ def safe_filename(filename, replacement="_"):
 
 def safe_path(path, replacement="_"):
     """
-    Replace unsafe path characters with underscores.
+    Replace unsafe path characters with underscores. Do NOT use this
+    with existing paths that cannot be modified, this to to help generate
+    new, clean paths.
 
     Supports windows and *nix systems.
+
+    :param path: path as a string
+    :param replacement: character to use in place of bad characters
+    :return: a safer path
     """
     if not isinstance(path, str):
         raise TypeError("path must be a string")
@@ -390,18 +333,20 @@ def file_hash(path, hash_type="md5", block_size=65536):
     Hash a given file with sha256 and return the hex digest.
 
     This function is designed to be non memory intensive.
+
+    :param path: location of the file to hash
+    :param hash_type: string name of the hash to use
+    :param block_size: amount of bytes to add to hasher at a time
+    :return: file's hash
     """
     import hashlib
-
-    hashes = {"md5": hashlib.md5,
-              "sha1": hashlib.sha1,
-              "sha224": hashlib.sha224,
-              "sha256": hashlib.sha256,
-              "sha384": hashlib.sha384,
-              "sha512": hashlib.sha512}
-    if hash_type not in hashes:
+    if (python_version >= (2, 7) and
+            hash_type not in hashlib.algorithms_available):
         raise ValueError("Invalid hash type \"{0}\"".format(hash_type))
-    hashed = hashes[hash_type]()
+    elif hash_type not in ("md5", "sha1", "sha224",
+                           "sha256", "sha384", "sha512"):
+        raise ValueError("Invalid hash type \"{0}\"".format(hash_type))
+    hashed = hashlib.new(hash_type)
     with open(path, "rb") as infile:
         buf = infile.read(block_size)
         while len(buf) > 0:
@@ -410,10 +355,55 @@ def file_hash(path, hash_type="md5", block_size=65536):
     return hashed.hexdigest()
 
 
+def count_all_files(directory=".", ext=None, name=None):
+    """
+    Perform the same operation as 'find_all_files' but return an integer count
+    instead of a list.
+
+    :param directory: Top location to recursively search for matching files
+    :param ext: Extensions of the file you are looking for
+    :param name: Part of the file name
+    :type directory: str
+    :type ext: str
+    :type name: str
+    :return: count of files matching requirements
+    :rtype: int
+    """
+
+    if ext and isinstance(ext, str):
+        ext = [ext]
+    elif ext and not isinstance(ext, (list, tuple)):
+        raise TypeError("extension must be either one extension or a list")
+    count = 0
+    for root, dirs, files in os.walk(directory):
+        for file_name in files:
+            if ext:
+                for end in ext:
+                    if file_name.lower().endswith(end):
+                        break
+                else:
+                    continue
+            if name:
+                if name.lower() not in file_name.lower():
+                    continue
+            count += 1
+    return count
+
+
 def find_all_files_generator(directory=".", ext=None, name=None):
     """
     Walk through a file directory and return an iterator of files
     that match requirements.
+
+    :param directory: Top location to recursively search for matching files
+    :param ext: Extensions of the file you are looking for
+    :param name: Part of the file name
+    :type directory: str
+    :type ext: str
+    :type name: str
+    :return: generator of all files in the specified directory
+    :rtype: generator
+
     """
     if ext and isinstance(ext, str):
         ext = [ext]
@@ -437,6 +427,15 @@ def find_all_files(directory=".", ext=None, name=None):
     """
     Returns a list of all files in a sub directory that match an extension
     and or part of a filename.
+
+    :param directory: Top location to recursively search for matching files
+    :param ext: Extensions of the file you are looking for
+    :param name: Part of the file name
+    :type directory: str
+    :type ext: str
+    :type name: str
+    :return: list of all files in the specified directory
+    :rtype: list
     """
     return list(find_all_files_generator(directory, ext=ext, name=name))
 
@@ -444,6 +443,16 @@ def find_all_files(directory=".", ext=None, name=None):
 def remove_empty_directories(root_directory, dnd=False, ignore_errors=True):
     """
     Remove all empty folders from a path. Returns list of empty directories.
+    dnd = 'do not delete' aka perform a try run if set to True.
+
+    :param root_directory: base directory to start at
+    :param dnd: 'do not delete', just return a list of what would be removed
+    :param ignore_errors: Permissions are a pain, just ignore if you blocked
+    :type root_directory: str
+    :type dnd: bool
+    :type ignore_errors: bool
+    :return: list of removed directories
+    :rtype: list
     """
     directory_list = []
     for root, directories, files in os.walk(root_directory, topdown=False):
@@ -479,6 +488,16 @@ def remove_empty_directories(root_directory, dnd=False, ignore_errors=True):
 def remove_empty_files(root_directory, dnd=False, ignore_errors=True):
     """
     Remove all empty files from a path. Returns list of the empty files removed.
+    dnd = 'do not delete' aka perform a try run if set to True.
+
+    :param root_directory: base directory to start at
+    :param dnd: 'do not delete', just return a list of what would be removed
+    :param ignore_errors: Permissions are a pain, just ignore if you blocked
+    :type root_directory: str
+    :type dnd: bool
+    :type ignore_errors: bool
+    :return: list of removed files
+    :rtype: list
     """
     file_list = []
     for root, directories, files in os.walk(root_directory):
@@ -503,9 +522,14 @@ def remove_empty_files(root_directory, dnd=False, ignore_errors=True):
     return file_list
 
 
-def extract_all(archive_file, path=".", dnd=True):
+def extract_all(archive_file, path=".", dnd=True, enable_rar=False):
     """
     Automatically detect archive type and extract all files to specified path.
+
+    :param archive_file: path to file to extract
+    :param path: location to extract to
+    :param dnd: "Do not delete" - will delete the archive if set to False
+    :param enable_rar: include the rarfile import and extract
     """
     import zipfile
     import tarfile
@@ -514,14 +538,21 @@ def extract_all(archive_file, path=".", dnd=True):
         logger.error("File {0} unextractable".format(archive_file))
         raise OSError("File does not exist or has zero size")
 
+    archive = None
     if zipfile.is_zipfile(archive_file):
         logger.debug("File {0} detected as a zip file".format(archive_file))
         archive = zipfile.ZipFile(archive_file)
     elif tarfile.is_tarfile(archive_file):
         logger.debug("File {0} detected as a tar file".format(archive_file))
         archive = tarfile.open(archive_file)
-    else:
-        raise TypeError("File is not a zip or tar archive")
+    elif enable_rar:
+        import rarfile
+        if rarfile.is_rarfile(archive_file):
+            logger.debug("File {0} detected as a rar file".format(archive_file))
+            archive = rarfile.RarFile(archive_file)
+
+    if not archive:
+        raise TypeError("File is not a known archive")
 
     logger.debug("Extracting files to {0}".format(path))
 
@@ -533,59 +564,6 @@ def extract_all(archive_file, path=".", dnd=True):
     if not dnd:
         logger.debug("Archive {0} will now be deleted".format(archive_file))
         os.unlink(archive_file)
-
-
-class DateTime(_datetime.datetime):
-
-    def __new__(cls, year=None, month=None, day=None, hour=0, minute=0,
-                second=0, microsecond=0, tzinfo=None):
-        #Taken from datetime.datetime.now()
-        if year is not None:
-            return super(DateTime, cls).__new__(cls, year, month, day, hour,
-                                                minute, second, microsecond,
-                                                tzinfo)
-        if tzinfo is not None and not isinstance(tzinfo,
-                                                 _datetime.datetime.tzinfo):
-            raise TypeError("tzinfo argument must be None or a tzinfo subclass")
-        converter = _time.localtime if tzinfo is None else _time.gmtime
-        t = _time.time()
-        t, frac = divmod(t, 1.0)
-        us = int(frac * 1e6)
-        tz = None
-        if us == 1000000:
-            t += 1
-            us = 0
-        y, m, d, hh, mm, ss, weekday, jday, dst = converter(t)
-        ss = min(ss, 59)
-        return super(DateTime, cls).__new__(cls, y, m, d, hh, mm, ss, us, tz)
-
-    def __init__(self, *args):
-        self.__dict__ = dict(
-            year=self.year, month=self.month, day=self.day, hour=self.hour,
-            minute=self.minute, second=self.second,
-            microsecond=self.microsecond, timezone=self.tzinfo)
-
-    def format(self, desired_format, *args, **kwargs):
-        for strf, exp in regex.datetime.format.items():
-            desired_format = exp.sub(strf, desired_format)
-        return self.strftime(desired_format.format(*args, **kwargs))
-
-    def __iter__(self):
-        for k, v in self.__dict__.items():
-            yield (k, v)
-
-    @classmethod
-    def from_iso(cls, datetime):
-        try:
-            assert regex.datetime.datetime.match(datetime).groups()[0]
-        except (ValueError, AssertionError, IndexError, AttributeError):
-            raise TypeError("String is not in ISO format")
-        try:
-            return cls.strptime(datetime, "%Y-%m-%dT%H:%M:%S.%f")
-        except ValueError:
-            return cls.strptime(datetime, "%Y-%m-%dT%H:%M:%S")
-
-    #TODO add a 'from datetime'
 
 
 def main(command_line_options=""):
