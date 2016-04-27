@@ -1,7 +1,7 @@
 Reusables
 =========
 
-**Commonly Consumed Code Commodities** |Build Status| |Coverage Status|
+**Commonly Consumed Code Commodities** |Build Status| |Coverage Status| |Doc Status|
 
 Overview
 --------
@@ -266,6 +266,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
    :target: https://travis-ci.org/cdgriffith/Reusables
 .. |Coverage Status| image:: https://coveralls.io/repos/cdgriffith/Reusables/badge.png?branch=master
    :target: https://coveralls.io/r/cdgriffith/Reusables?branch=master
+.. |Doc Status| image:: https://readthedocs.org/projects/reusables/badge/?version=latest
+   :target: http://reusables.readthedocs.org/en/latest/index.html
 .. _str.endswith: https://docs.python.org/2/library/stdtypes.html#str.endswith
 .. _str.startswith: https://docs.python.org/2/library/stdtypes.html#str.startswith
 
