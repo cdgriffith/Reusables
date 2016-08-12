@@ -5,24 +5,24 @@
 #
 # Copyright (c) 2014-2016 - Chris Griffith - MIT License
 
-import os
-import sys
-import re
+import os as _os
+import sys as _sys
+import re as _re
 import tempfile as _tempfile
 
 from .namespace import Namespace
 from .log import get_logger
 
 __author__ = "Chris Griffith"
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
-python_version = sys.version_info[0:3]
+python_version = _sys.version_info[0:3]
 version_string = ".".join([str(x) for x in python_version])
-current_root = os.path.abspath(".")
+current_root = _os.path.abspath(".")
 python3x = PY3 = python_version >= (3, 0)
 python2x = PY2 = python_version < (3, 0)
-nix_based = os.name == "posix"
-win_based = os.name == "nt"
+nix_based = _os.name == "posix"
+win_based = _os.name == "nt"
 temp_directory = _tempfile.gettempdir()
 
 logger = get_logger(__name__)
@@ -32,36 +32,36 @@ logger = get_logger(__name__)
 reg_exps = {
     "path": {
         "windows": {
-            "valid": re.compile(r'^(?:[a-zA-Z]:\\|\\\\?|\\\\\?\\|\\\\\.\\)?'
+            "valid": _re.compile(r'^(?:[a-zA-Z]:\\|\\\\?|\\\\\?\\|\\\\\.\\)?'
                 r'(?:(?!(CLOCK\$(\\|$)|(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]| )'
                 r'(?:\..*|(\\|$))|.*\.$))'
                 r'(?:(?:(?![><:/"\\\|\?\*])[\x20-\u10FFFF])+\\?))*$'),
-            "safe": re.compile(r'^([a-zA-Z]:\\)?[\w\d _\-\\\(\)]+$'),
-            "filename": re.compile(r'^((?![><:/"\\\|\?\*])[ -~])+$')
+            "safe": _re.compile(r'^([a-zA-Z]:\\)?[\w\d _\-\\\(\)]+$'),
+            "filename": _re.compile(r'^((?![><:/"\\\|\?\*])[ -~])+$')
         },
         "linux": {
-            "valid": re.compile(r'^/?([\x01-\xFF]+/?)*$'),
-            "safe": re.compile(r'^[\w\d\. _\-/\(\)]+$'),
-            "filename": re.compile(r'^((?![><:/"\\\|\?\*])[ -~])+$')
+            "valid": _re.compile(r'^/?([\x01-\xFF]+/?)*$'),
+            "safe": _re.compile(r'^[\w\d\. _\-/\(\)]+$'),
+            "filename": _re.compile(r'^((?![><:/"\\\|\?\*])[ -~])+$')
         },
         "mac": {
-            "valid": re.compile(r'^/?([\x01-\xFF]+/?)*$'),
-            "safe": re.compile(r'^[\w\d\. _\-/\(\)]+$'),
-            "filename": re.compile(r'^((?![><:/"\\\|\?\*])[ -~])+$')
+            "valid": _re.compile(r'^/?([\x01-\xFF]+/?)*$'),
+            "safe": _re.compile(r'^[\w\d\. _\-/\(\)]+$'),
+            "filename": _re.compile(r'^((?![><:/"\\\|\?\*])[ -~])+$')
         }
     },
     "python": {
         "module": {
-            "attributes": re.compile(r'__([a-z]+)__ *= *[\'"](.+)[\'"]'),
-            "imports": re.compile(r'^ *\t*(?:import|from)[ ]+(?:(\w+)[, ]*)+'),
-            "functions": re.compile(r'^ *\t*def +(\w+)\('),
-            "classes": re.compile(r'^ *\t*class +(\w+)\('),
-            "docstrings": re.compile(r'^ *\t*"""(.*)"""|\'\'\'(.*)\'\'\'')
+            "attributes": _re.compile(r'__([a-z]+)__ *= *[\'"](.+)[\'"]'),
+            "imports": _re.compile(r'^ *\t*(?:import|from)[ ]+(?:(\w+)[, ]*)+'),
+            "functions": _re.compile(r'^ *\t*def +(\w+)\('),
+            "classes": _re.compile(r'^ *\t*class +(\w+)\('),
+            "docstrings": _re.compile(r'^ *\t*"""(.*)"""|\'\'\'(.*)\'\'\'')
         }
     },
     "pii": {
         "phone_number": {
-            "us": re.compile(r'((?:\(? ?\d{3} ?\)?[\. \-]?)?\d{3}'
+            "us": _re.compile(r'((?:\(? ?\d{3} ?\)?[\. \-]?)?\d{3}'
                              r'[\. \-]?\d{4})')
         }
     },
@@ -108,24 +108,24 @@ def os_tree(directory):
     :param directory: path to directory to created the tree of.
     :return: dictionary of the directory
     """
-    if not os.path.exists(directory):
+    if not _os.path.exists(directory):
         raise OSError("Directory does not exist")
-    if not os.path.isdir(directory):
+    if not _os.path.isdir(directory):
         raise OSError("Path is not a directory")
 
     full_list = []
-    for root, dirs, files in os.walk(directory):
-        full_list.extend([os.path.join(root, d).lstrip(directory) + os.sep
+    for root, dirs, files in _os.walk(directory):
+        full_list.extend([_os.path.join(root, d).lstrip(directory) + _os.sep
                           for d in dirs])
-    tree = {os.path.basename(directory): {}}
+    tree = {_os.path.basename(directory): {}}
     if not full_list:
         return {}
     for item in full_list:
-        separated = item.split(os.sep)
+        separated = item.split(_os.sep)
         is_dir = separated[-1:] == ['']
         if is_dir:
             separated = separated[:-1]
-        parent = tree[os.path.basename(directory)]
+        parent = tree[_os.path.basename(directory)]
         for index, path in enumerate(separated):
             if path in parent:
                 parent = parent[path]
@@ -149,15 +149,15 @@ def join_paths(*paths, **kwargs):
     :param kwargs: 'strict', make them into a safe path unless set True
     :return: path as string
     """
-    path = os.path.abspath(paths[0])
+    path = _os.path.abspath(paths[0])
     for next_path in paths[1:]:
-        next_path = next_path.lstrip(os.sep).strip() if not \
+        next_path = next_path.lstrip(_os.sep).strip() if not \
             kwargs.get('strict') else next_path
-        path = os.path.join(path, next_path)
+        path = _os.path.join(path, next_path)
     if (not kwargs.get('strict') and
-        "." not in os.path.basename(path) and
-            not path.endswith(os.sep)):
-        path += os.sep
+        "." not in _os.path.basename(path) and
+            not path.endswith(_os.sep)):
+        path += _os.sep
     return path if kwargs.get('strict') else safe_path(path)
 
 
@@ -169,11 +169,11 @@ def join_root(*paths, **kwargs):
     :param kwargs: 'strict', make them into a safe path unless set True
     :return: path as string
     """
-    path = os.path.abspath(".")
+    path = _os.path.abspath(".")
     for next_path in paths:
-        next_path = next_path.lstrip(os.sep).strip() if not \
+        next_path = next_path.lstrip(_os.sep).strip() if not \
             kwargs.get('strict') else next_path
-        path = os.path.abspath(os.path.join(path, next_path))
+        path = _os.path.abspath(_os.path.join(path, next_path))
     return path if kwargs.get('strict') else safe_path(path)
 
 
@@ -216,7 +216,7 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
     logger.info("config files to be used: {0}".format(cfg_files))
 
     if verify:
-        cfg_parser.read([cfg for cfg in cfg_files if os.path.exists(cfg)])
+        cfg_parser.read([cfg for cfg in cfg_files if _os.path.exists(cfg)])
     else:
         cfg_parser.read(cfg_files)
 
@@ -303,10 +303,10 @@ def safe_path(path, replacement="_"):
     """
     if not isinstance(path, str):
         raise TypeError("path must be a string")
-    if os.sep not in path:
+    if _os.sep not in path:
         return safe_filename(path, replacement=replacement)
-    filename = safe_filename(os.path.basename(path))
-    dirname = os.path.dirname(path)
+    filename = safe_filename(_os.path.basename(path))
+    dirname = _os.path.dirname(path)
     safe_dirname = ""
     regexp = regex.path.windows.safe if win_based else regex.path.linux.safe
     if win_based and dirname.find(":\\") == 1 and dirname[0].isalpha():
@@ -317,14 +317,14 @@ def safe_path(path, replacement="_"):
     else:
         for char in dirname:
             safe_dirname += char if regexp.search(char) else replacement
-    sanitized_path = os.path.normpath("{path}{sep}{filename}".format(
+    sanitized_path = _os.path.normpath("{path}{sep}{filename}".format(
         path=safe_dirname,
-        sep=os.sep if not safe_dirname.endswith(os.sep) else "",
+        sep=_os.sep if not safe_dirname.endswith(_os.sep) else "",
         filename=filename))
     if (not filename and
-            path.endswith(os.sep) and
-            not sanitized_path.endswith(os.sep)):
-        sanitized_path += os.sep
+            path.endswith(_os.sep) and
+            not sanitized_path.endswith(_os.sep)):
+        sanitized_path += _os.sep
     return sanitized_path
 
 
@@ -375,7 +375,7 @@ def count_all_files(directory=".", ext=None, name=None):
     elif ext and not isinstance(ext, (list, tuple)):
         raise TypeError("extension must be either one extension or a list")
     count = 0
-    for root, dirs, files in os.walk(directory):
+    for root, dirs, files in _os.walk(directory):
         for file_name in files:
             if ext:
                 for end in ext:
@@ -409,7 +409,7 @@ def find_all_files_generator(directory=".", ext=None, name=None):
         ext = [ext]
     elif ext and not isinstance(ext, (list, tuple)):
         raise TypeError("extension must be either one extension or a list")
-    for root, dirs, files in os.walk(directory):
+    for root, dirs, files in _os.walk(directory):
         for file_name in files:
             if ext:
                 for end in ext:
@@ -440,28 +440,27 @@ def find_all_files(directory=".", ext=None, name=None):
     return list(find_all_files_generator(directory, ext=ext, name=name))
 
 
-def remove_empty_directories(root_directory, dnd=False, ignore_errors=True):
+def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True):
     """
     Remove all empty folders from a path. Returns list of empty directories.
-    dnd = 'do not delete' aka perform a try run if set to True.
 
     :param root_directory: base directory to start at
-    :param dnd: 'do not delete', just return a list of what would be removed
+    :param dry_run: just return a list of what would be removed
     :param ignore_errors: Permissions are a pain, just ignore if you blocked
     :type root_directory: str
-    :type dnd: bool
+    :type dry_run: bool
     :type ignore_errors: bool
     :return: list of removed directories
     :rtype: list
     """
     directory_list = []
-    for root, directories, files in os.walk(root_directory, topdown=False):
-        if (not directories and not files and os.path.exists(root) and
-                root != root_directory and os.path.isdir(root)):
+    for root, directories, files in _os.walk(root_directory, topdown=False):
+        if (not directories and not files and _os.path.exists(root) and
+                root != root_directory and _os.path.isdir(root)):
             directory_list.append(root)
-            if not dnd:
+            if not dry_run:
                 try:
-                    os.rmdir(root)
+                    _os.rmdir(root)
                 except OSError as err:
                     if ignore_errors:
                         logger.info("{0} could not be deleted".format(root))
@@ -470,12 +469,12 @@ def remove_empty_directories(root_directory, dnd=False, ignore_errors=True):
         elif directories and not files:
             for directory in directories:
                 directory = join_paths(root, directory, strict=True)
-                if (os.path.exists(directory) and os.path.isdir(directory) and
-                        not os.listdir(directory)):
+                if (_os.path.exists(directory) and _os.path.isdir(directory) and
+                        not _os.listdir(directory)):
                     directory_list.append(directory)
-                    if not dnd:
+                    if not dry_run:
                         try:
-                            os.rmdir(directory)
+                            _os.rmdir(directory)
                         except OSError as err:
                             if ignore_errors:
                                 logger.info("{0} could not be deleted".format(
@@ -485,34 +484,33 @@ def remove_empty_directories(root_directory, dnd=False, ignore_errors=True):
     return directory_list
 
 
-def remove_empty_files(root_directory, dnd=False, ignore_errors=True):
+def remove_empty_files(root_directory, dry_run=False, ignore_errors=True):
     """
     Remove all empty files from a path. Returns list of the empty files removed.
-    dnd = 'do not delete' aka perform a try run if set to True.
 
     :param root_directory: base directory to start at
-    :param dnd: 'do not delete', just return a list of what would be removed
+    :param dry_run: just return a list of what would be removed
     :param ignore_errors: Permissions are a pain, just ignore if you blocked
     :type root_directory: str
-    :type dnd: bool
+    :type dry_run: bool
     :type ignore_errors: bool
     :return: list of removed files
     :rtype: list
     """
     file_list = []
-    for root, directories, files in os.walk(root_directory):
+    for root, directories, files in _os.walk(root_directory):
         for file_name in files:
             file_path = join_paths(root, file_name, strict=True)
-            if os.path.isfile(file_path) and not os.path.getsize(file_path):
+            if _os.path.isfile(file_path) and not _os.path.getsize(file_path):
                 if file_hash(file_path) == variables.hashes.empty_file.md5:
                     file_list.append(file_path)
 
     file_list = sorted(set(file_list))
 
-    if not dnd:
+    if not dry_run:
         for afile in file_list:
             try:
-                os.unlink(afile)
+                _os.unlink(afile)
             except OSError as err:
                 if ignore_errors:
                     logger.info("File {0} could not be deleted".format(afile))
@@ -522,19 +520,20 @@ def remove_empty_files(root_directory, dnd=False, ignore_errors=True):
     return file_list
 
 
-def extract_all(archive_file, path=".", dnd=True, enable_rar=False):
+def extract_all(archive_file, path=".", delete_on_success=False,
+                enable_rar=False):
     """
     Automatically detect archive type and extract all files to specified path.
 
     :param archive_file: path to file to extract
     :param path: location to extract to
-    :param dnd: "Do not delete" - will delete the archive if set to False
+    :param delete_on_success: Will delete the original archive if set to True
     :param enable_rar: include the rarfile import and extract
     """
     import zipfile
     import tarfile
 
-    if not os.path.exists(archive_file) or not os.path.getsize(archive_file):
+    if not _os.path.exists(archive_file) or not _os.path.getsize(archive_file):
         logger.error("File {0} unextractable".format(archive_file))
         raise OSError("File does not exist or has zero size")
 
@@ -561,9 +560,9 @@ def extract_all(archive_file, path=".", dnd=True, enable_rar=False):
     finally:
         archive.close()
 
-    if not dnd:
+    if delete_on_success:
         logger.debug("Archive {0} will now be deleted".format(archive_file))
-        os.unlink(archive_file)
+        _os.unlink(archive_file)
 
 
 def main(command_line_options=""):
@@ -576,7 +575,7 @@ spaces, hyphens, underscores and periods")
     parser.add_argument("--safe-path", dest="path", action='append',
                         help="Verify a path contains only letters, numbers,\
 spaces, hyphens, underscores, periods (unix), separator, and drive (win)")
-    args = parser.parse_args(sys.argv if not command_line_options else
+    args = parser.parse_args(_sys.argv if not command_line_options else
                              command_line_options)
     if args.filename:
         for filename in args.filename:

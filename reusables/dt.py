@@ -9,41 +9,41 @@ A hopefully easier to use formatting system for datetime.
 """
 import datetime as _datetime
 import time as _time
-import re
+import re as _re
 
 from .namespace import Namespace
 
 dt_exps = {"datetime": {
         "format": {
-            "%I": re.compile(r"\{(?:12)?\-?hours?\}"),
-            "%H": re.compile(r"\{24\-?hours?\}"),
-            "%S": re.compile(r"\{seco?n?d?s?\}"),
-            "%M": re.compile(r"\{minu?t?e?s?\}"),
-            "%f": re.compile(r"\{micro\-?(?:second)?s?\}"),
-            "%Z": re.compile(r"\{(?:(tz|time\-?zone))?\}"),
-            "%y": re.compile(r"\{years?\}"),
-            "%Y": re.compile(r"\{years?\-?(?:(full|name|full\-?name))?s?\}"),
-            "%m": re.compile(r"\{months?\}"),
-            "%b": re.compile(r"\{months?\-?name\}"),
-            "%B": re.compile(r"\{months?\-?(?:(full|full\-?name))?s?\}"),
-            "%d": re.compile(r"\{days?\}"),
-            "%w": re.compile(r"\{week\-?days?\}"),
-            "%j": re.compile(r"\{year\-?days?\}"),
-            "%a": re.compile(r"\{(?:week)?\-?days?\-?name\}"),
-            "%A": re.compile(r"\{(?:week)?\-?days?\-?fullname\}"),
-            "%U": re.compile(r"\{weeks?\}"),
-            "%W": re.compile(r"\{mon(?:day)?\-?weeks?\}"),
-            "%x": re.compile(r"\{date\}"),
-            "%X": re.compile(r"\{time\}"),
-            "%c": re.compile(r"\{date\-?time\}"),
-            "%z": re.compile(r"\{(?:utc)?\-?offset\}"),
-            "%p": re.compile(r"\{periods?\}"),
-            "%Y-%m-%dT%H:%M:%S": re.compile(r"\{iso-?(?:format)?\}")
+            "%I": _re.compile(r"\{(?:12)?\-?hours?\}"),
+            "%H": _re.compile(r"\{24\-?hours?\}"),
+            "%S": _re.compile(r"\{seco?n?d?s?\}"),
+            "%M": _re.compile(r"\{minu?t?e?s?\}"),
+            "%f": _re.compile(r"\{micro\-?(?:second)?s?\}"),
+            "%Z": _re.compile(r"\{(?:(tz|time\-?zone))?\}"),
+            "%y": _re.compile(r"\{years?\}"),
+            "%Y": _re.compile(r"\{years?\-?(?:(full|name|full\-?name))?s?\}"),
+            "%m": _re.compile(r"\{months?\}"),
+            "%b": _re.compile(r"\{months?\-?name\}"),
+            "%B": _re.compile(r"\{months?\-?(?:(full|full\-?name))?s?\}"),
+            "%d": _re.compile(r"\{days?\}"),
+            "%w": _re.compile(r"\{week\-?days?\}"),
+            "%j": _re.compile(r"\{year\-?days?\}"),
+            "%a": _re.compile(r"\{(?:week)?\-?days?\-?name\}"),
+            "%A": _re.compile(r"\{(?:week)?\-?days?\-?fullname\}"),
+            "%U": _re.compile(r"\{weeks?\}"),
+            "%W": _re.compile(r"\{mon(?:day)?\-?weeks?\}"),
+            "%x": _re.compile(r"\{date\}"),
+            "%X": _re.compile(r"\{time\}"),
+            "%c": _re.compile(r"\{date\-?time\}"),
+            "%z": _re.compile(r"\{(?:utc)?\-?offset\}"),
+            "%p": _re.compile(r"\{periods?\}"),
+            "%Y-%m-%dT%H:%M:%S": _re.compile(r"\{iso-?(?:format)?\}")
         },
-        "date": re.compile(r"((?:[\d]{2}|[\d]{4})[\- _\\/]?[\d]{2}[\- _\\/]?"
+        "date": _re.compile(r"((?:[\d]{2}|[\d]{4})[\- _\\/]?[\d]{2}[\- _\\/]?"
                            r"\n[\d]{2})"),
-        "time": re.compile(r"([\d]{2}:[\d]{2}(?:\.[\d]{6})?)"),
-        "datetime": re.compile(r"((?:[\d]{2}|[\d]{4})[\- _\\/]?[\d]{2}[\- _\\/]"
+        "time": _re.compile(r"([\d]{2}:[\d]{2}(?:\.[\d]{6})?)"),
+        "datetime": _re.compile(r"((?:[\d]{2}|[\d]{4})[\- _\\/]?[\d]{2}[\- _\\/]"
                                r"?[\d]{2}T[\d]{2}:[\d]{2}(?:\.[\d]{6})?)")
     }
 }

@@ -1,6 +1,13 @@
 Changelog
 =========
 
+Version 0.4.0
+-------------
+
+- Breaking change: Removed 'dnd' from functions for clearer 'dry_run' or 'delete_on_success'
+- Added management tools for Firefox and Chrome cookies (2.7+, 3.3+)
+- Changed all top level imports to have underscore before them like standard library
+
 Version 0.3.0
 -------------
 

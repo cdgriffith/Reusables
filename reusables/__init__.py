@@ -3,6 +3,6 @@ from .reusables import *
 from .namespace import *
 from .dt import *
 from .log import *
+from .browser import *
 from . import dangerzone
-from .browser import FirefoxCookies, ChromeCookies
 

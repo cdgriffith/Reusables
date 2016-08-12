@@ -30,8 +30,8 @@ class TestReuse(unittest.TestCase):
         fox = reusables.FirefoxCookies(db=db)
         t1 = fox._current_time(length=20)
         t2 = fox._current_time(length=5)
-        assert len(t1) == 20
-        assert len(t2) == 5
+        assert len(str(t1)) == 20
+        assert len(str(t2)) == 5
         t3 = fox._current_time(length=10)
         assert time.time() - float(t3) <= 3
 
@@ -39,8 +39,9 @@ class TestReuse(unittest.TestCase):
         fox = reusables.FirefoxCookies(db=db)
         t1 = fox._expire_time(length=20)
         t2 = fox._expire_time(length=5)
-        assert len(t1) == 20
-        assert len(t2) == 5
+        print(t1)
+        assert len(str(t1)) == 20
+        assert len(str(t2)) == 5
         t3 = fox._expire_time(length=10, days=10)
         assert (time.time() + 864000) - float(t3) <= 3
 
