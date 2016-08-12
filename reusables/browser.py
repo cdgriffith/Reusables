@@ -82,10 +82,10 @@ class CookieManager(object):
         cols = [description[0] for description in grab_row.description]
 
         if tables != self._valid_structure["tables"]:
-            raise InvalidSchema("Tables expected {} - Got {}".format(
+            raise InvalidSchema("Tables expected {0} - Got {1}".format(
                 self._valid_structure["tables"], tables))
         if cols != self._valid_structure["columns"]:
-            raise InvalidSchema("Columns expected {} - Got {}".format(
+            raise InvalidSchema("Columns expected {0} - Got {1}".format(
                 self._valid_structure["columns"], cols))
 
     def verify_schema(self):
@@ -107,7 +107,7 @@ class CookieManager(object):
 
         if not _os.path.exists(cookies_path):
             raise BrowserException("Cookie does not exist at "
-                                   "{}".format(cookies_path))
+                                   "{0}".format(cookies_path))
         return cookies_path
 
     @staticmethod
@@ -152,7 +152,7 @@ class CookieManager(object):
             self._insert_command(cur, host, name, value, path, expires_at,
                                  secure, http_only, **extra)
         except Exception as err:
-            raise err
+            raise BrowserException(str(err))
         else:
             conn.commit()
         finally:
@@ -222,7 +222,7 @@ class FirefoxCookiesV1(CookieManager):
                    if x.endswith(".default")]
         if not default:
             raise BrowserException("No default profile in "
-                                   "{}".format(expanded_path))
+                                   "{0}".format(expanded_path))
         return _os.path.join(expanded_path, default[0], "cookies.sqlite")
 
     def _insert_command(self, cursor, host, name, value, path,
