@@ -62,7 +62,7 @@ def get_file_handler(file_path="out.log", level=_logging.INFO,
 
 def get_logger(module_name=__name__, level=_logging.INFO, stream=sys.stderr,
                file_path=None, log_format=log_easy_read_format,
-               suppress_warning=True):
+               suppress_warning=True, ignore_existing=False):
     """
     Grabs the specified logger and adds wanted handlers to it. Will
     default to adding a stream handler.
@@ -76,9 +76,10 @@ def get_logger(module_name=__name__, level=_logging.INFO, stream=sys.stderr,
     :return: configured logger
     """
     new_logger = _logging.getLogger(module_name)
-    if stream:
+
+    if stream and not new_logger.handlers:
         new_logger.addHandler(get_stream_handler(stream, level, log_format))
-    elif not file_path and suppress_warning:
+    elif not file_path and suppress_warning and not new_logger.handlers:
             new_logger.addHandler(_logging.NullHandler())
 
     if file_path:
