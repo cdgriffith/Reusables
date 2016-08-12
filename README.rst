@@ -14,16 +14,15 @@ It includes:
 - Cookie Management for Firefox and Chrome
 - Archive extraction (zip, tar, rar)
 - Path (file and folders) management
-- Friendly datetime formatting
-- Easy config parsing
-- Common regular expressions and file extensions
-- Namespace class
 - Fast logging setup
-- Additional fun and useful features
+- Namespace (dict to class modules with child recursion)
+- Friendly datetime formatting
+- Config to dict parsing
+- Common regular expressions and file extensions
 
-Reusables is designed to not require any imports outside the standard library*,
-but can be supplemented with those in the requirements.txt file for additional
-functionality.
+Reusables is designed to not require any imports outside the standard library,
+but can be supplemented with those found in the requirements.txt file for
+additional functionality.
 
 Tested on:
 
@@ -38,8 +37,8 @@ Tested on:
 What's in the box
 -----------------
 
-General Helpers
-~~~~~~~~~~~~~~~
+General Helpers and File Management
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: python
 
@@ -51,28 +50,6 @@ General Helpers
         reusables.config_dict('my_config.cfg')
         # {'Section 1': {'key 1': 'value 1', 'key2': 'Value2'}, 'Section 2': {}}
 
-Cookie Management
-~~~~~~~~~~~~~~~~~
-
-.. code:: python
-
-        fox = reusables.FirefoxCookies()
-        fox.add_cookie("example.com", "MyCookie", "Cookie contents!")
-
-        fox.find_cookies(host="Example")
-        # [{'host': u'example.com', 'name': u'MyCookie', 'value': u'Cookie contents!'}]
-
-        fox.delete_cookie("example.com", "MyCookie")
-
-
-File Management
-~~~~~~~~~~~~~~~
-
-.. code:: python
-
-        reusables.safe_path('/home/user/eViL User\0\\/newdir$^&*/new^%file.txt')
-        # '/home/user/eViL User__/newdir____/new__file.txt'
-
         reusables.find_all_files(".", ext=reusables.exts.pictures)
         # ['/home/user/background.jpg', '/home/user/private.png']
 
@@ -82,7 +59,24 @@ File Management
         reusables.file_hash("test_structure.zip", hash_type="sha256")
         # 'bc11af55928ab89771b9a141fa526a5b8a3dbc7d6870fece9b91af5d345a75ea'
 
+        reusables.safe_path('/home/user/eViL User\0\\/newdir$^&*/new^%file.txt')
+        # '/home/user/eViL User__/newdir____/new__file.txt'
 
+
+Cookie Management
+~~~~~~~~~~~~~~~~~
+
+.. code:: python
+
+        fox = reusables.FirefoxCookies()
+        # Automatically uses the DB of the default profile, can specify db=<path>
+
+        fox.add_cookie("example.com", "MyCookie", "Cookie contents!")
+
+        fox.find_cookies(host="Example")
+        # [{'host': u'example.com', 'name': u'MyCookie', 'value': u'Cookie contents!'}]
+
+        fox.delete_cookie("example.com", "MyCookie")
 
 Namespace
 ~~~~~~~~~

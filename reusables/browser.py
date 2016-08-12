@@ -134,6 +134,11 @@ class CookieManager(object):
         return int(str(_to_secs(delta_from_epic)
                        ).replace(".", "")[:length].ljust(length, "0"))
 
+    def _connect(self):
+        conn = _sqlite3.Connection(self.db)
+        cur = conn.cursor()
+        return conn, cur
+
     def _insert_command(self, cursor, host, name, value, path,
                         expires_at, secure, http_only, **extra):
         """Child class must override"""
@@ -154,8 +159,7 @@ class CookieManager(object):
     def add_cookie(self, host, name, value, path="/", expires_at=None, secure=0,
                    http_only=0, **extra):
         """Abstracted function to add a cookie to the database."""
-        conn = _sqlite3.Connection(self.db)
-        cur = conn.cursor()
+        conn, cur = self._connect()
         try:
             self._insert_command(cur, host, name, value, path, expires_at,
                                  secure, http_only, **extra)
@@ -168,8 +172,7 @@ class CookieManager(object):
 
     def delete_cookie(self, host, name):
         """Abstracted function to remove a cookie from the database."""
-        conn = _sqlite3.Connection(self.db)
-        cur = conn.cursor()
+        conn, cur = self._connect()
         try:
             self._delete_command(cur, host, name)
         except Exception as err:
@@ -182,8 +185,7 @@ class CookieManager(object):
     def update_cookie(self, host, name, value, path="/", expires_at=None,
                       secure=0, http_only=0, ignore_missing=True, **extra):
         """Delete and re-add a cookie with different value."""
-        conn = _sqlite3.Connection(self.db)
-        cur = conn.cursor()
+        conn, cur = self._connect()
 
         try:
             self._delete_command(cur, host, name)
@@ -205,8 +207,7 @@ class CookieManager(object):
         """Search for cookies based of the host, name or cookie contents."""
         if not host and not name and not value:
             raise BrowserException("Please specify something to search by")
-        conn = _sqlite3.Connection(self.db)
-        cur = conn.cursor()
+        conn, cur = self._connect()
 
         try:
             rows = self._select_command(cur)
@@ -229,7 +230,7 @@ class CookieManager(object):
 
         for result in result_ids:
             try:
-                row = self._select_command(cur, "id", result)
+                row = self._select_command(cur, "rowid", result)
             except Exception as err:
                 conn.close()
                 raise BrowserException(str(err))
@@ -237,6 +238,19 @@ class CookieManager(object):
                 results.append(self._row_to_dict(row.fetchone()))
         conn.close()
         return results
+
+    def dump(self):
+        """Dump the database to an array of dictionaries"""
+        conn, cur = self._connect()
+
+        try:
+            rows = self._select_command(cur)
+        except Exception as err:
+            raise BrowserException(str(err))
+        else:
+            return [self._row_to_dict(row) for row in rows]
+        finally:
+            conn.close()
 
 
 class FirefoxCookiesV1(CookieManager):
@@ -293,7 +307,7 @@ class FirefoxCookiesV1(CookieManager):
     def _select_command(self, cursor, match=None, value=None):
         """Firefox specific SQL select command"""
         if not match:
-            return cursor.execute("SELECT id, host, name, value FROM "
+            return cursor.execute("SELECT rowid, host, name, value FROM "
                                   "moz_cookies")
         return cursor.execute("SELECT * FROM "
                               "moz_cookies WHERE {0}=?".format(match), (value,))
@@ -345,10 +359,10 @@ class ChromeCookiesV1(CookieManager):
     def _select_command(self, cursor, match=None, value=None):
         """Chrome specific SQL select command"""
         if not match:
-            return cursor.execute("SELECT id, host_key, name, value FROM "
+            return cursor.execute("SELECT rowid, host_key, name, value FROM "
                                   "cookies")
         return cursor.execute("SELECT * FROM "
-                              "cookies WHERE {0}=?".format(match), value)
+                              "cookies WHERE {0}=?".format(match), (value,))
 
     def _row_to_dict(self, row):
         return {"host": row[1], "name": row[2], "value": row[3]}
