@@ -9,10 +9,11 @@ import tempfile
 import reusables
 
 test_root = os.path.abspath(os.path.dirname(__file__))
+data_dr = os.path.join(test_root, "data")
 
-test_structure_tar = os.path.join(test_root, "test_structure.tar.gz")
-test_structure_zip = os.path.join(test_root, "test_structure.zip")
-test_structure_rar = os.path.join(test_root, "test_structure.rar")
+test_structure_tar = os.path.join(data_dr, "test_structure.tar.gz")
+test_structure_zip = os.path.join(data_dr, "test_structure.zip")
+test_structure_rar = os.path.join(data_dr, "test_structure.rar")
 test_structure = os.path.join(test_root, "test_structure")
 
 

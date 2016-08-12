@@ -28,6 +28,18 @@ def _to_secs(td):
         return td.total_seconds()
 
 
+def _get_platform():
+    if "linux" in _sys.platform:
+        return "linux"
+    elif "darwin" in _sys.platform:
+        return "mac"
+    elif _sys.platform in ("win32", "cygwin"):
+        return "windows"
+    else:
+        raise BrowserException("Unsupported Platform for"
+                               " automation profile gathering")
+
+
 class BrowserException(Exception):
     """Generic parent exception for errors in this module"""
 
@@ -44,8 +56,8 @@ class CookieManager(object):
     _valid_structure = {"tables": [],
                         "columns": []}
     _db_paths = {
-        "win32": "",
-        "darwin": "",
+        "window": "",
+        "mac": "",
         "linux": ""}
     _insert = ""
     db = ""
@@ -89,7 +101,7 @@ class CookieManager(object):
     def find_db(self):
         """Look at the default profile path based on system platform to
         find the browser's cookie database."""
-        cookies_path = _os.path.expanduser(self._db_paths[_sys.platform])
+        cookies_path = _os.path.expanduser(self._db_paths[_get_platform()])
 
         cookies_path = self._find_db_extra(cookies_path)
 
@@ -196,8 +208,8 @@ class FirefoxCookiesV1(CookieManager):
                ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 
     _db_paths = {
-        "win32": "~\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\",
-        "darwin": "~/Library/Application Support/Firefox/Profiles/",
+        "windows": "~\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\",
+        "mac": "~/Library/Application Support/Firefox/Profiles/",
         "linux": "~/.mozilla/firefox/"}
     table_name = "moz_cookies"
     supported_versions = (47, 48)
@@ -243,9 +255,9 @@ class ChromeCookiesV1(CookieManager):
                                     'persistent', 'priority', 'encrypted_value',
                                     'firstpartyonly']}
     _db_paths = {
-        "win32": "~\\AppData\\Local\\Google\\Chrome"
+        "windows": "~\\AppData\\Local\\Google\\Chrome"
                  "\\User Data\\Default\\Cookies",
-        "darwin": "~/Library/Application Support/Google/Chrome/Default/Cookies",
+        "mac": "~/Library/Application Support/Google/Chrome/Default/Cookies",
         "linux": "~/.config/google-chrome/Default/Cookies"}
     _insert = ("INSERT INTO cookies (creation_utc, host_key, name, value, "
                "path, expires_utc, secure, httponly, last_access_utc, "

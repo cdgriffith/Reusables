@@ -6,11 +6,6 @@ import reusables
 
 test_root = os.path.abspath(os.path.dirname(__file__))
 
-test_structure_tar = os.path.join(test_root, "test_structure.tar.gz")
-test_structure_zip = os.path.join(test_root, "test_structure.zip")
-test_structure_rar = os.path.join(test_root, "test_structure.rar")
-test_structure = os.path.join(test_root, "test_structure")
-
 
 class TestReuseNamespace(unittest.TestCase):
 
@@ -76,7 +71,8 @@ class TestReuseNamespace(unittest.TestCase):
 
     def test_namespace_from_bad_dict(self):
         try:
-            ns = reusables.Namespace.from_dict('{"k1": "v1", "k2": {"k3": "v2"}}')
+            ns = reusables.Namespace.from_dict('{"k1": "v1", '
+                                               '"k2": {"k3": "v2"}}')
         except TypeError:
             assert True
         else:
