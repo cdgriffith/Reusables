@@ -338,9 +338,11 @@ class ChromeCookiesV1(CookieManager):
     supported_versions = (52,)
 
     def __init__(self, db=None):
-        if _sqlite3.sqlite_version.split(".") < (3, 8):
-            raise BrowserException("SQLite 3.8 or higher "
-                                   "required for chrome DBs")
+        ver = _sqlite3.sqlite_version
+        print("SQLite version {0}".format(ver))
+        #if ver.split(".")[:2] < (3, 8):
+        #    raise BrowserException("SQLite 3.8 or higher required for "
+        #                           "chrome DBs - {0} installed".format(ver))
         super(ChromeCookiesV1, self).__init__(db)
 
     def _insert_command(self, cursor, host, name, value, path,
