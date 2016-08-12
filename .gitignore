@@ -44,3 +44,4 @@ index.rst
 test/fake_dir
 *.sqlite-shm
 *.sqlite-wal
+*.ignore

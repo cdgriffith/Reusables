@@ -175,7 +175,7 @@ class CookieManager(object):
             self._insert_command(cur, host, name, value, path, expires_at,
                                  secure, http_only, **extra)
         except Exception as err:
-            raise err
+            raise BrowserException(str(err))
         else:
             conn.commit()
         finally:
