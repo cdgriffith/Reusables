@@ -143,6 +143,14 @@ class CookieManager(object):
         """Child class must override"""
         raise NotImplementedError()
 
+    def _select_command(self, cursor, match=None, value=None):
+        """Child class must override"""
+        raise NotImplementedError()
+
+    def _row_to_dict(self, row):
+        """Child class must override"""
+        raise NotImplementedError()
+
     def add_cookie(self, host, name, value, path="/", expires_at=None, secure=0,
                    http_only=0, **extra):
         """Abstracted function to add a cookie to the database."""
@@ -193,6 +201,43 @@ class CookieManager(object):
         finally:
             conn.close()
 
+    def find_cookies(self, host="", name="", value=""):
+        """Search for cookies based of the host, name or cookie contents."""
+        if not host and not name and not value:
+            raise BrowserException("Please specify something to search by")
+        conn = _sqlite3.Connection(self.db)
+        cur = conn.cursor()
+
+        try:
+            rows = self._select_command(cur)
+        except Exception as err:
+            conn.close()
+            raise BrowserException(str(err))
+
+        result_ids, results = list(), list()
+
+        for row in rows:
+            match = False
+            if host and host.lower() in row[1].lower():
+                match = True
+            if name and name.lower() in row[2].lower():
+                match = True
+            if value and value.lower() in row[3].lower():
+                match = True
+            if match:
+                result_ids.append(row[0])
+
+        for result in result_ids:
+            try:
+                row = self._select_command(cur, "id", result)
+            except Exception as err:
+                conn.close()
+                raise BrowserException(str(err))
+            else:
+                results.append(self._row_to_dict(row.fetchone()))
+        conn.close()
+        return results
+
 
 class FirefoxCookiesV1(CookieManager):
     """First iteration of Firefox Cookie manager"""
@@ -233,17 +278,28 @@ class FirefoxCookiesV1(CookieManager):
         base_domain = extra.get("base_domain", ".".join(host.split(".")
                                 [-2 if not host.endswith(".co.uk") else -3:]))
 
-        cursor.execute(self._insert, (base_domain,
-                                      extra.get('origin_attributes', ""),
-                                      name, value, host, path, exp, now, now,
-                                      secure, http_only,
-                                      extra.get('app_id', 0),
-                                      extra.get('in_browser_element', 0)))
+        return cursor.execute(self._insert, (base_domain,
+                              extra.get('origin_attributes', ""),
+                              name, value, host, path, exp, now, now,
+                              secure, http_only,
+                              extra.get('app_id', 0),
+                              extra.get('in_browser_element', 0)))
 
     def _delete_command(self, cursor, host, name):
         """Firefox specific SQL delete command"""
-        cursor.execute("DELETE FROM moz_cookies WHERE host=? AND name=?",
-                       (host, name))
+        return cursor.execute("DELETE FROM moz_cookies WHERE host=? AND name=?",
+                              (host, name))
+
+    def _select_command(self, cursor, match=None, value=None):
+        """Firefox specific SQL select command"""
+        if not match:
+            return cursor.execute("SELECT id, host, name, value FROM "
+                                  "moz_cookies")
+        return cursor.execute("SELECT * FROM "
+                              "moz_cookies WHERE {0}=?".format(match), (value,))
+
+    def _row_to_dict(self, row):
+        return {"host": row[5], "name": row[3], "value": row[4]}
 
 
 class ChromeCookiesV1(CookieManager):
@@ -256,7 +312,7 @@ class ChromeCookiesV1(CookieManager):
                                     'firstpartyonly']}
     _db_paths = {
         "windows": "~\\AppData\\Local\\Google\\Chrome"
-                 "\\User Data\\Default\\Cookies",
+                   "\\User Data\\Default\\Cookies",
         "mac": "~/Library/Application Support/Google/Chrome/Default/Cookies",
         "linux": "~/.config/google-chrome/Default/Cookies"}
     _insert = ("INSERT INTO cookies (creation_utc, host_key, name, value, "
@@ -273,18 +329,29 @@ class ChromeCookiesV1(CookieManager):
         now = self._current_time(epoch=_dt.datetime(1601, 1, 1), length=17)
         exp = self._expire_time(epoch=_dt.datetime(1601, 1, 1), length=17)
 
-        cursor.execute(self._insert, (now, host, name, value, path, exp, secure,
-                                      http_only, now,
-                                      extra.get('has_expires', 1),
-                                      extra.get('persistent', 1),
-                                      extra.get('priority', 1),
-                                      extra.get('encrypted_value', ""),
-                                      extra.get('first_party_only', 0)))
+        return cursor.execute(self._insert, (now, host, name, value, path,
+                              exp, secure, http_only, now,
+                              extra.get('has_expires', 1),
+                              extra.get('persistent', 1),
+                              extra.get('priority', 1),
+                              extra.get('encrypted_value', ""),
+                              extra.get('first_party_only', 0)))
 
     def _delete_command(self, cursor, host, name):
         """Chrome specific SQL delete command"""
-        cursor.execute("DELETE FROM cookies WHERE host_key=? AND name=?",
-                       (host, name))
+        return cursor.execute("DELETE FROM cookies WHERE host_key=? AND name=?",
+                              (host, name))
+
+    def _select_command(self, cursor, match=None, value=None):
+        """Chrome specific SQL select command"""
+        if not match:
+            return cursor.execute("SELECT id, host_key, name, value FROM "
+                                  "cookies")
+        return cursor.execute("SELECT * FROM "
+                              "cookies WHERE {0}=?".format(match), value)
+
+    def _row_to_dict(self, row):
+        return {"host": row[1], "name": row[2], "value": row[3]}
 
 
 class FirefoxCookies(FirefoxCookiesV1):

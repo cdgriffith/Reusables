@@ -11,6 +11,7 @@ programmers may find themselves often recreating.
 
 It includes:
 
+- Cookie Management for Firefox and Chrome
 - Archive extraction (zip, tar, rar)
 - Path (file and folders) management
 - Friendly datetime formatting
@@ -49,6 +50,19 @@ General Helpers
 
         reusables.config_dict('my_config.cfg')
         # {'Section 1': {'key 1': 'value 1', 'key2': 'Value2'}, 'Section 2': {}}
+
+Cookie Management
+~~~~~~~~~~~~~~~~~
+
+.. code:: python
+
+        fox = reusables.FirefoxCookies()
+        fox.add_cookie("example.com", "MyCookie", "Cookie contents!")
+
+        fox.find_cookies(host="Example")
+        # [{'host': u'example.com', 'name': u'MyCookie', 'value': u'Cookie contents!'}]
+
+        fox.delete_cookie("example.com", "MyCookie")
 
 
 File Management
@@ -283,6 +297,7 @@ improve existing code is warmly welcomed!
    :maxdepth: 2
 
    reusables
+   browser
    log
    datetime
    namespace

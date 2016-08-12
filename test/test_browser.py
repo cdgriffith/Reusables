@@ -117,7 +117,7 @@ class TestReuse(unittest.TestCase):
         res = cur.fetchall()
         assert len(res) == 0
 
-    def test_firefox_find_cookies(self):
+    def test_firefox_find_db(self):
         try:
             reusables.FirefoxCookies()
         except Exception:
@@ -143,3 +143,15 @@ class TestReuse(unittest.TestCase):
         finally:
             shutil.rmtree(test_path, ignore_errors=True)
 
+    def test_firefox_find_cookies(self):
+        a = reusables.FirefoxCookies(db=db)
+        a.add_cookie("example.com", "test_name", "test_value")
+        res = a.find_cookies("Example")
+        assert len(res) == 1
+        assert res[0]["host"] == "example.com"
+        res2 = a.find_cookies(name="name")
+        assert len(res2) == 1
+        assert res2[0]["host"] == "example.com"
+        res3 = a.find_cookies(value="value")
+        assert len(res3) == 1
+        assert res3[0]["host"] == "example.com"

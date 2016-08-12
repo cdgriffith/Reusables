@@ -11,4 +11,5 @@ exclude_lines =
     return "mac"
     elif _sys.platform in ("win32", "cygwin"):
     return "windows"
+    except Exception as err:
     raise BrowserException(str(err))
