@@ -26,7 +26,7 @@ class CookieManager(object):
         grab_ts = cur.execute("SELECT name FROM sqlite_master "
                               "WHERE type = 'table'")
         tables = grab_ts.fetchall()
-        grab_row = cur.execute("SELECT * FROM {} LIMIT 1".format(
+        grab_row = cur.execute("SELECT * FROM {0} LIMIT 1".format(
             self.table_name))
         cols = [description[0] for description in grab_row.description]
 
@@ -77,12 +77,48 @@ class CookieManager(object):
 
     def _insert_command(self, cursor, host, name, value, path,
                         expires_at, secure, http_only, **extra):
-        return
+        raise NotImplementedError()
+
+    def _delete_command(self, cursor, host, name):
+        raise NotImplementedError()
 
     def add_cookie(self, host, name, value, path="/", expires_at=None, secure=0,
                    http_only=0, **extra):
         conn = sqlite3.Connection(self.db)
         cur = conn.cursor()
+        try:
+            self._insert_command(cur, host, name, value, path, expires_at,
+                                 secure, http_only, **extra)
+        except Exception as err:
+            raise err
+        else:
+            conn.commit()
+        finally:
+            conn.close()
+
+    def delete_cookie(self, host, name):
+        conn = sqlite3.Connection(self.db)
+        cur = conn.cursor()
+        try:
+            self._delete_command(cur, host, name)
+        except Exception as err:
+            raise err
+        else:
+            conn.commit()
+        finally:
+            conn.close()
+
+    def update_cookie(self, host, name, value, path="/", expires_at=None,
+                      secure=0, http_only=0, ignore_missing=True, **extra):
+        conn = sqlite3.Connection(self.db)
+        cur = conn.cursor()
+
+        try:
+            self._delete_command(cur, host, name)
+        except Exception as err:
+            if not ignore_missing:
+                raise err
+
         try:
             self._insert_command(cur, host, name, value, path, expires_at,
                                  secure, http_only, **extra)
@@ -123,9 +159,7 @@ class FirefoxCookies(CookieManager):
     def _insert_command(self, cursor, host, name, value, path,
                         expires_at, secure, http_only, **extra):
         now = self._current_time(length=16)
-        print(now)
         exp = self._expire_time(length=10)
-        print(exp)
         base_domain = extra.get("base_domain", ".".join(host.split(".")
                                 [-2 if not host.endswith(".co.uk") else -3:]))
 
@@ -135,6 +169,10 @@ class FirefoxCookies(CookieManager):
                                       secure, http_only,
                                       extra.get('app_id', 0),
                                       extra.get('in_browser_element', 0)))
+
+    def _delete_command(self, cursor, host, name):
+        cursor.execute("DELETE FROM moz_cookies WHERE host=? AND name=?",
+                       (host, name))
 
 
 class ChromeCookies(CookieManager):
@@ -169,4 +207,6 @@ class ChromeCookies(CookieManager):
                                       extra.get('encrypted_value', ""),
                                       extra.get('first_party_only', 0)))
 
-
+    def _delete_command(self, cursor, host, name):
+        cursor.execute("DELETE FROM cookies WHERE host_key=? AND name=?",
+                       (host, name))
