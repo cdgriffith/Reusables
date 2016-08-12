@@ -8,12 +8,10 @@ python:
     - "pypy"
 before_install:
     - sudo apt-get -qq update
-    - sudo apt-get install -y unrar
+    - sudo apt-get install -y unrar sqlite3
 install:
     - pip install -r requirements.txt
     - pip install -r requirements-test.txt
     - pip install coveralls
-script:
-    nosetests --with-coverage -vv --cover-package=reusables test
-after_success:
-    coveralls
+script: nosetests --with-coverage -vv --cover-package=reusables test
+after_success: coveralls
