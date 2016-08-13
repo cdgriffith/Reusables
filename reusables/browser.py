@@ -123,8 +123,9 @@ class CookieManager(object):
         delta_from_epic = (_dt.datetime.utcnow() - epoch)
         if delta_from_epic == self._last_delta:
             # Some browsers use time as a unique key
-            _time.sleep(1)
-            delta_from_epic = (_dt.datetime.utcnow() - epoch)
+            _time.sleep(2)
+            return self._current_time(epoch=epoch, length=length)
+        self._last_delta = delta_from_epic
         return int(str(_to_secs(delta_from_epic)
                        ).replace(".", "")[:length].ljust(length, "0"))
 
