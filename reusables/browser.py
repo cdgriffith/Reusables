@@ -12,6 +12,7 @@ import os as _os
 import sqlite3 as _sqlite3
 import datetime as _dt
 import sys as _sys
+import time as _time
 
 from .log import get_logger
 
@@ -60,6 +61,7 @@ class CookieManager(object):
         "mac": "",
         "linux": ""}
     _insert = ""
+    _last_delta = None
     db = ""
     table_name = ""
     supported_versions = ()
@@ -115,11 +117,14 @@ class CookieManager(object):
         """Some browser's profiles require path manipulation"""
         return expanded_path
 
-    @staticmethod
-    def _current_time(epoch=_dt.datetime(1970, 1, 1), length=16):
+    def _current_time(self, epoch=_dt.datetime(1970, 1, 1), length=16):
         """Returns a string of the current time based on epoc date at a set
          length of integers."""
         delta_from_epic = (_dt.datetime.utcnow() - epoch)
+        if delta_from_epic == self._last_delta:
+            # Some browsers use time as a unique key
+            _time.sleep(1)
+            delta_from_epic = (_dt.datetime.utcnow() - epoch)
         return int(str(_to_secs(delta_from_epic)
                        ).replace(".", "")[:length].ljust(length, "0"))
 
@@ -135,6 +140,8 @@ class CookieManager(object):
                        ).replace(".", "")[:length].ljust(length, "0"))
 
     def _connect(self):
+        """Overrideable SQL connection
+        function to return connection and cursor"""
         conn = _sqlite3.Connection(self.db)
         cur = conn.cursor()
         return conn, cur
@@ -313,11 +320,12 @@ class FirefoxCookiesV1(CookieManager):
                               "moz_cookies WHERE {0}=?".format(match), (value,))
 
     def _row_to_dict(self, row):
+        """Returns a SQL query row as a standard dictionary."""
         return {"host": row[5], "name": row[3], "value": row[4]}
 
 
 class ChromeCookiesV1(CookieManager):
-    """First iteration of Chrome Cookie manager"""
+    """First iteration of Chrome Cookie manager."""
     _valid_structure = {"tables": [("meta",), ("cookies",)],
                         "columns": ['creation_utc', 'host_key', 'name', 'value',
                                     'path', 'expires_utc', 'secure', 'httponly',
@@ -338,11 +346,10 @@ class ChromeCookiesV1(CookieManager):
     supported_versions = (52,)
 
     def __init__(self, db=None):
-        ver = _sqlite3.sqlite_version
-        print("SQLite version {0}".format(ver))
-        #if ver.split(".")[:2] < (3, 8):
-        #    raise BrowserException("SQLite 3.8 or higher required for "
-        #                           "chrome DBs - {0} installed".format(ver))
+        major, minor = _sqlite3.sqlite_version.split(".")[:2]
+        if int(major) < 3 or (int(major) == 3 and int(minor) < 8):
+            raise BrowserException("SQLite 3.8 or higher required for chrome"
+                                   "- {0}.{1} installed".format(major, minor))
         super(ChromeCookiesV1, self).__init__(db)
 
     def _insert_command(self, cursor, host, name, value, path,
@@ -373,6 +380,7 @@ class ChromeCookiesV1(CookieManager):
                               "cookies WHERE {0}=?".format(match), (value,))
 
     def _row_to_dict(self, row):
+        """Returns a SQL query row as a standard dictionary"""
         return {"host": row[1], "name": row[2], "value": row[3]}
 
 

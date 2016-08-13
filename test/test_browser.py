@@ -73,6 +73,20 @@ class TestReuse(unittest.TestCase):
         else:
             assert False
 
+        try:
+            tb._select_command(None)
+        except NotImplementedError:
+            assert True
+        else:
+            assert False
+
+        try:
+            tb._row_to_dict(None)
+        except NotImplementedError:
+            assert True
+        else:
+            assert False
+
     def test_firefox_add_cookie(self):
         fox = reusables.FirefoxCookiesV1(db=fox_db)
         fox.add_cookie("www.example.com", "test_name", "test_value")
@@ -80,13 +94,15 @@ class TestReuse(unittest.TestCase):
         cur = conn.cursor()
         cur.execute("SELECT * FROM {0}".format(fox.table_name))
         res = cur.fetchall()
-        assert len(res) == 1
-        assert res[0][1] == "example.com"
-        assert res[0][3] == "test_name"
-        assert res[0][4] == "test_value"
-        assert res[0][5] == "www.example.com"
-        assert res[0][6] == "/"
-        conn.close()
+        try:
+            assert len(res) == 1
+            assert res[0][1] == "example.com"
+            assert res[0][3] == "test_name"
+            assert res[0][4] == "test_value"
+            assert res[0][5] == "www.example.com"
+            assert res[0][6] == "/"
+        finally:
+            conn.close()
 
     def test_firefox_update_cookies(self):
         fox = reusables.FirefoxCookiesV1(db=fox_db)
@@ -96,10 +112,12 @@ class TestReuse(unittest.TestCase):
         cur = conn.cursor()
         cur.execute("SELECT * FROM {0}".format(fox.table_name))
         res = cur.fetchall()
-        assert len(res) == 1
-        assert res[0][3] == "test_name1"
-        assert res[0][4] == "test_value1"
-        conn.close()
+        try:
+            assert len(res) == 1
+            assert res[0][3] == "test_name1"
+            assert res[0][4] == "test_value1"
+        finally:
+            conn.close()
 
         fox.update_cookie("www.example.com", "test_name1", "test_value2345",
                           ignore_missing=True)
@@ -108,10 +126,12 @@ class TestReuse(unittest.TestCase):
         cur = conn.cursor()
         cur.execute("SELECT * FROM {0}".format(fox.table_name))
         res = cur.fetchall()
-        assert len(res) == 1
-        assert res[0][3] == "test_name1"
-        assert res[0][4] == "test_value2345"
-        conn.close()
+        try:
+            assert len(res) == 1
+            assert res[0][3] == "test_name1"
+            assert res[0][4] == "test_value2345"
+        finally:
+            conn.close()
 
     def test_firefox_delete_cookie(self):
         fox = reusables.FirefoxCookiesV1(db=fox_db)
@@ -169,12 +189,14 @@ class TestReuse(unittest.TestCase):
         cur = conn.cursor()
         cur.execute("SELECT * FROM {0}".format(chrome.table_name))
         res = cur.fetchall()
-        assert len(res) == 1
-        assert res[0][1] == "www.example.com"
-        assert res[0][2] == "test_name"
-        assert res[0][3] == "test_value"
-        assert res[0][4] == "/"
-        conn.close()
+        try:
+            assert len(res) == 1
+            assert res[0][1] == "www.example.com"
+            assert res[0][2] == "test_name"
+            assert res[0][3] == "test_value"
+            assert res[0][4] == "/"
+        finally:
+            conn.close()
 
     def test_chrome_find_cookies(self):
         a = reusables.ChromeCookies(db=chrome_db)
@@ -197,3 +219,15 @@ class TestReuse(unittest.TestCase):
         assert len(dump) == 2
         assert dump[0]["host"] == "example.com"
 
+    def test_chrome_delete(self):
+        a = reusables.ChromeCookies(db=chrome_db)
+        a.add_cookie("example.com", "test_name3", "test_value")
+        a.delete_cookie("example.com", "test_name3")
+        conn = sqlite3.Connection(chrome_db)
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM {0}".format(a.table_name))
+        res = cur.fetchall()
+        try:
+            assert len(res) == 0
+        finally:
+            conn.close()
