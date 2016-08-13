@@ -1,6 +1,6 @@
 Dangerzone
 ==========
 
-.. automodule:: reusables.dangerzone
+.. automodule:: reusables.wrappers
    :members:
    :undoc-members:

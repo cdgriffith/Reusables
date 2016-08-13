@@ -1,14 +1,32 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
-
+import time
 import unittest
-from reusables import dangerzone
 
-@dangerzone.reuse
+from reusables import reuse, unique
+
+
+@reuse
 def gen_func(a, b, c=None):
     return a, b, c
 
-class TestDangerzone(unittest.TestCase):
+
+@unique(exception=OSError, error_text="WHY ME!")
+def unique_function_1(a):
+    return a
+
+
+@unique(alt_return=33)
+def unique_function_2(a):
+    return a
+
+
+@unique(wait=1)
+def unique_function_3():
+    return int(time.time())
+
+
+class TestWrappers(unittest.TestCase):
 
     def setUp(self):
         gen_func(reuse_reset=True)
@@ -35,6 +53,23 @@ class TestDangerzone(unittest.TestCase):
         run1 = gen_func(1, 2, 3)
         assert run1 == (1, 2, 3)
         assert gen_func(reuse_rep_args=[(1, 4)]) == (4, 2, 3)
+
+    def test_unique(self):
+        unique_function_1(1)
+        unique_function_2(1)
+        try:
+            unique_function_1(1)
+        except OSError as err:
+            assert "WHY ME!" in str(err)
+
+        assert unique_function_2(1) == 33
+
+        a = unique_function_3()
+        b = unique_function_3()
+        c = unique_function_3()
+
+        assert c > b > a
+
 
 if __name__ == "__main__":
     unittest.main()

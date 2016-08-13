@@ -66,6 +66,8 @@ General Helpers and File Management
 Cookie Management
 ~~~~~~~~~~~~~~~~~
 
+Firefox and Chrome Cookie management. (Chrome requires SQLite 3.8 or greater.)
+
 .. code:: python
 
         fox = reusables.FirefoxCookies()
@@ -295,5 +297,5 @@ improve existing code is warmly welcomed!
    log
    datetime
    namespace
-   dangerzone
+   wrappers
    changelog

@@ -14,9 +14,7 @@ import datetime as _dt
 import sys as _sys
 import time as _time
 
-from .log import get_logger
-
-logger = get_logger(__name__)
+from .wrappers import unique as _unique
 
 
 def _to_secs(td):
@@ -61,7 +59,6 @@ class CookieManager(object):
         "mac": "",
         "linux": ""}
     _insert = ""
-    _last_delta = None
     db = ""
     table_name = ""
     supported_versions = ()
@@ -117,15 +114,12 @@ class CookieManager(object):
         """Some browser's profiles require path manipulation"""
         return expanded_path
 
+    @_unique(wait=1, exception=BrowserException,
+             error_text="Could not generate unique timestamp")
     def _current_time(self, epoch=_dt.datetime(1970, 1, 1), length=16):
         """Returns a string of the current time based on epoc date at a set
          length of integers."""
         delta_from_epic = (_dt.datetime.utcnow() - epoch)
-        if delta_from_epic == self._last_delta:
-            # Some browsers use time as a unique key
-            _time.sleep(2)
-            return self._current_time(epoch=epoch, length=length)
-        self._last_delta = delta_from_epic
         return int(str(_to_secs(delta_from_epic)
                        ).replace(".", "")[:length].ljust(length, "0"))
 
