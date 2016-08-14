@@ -97,7 +97,7 @@ class CookieManager(object):
 
     def verify_schema(self):
         """Match the selected DB to the class's valid schema to verify
-        compatibility."""
+        compatibility. Raises InvalidSchema on error."""
         conn = _sqlite3.Connection(self.db)
         cur = conn.cursor()
         try:
@@ -107,7 +107,11 @@ class CookieManager(object):
 
     def find_db(self):
         """Look at the default profile path based on system platform to
-        find the browser's cookie database."""
+        find the browser's cookie database.
+
+        :return: Path the cookie file in the default profile.
+        :rtype: str
+        """
         cookies_path = _os.path.expanduser(self._db_paths[_get_platform()])
 
         cookies_path = self._find_db_extra(cookies_path)
@@ -183,7 +187,7 @@ class CookieManager(object):
         :param path: Defalt path is "/", some websites modify this
         :param expires_in: timedelta from now when cookies expires
         :param secure: 0 or 1 for to use on secured connections only
-        :param http_only: 0 or 1
+        :param http_only: 0 or 1 Use on http only
         """
         conn, cur = self._connect()
         try:
@@ -308,10 +312,11 @@ class FirefoxCookiesV1(CookieManager):
     """First iteration of Firefox Cookie manager, developed with Firefox 48.
 
     Custom add_cookie kwargs:
-    - base_domain: str
-    - origin_attributes: str
-    - app_id: int
-    - in_browser_element: 0 or 1
+
+    * base_domain: str
+    * origin_attributes: str
+    * app_id: int
+    * in_browser_element: bool
 
     """
     _valid_structure = {"tables": [("moz_cookies",)],
@@ -347,15 +352,15 @@ class FirefoxCookiesV1(CookieManager):
         """Firefox specific SQL insert command with required times"""
         now = self._current_time(length=16)
         exp = self._expire_time(length=10, expires_in=expires_in)
-        base_domain = kwargs.get("base_domain", ".".join(host.split(".")
-                                [-2 if not host.endswith(".co.uk") else -3:]))
+        base_domain = str(kwargs.get("base_domain", ".".join(host.split(".")
+                          [-2 if not host.endswith(".co.uk") else -3:])))
 
         return cursor.execute(self._insert, (base_domain,
-                              kwargs.get('origin_attributes', ""),
+                              str(kwargs.get('origin_attributes', "")),
                               name, value, host, path, exp, now, now,
                               secure, http_only,
-                              kwargs.get('app_id', 0),
-                              kwargs.get('in_browser_element', 0)))
+                              int(kwargs.get('app_id', 0)),
+                              int(bool(kwargs.get('in_browser_element', 0)))))
 
     def _delete_command(self, cursor, host, name):
         """Firefox specific SQL delete command"""
@@ -379,11 +384,12 @@ class ChromeCookiesV1(CookieManager):
     """First iteration of Chrome Cookie manager. Developed with Chrome 52.
 
     Custom add_cookie kwargs:
-    - has_expires: 0 or 1
-    - persistent: 0 or 1
-    - priority: 0 or 1
-    - encrypted_value: str
-    - first_party_only: 0 or 1
+
+    * has_expires: bool
+    * persistent: bool
+    * priority: bool
+    * encrypted_value: str
+    * first_party_only: bool
 
     """
     _valid_structure = {"tables": [("meta",), ("cookies",)],
@@ -420,11 +426,11 @@ class ChromeCookiesV1(CookieManager):
 
         return cursor.execute(self._insert, (now, host, name, value, path,
                               exp, secure, http_only, now,
-                              kwargs.get('has_expires', 1),
-                              kwargs.get('persistent', 1),
-                              kwargs.get('priority', 1),
-                              kwargs.get('encrypted_value', ""),
-                              kwargs.get('first_party_only', 0)))
+                              int(bool(kwargs.get('has_expires', 1))),
+                              int(bool(kwargs.get('persistent', 1))),
+                              int(kwargs.get('priority', 1)),
+                              str(kwargs.get('encrypted_value', "")),
+                              int(bool(kwargs.get('first_party_only', 0)))))
 
     def _delete_command(self, cursor, host, name):
         """Chrome specific SQL delete command"""
