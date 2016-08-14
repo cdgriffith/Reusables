@@ -11,10 +11,18 @@ _unique_cache = dict()
 _reuse_cache = dict()  # Could use DefaultDict but eh, it's another import
 
 
-def unique(max_retries=10, wait=0, alt_return=None, exception=Exception,
-           error_text="No result was unique"):
+def unique(max_retries=10, wait=0, alt_return="-no_alt_return-",
+           exception=Exception, error_text="No result was unique"):
     """Makes sure the function's return value has not been returned before
-    or else it run with the same inputs again."""
+    or else it run with the same inputs again.
+
+    :param max_retries: int of number of retries to attempt before failing
+    :param wait: float of seconds to wait between each try, defaults to 0
+    :param exception: Exception type of raise
+    :param error_text: text of the exception
+    :param alt_return: if specified, an exception is not raised on failure,
+     instead the provided value of any type of will be returned
+    """
     def func_wrap(func):
         @_wraps(func)
         def wrapper(*args, **kwargs):
@@ -26,7 +34,7 @@ def unique(max_retries=10, wait=0, alt_return=None, exception=Exception,
                 if wait:
                     _time.sleep(wait)
             else:
-                if alt_return:
+                if alt_return != "-no_alt_return-":
                     return alt_return
                 raise exception(error_text)
         return wrapper

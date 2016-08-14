@@ -5,6 +5,7 @@ import unittest
 import os
 import sys
 import time
+import datetime
 import shutil
 import sqlite3
 import reusables
@@ -54,7 +55,7 @@ class TestReuse(unittest.TestCase):
         print(t1)
         assert len(str(t1)) == 20
         assert len(str(t2)) == 5
-        t3 = tb._expire_time(length=10, days=10)
+        t3 = tb._expire_time(length=10, expires_in=datetime.timedelta(days=10))
         assert (time.time() + 864000) - float(t3) <= 3
 
     def test_overrides(self):

@@ -1,5 +1,5 @@
-Dangerzone
-==========
+Wrappers
+========
 
 .. automodule:: reusables.wrappers
    :members:

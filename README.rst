@@ -19,6 +19,7 @@ It includes:
 - Friendly datetime formatting
 - Config to dict parsing
 - Common regular expressions and file extensions
+- Unique function wrappers
 
 Reusables is designed to not require any imports outside the standard library,
 but can be supplemented with those found in the requirements.txt file for
@@ -233,6 +234,21 @@ That's right, str.endswith_ (as well as str.startswith_) accept a tuple to searc
  archives              .zip .rar .7z .tar.gz .tgz .gz .bzip .bzip2 .bz2 .xz .lzma .bin .tar
  cd_images             .iso .nrg .img .mds .mdf .cue .daa
 ===================== ===================
+
+
+Wrappers
+~~~~~~~~
+
+There are tons of wrappers for caching and saving inputs and outputs, this is a
+different take that requires the function returns a result not yet provided.
+
+.. code:: python
+
+    @reusables.unique(max_retries=100, error_text="All UIDs taken!")
+    def gen_small_uid():
+        import random
+        return random.randint(0, 100)
+
 
 
 Common Issues

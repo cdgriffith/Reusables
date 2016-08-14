@@ -12,13 +12,16 @@ import os as _os
 import sqlite3 as _sqlite3
 import datetime as _dt
 import sys as _sys
-import time as _time
 
 from .wrappers import unique as _unique
 
 
 def _to_secs(td):
-    """Compatibility for 2.6 and 3.2 for timedelta.total_seconds()"""
+    """Compatibility for 2.6 and 3.2 for timedelta.total_seconds()
+
+    :return: float of seconds
+    :rtype: float
+    """
     if (_sys.version_info[0:2] < (2, 7) or
        (2, 7) < _sys.version_info[0:2] < (3, 3)):
         return ((td.microseconds + (td.seconds + td.days * 24 * 3600) * 10 **
@@ -28,6 +31,12 @@ def _to_secs(td):
 
 
 def _get_platform():
+    """
+    Provides the common name of the platform the code is currently running on.
+
+    :return: Platform name
+    :type: str
+    """
     if "linux" in _sys.platform:
         return "linux"
     elif "darwin" in _sys.platform:
@@ -61,7 +70,6 @@ class CookieManager(object):
     _insert = ""
     db = ""
     table_name = ""
-    supported_versions = ()
 
     def __init__(self, db=None):
         self.db = db if db else self.find_db()
@@ -124,13 +132,11 @@ class CookieManager(object):
                        ).replace(".", "")[:length].ljust(length, "0"))
 
     @staticmethod
-    def _expire_time(epoch=_dt.datetime(1970, 1, 1), length=10, days=365,
-                     hours=0):
+    def _expire_time(epoch=_dt.datetime(1970, 1, 1), length=10,
+                     expires_in=_dt.timedelta(days=1)):
         """Returns a string of time based on epoch date at a set
-         length of integers with an additional timedetla of specified days
-        and/or hours."""
-        delta_from_epic = (_dt.datetime.utcnow() - epoch +
-                           _dt.timedelta(days=days, hours=hours))
+         length of integers with an additional timedelta as specified."""
+        delta_from_epic = (_dt.datetime.utcnow() - epoch + expires_in)
         return int(str(_to_secs(delta_from_epic)
                        ).replace(".", "")[:length].ljust(length, "0"))
 
@@ -142,7 +148,7 @@ class CookieManager(object):
         return conn, cur
 
     def _insert_command(self, cursor, host, name, value, path,
-                        expires_at, secure, http_only, **extra):
+                        expires_at, secure, http_only, **kwargs):
         """Child class must override"""
         raise NotImplementedError()
 
@@ -155,16 +161,34 @@ class CookieManager(object):
         raise NotImplementedError()
 
     def _row_to_dict(self, row):
-        """Child class must override"""
+        """Child class must override.
+
+        The dictionary must contain:
+        - host
+        - name
+        - value
+        """
         raise NotImplementedError()
 
-    def add_cookie(self, host, name, value, path="/", expires_at=None, secure=0,
-                   http_only=0, **extra):
-        """Abstracted function to add a cookie to the database."""
+    def add_cookie(self, host, name, value, path="/",
+                   expires_in=_dt.timedelta(days=1), secure=0,
+                   http_only=0, **kwargs):
+        """Abstracted function to add a cookie to the database.
+        Additional browser specific keyword arguments are availablee,
+        listed in their respective classes.
+
+        :param host: URL to associate cookie with
+        :param name: The name of the cookie, such as "SESSIONID"
+        :param value: the cookie content
+        :param path: Defalt path is "/", some websites modify this
+        :param expires_in: timedelta from now when cookies expires
+        :param secure: 0 or 1 for to use on secured connections only
+        :param http_only: 0 or 1
+        """
         conn, cur = self._connect()
         try:
-            self._insert_command(cur, host, name, value, path, expires_at,
-                                 secure, http_only, **extra)
+            self._insert_command(cur, host, name, value, path, expires_in,
+                                 secure, http_only, **kwargs)
         except Exception as err:
             raise BrowserException(str(err))
         else:
@@ -173,7 +197,11 @@ class CookieManager(object):
             conn.close()
 
     def delete_cookie(self, host, name):
-        """Abstracted function to remove a cookie from the database."""
+        """Abstracted function to remove a cookie from the database.
+
+        :param host: URL of cookie, must be exact
+        :param name: The name of the cookie, such as "SESSIONID"
+        """
         conn, cur = self._connect()
         try:
             self._delete_command(cur, host, name)
@@ -184,9 +212,21 @@ class CookieManager(object):
         finally:
             conn.close()
 
-    def update_cookie(self, host, name, value, path="/", expires_at=None,
-                      secure=0, http_only=0, ignore_missing=True, **extra):
-        """Delete and re-add a cookie with different value."""
+    def update_cookie(self, host, name, value, path="/",
+                      expires_in=_dt.timedelta(days=1),
+                      secure=0, http_only=0, ignore_missing=True, **kwargs):
+        """Delete and re-add a cookie with different value.
+
+        :param host: URL to associate cookie with
+        :param name: The name of the cookie, such as "SESSIONID"
+        :param value: the cookie content
+        :param path: Defalt path is "/", some websites modify this
+        :param expires_in: timedelta from now when cookies expires
+        :param secure: 0 or 1 for to use on secured connections only
+        :param http_only: 0 or 1
+        :param ignore_missing: Boolean, if set to False it will raise an
+        exception if there is not a cookie to remove before updating
+        """
         conn, cur = self._connect()
 
         try:
@@ -196,8 +236,8 @@ class CookieManager(object):
                 raise BrowserException(str(err))
 
         try:
-            self._insert_command(cur, host, name, value, path, expires_at,
-                                 secure, http_only, **extra)
+            self._insert_command(cur, host, name, value, path, expires_in,
+                                 secure, http_only, **kwargs)
         except Exception as err:
             raise BrowserException(str(err))
         else:
@@ -206,7 +246,16 @@ class CookieManager(object):
             conn.close()
 
     def find_cookies(self, host="", name="", value=""):
-        """Search for cookies based of the host, name or cookie contents."""
+        """Search for cookies based of the host, name or cookie contents.
+        All values are loose, and will be compared by converting to lowercase
+        and check if they exist "in" the field specified.
+
+        :param host: Cookie URL to search
+        :param name: The name of the cookie
+        :param value: Search the contents of the cookie
+        :return: list of cookies in dict form
+        :rtype: list
+        """
         if not host and not name and not value:
             raise BrowserException("Please specify something to search by")
         conn, cur = self._connect()
@@ -242,7 +291,7 @@ class CookieManager(object):
         return results
 
     def dump(self):
-        """Dump the database to an array of dictionaries"""
+        """Dump the database to a list of dictionaries."""
         conn, cur = self._connect()
 
         try:
@@ -256,7 +305,15 @@ class CookieManager(object):
 
 
 class FirefoxCookiesV1(CookieManager):
-    """First iteration of Firefox Cookie manager"""
+    """First iteration of Firefox Cookie manager, developed with Firefox 48.
+
+    Custom add_cookie kwargs:
+    - base_domain: str
+    - origin_attributes: str
+    - app_id: int
+    - in_browser_element: 0 or 1
+
+    """
     _valid_structure = {"tables": [("moz_cookies",)],
                         "columns": ['id', 'baseDomain', 'originAttributes',
                                     'name', 'value', 'host', 'path', 'expiry',
@@ -273,7 +330,6 @@ class FirefoxCookiesV1(CookieManager):
         "mac": "~/Library/Application Support/Firefox/Profiles/",
         "linux": "~/.mozilla/firefox/"}
     table_name = "moz_cookies"
-    supported_versions = (47, 48)
 
     @staticmethod
     def _find_db_extra(expanded_path):
@@ -287,19 +343,19 @@ class FirefoxCookiesV1(CookieManager):
         return _os.path.join(expanded_path, default[0], "cookies.sqlite")
 
     def _insert_command(self, cursor, host, name, value, path,
-                        expires_at, secure, http_only, **extra):
+                        expires_in, secure, http_only, **kwargs):
         """Firefox specific SQL insert command with required times"""
         now = self._current_time(length=16)
-        exp = self._expire_time(length=10)
-        base_domain = extra.get("base_domain", ".".join(host.split(".")
+        exp = self._expire_time(length=10, expires_in=expires_in)
+        base_domain = kwargs.get("base_domain", ".".join(host.split(".")
                                 [-2 if not host.endswith(".co.uk") else -3:]))
 
         return cursor.execute(self._insert, (base_domain,
-                              extra.get('origin_attributes', ""),
+                              kwargs.get('origin_attributes', ""),
                               name, value, host, path, exp, now, now,
                               secure, http_only,
-                              extra.get('app_id', 0),
-                              extra.get('in_browser_element', 0)))
+                              kwargs.get('app_id', 0),
+                              kwargs.get('in_browser_element', 0)))
 
     def _delete_command(self, cursor, host, name):
         """Firefox specific SQL delete command"""
@@ -320,7 +376,16 @@ class FirefoxCookiesV1(CookieManager):
 
 
 class ChromeCookiesV1(CookieManager):
-    """First iteration of Chrome Cookie manager."""
+    """First iteration of Chrome Cookie manager. Developed with Chrome 52.
+
+    Custom add_cookie kwargs:
+    - has_expires: 0 or 1
+    - persistent: 0 or 1
+    - priority: 0 or 1
+    - encrypted_value: str
+    - first_party_only: 0 or 1
+
+    """
     _valid_structure = {"tables": [("meta",), ("cookies",)],
                         "columns": ['creation_utc', 'host_key', 'name', 'value',
                                     'path', 'expires_utc', 'secure', 'httponly',
@@ -338,7 +403,6 @@ class ChromeCookiesV1(CookieManager):
                " firstpartyonly) VALUES (?, ?, ?, ?, ?, ?, ?, ?, "
                "?, ?, ?, ?, ?, ?)")
     table_name = "cookies"
-    supported_versions = (52,)
 
     def __init__(self, db=None):
         major, minor = _sqlite3.sqlite_version.split(".")[:2]
@@ -348,18 +412,19 @@ class ChromeCookiesV1(CookieManager):
         super(ChromeCookiesV1, self).__init__(db)
 
     def _insert_command(self, cursor, host, name, value, path,
-                        expires_at, secure, http_only, **extra):
+                        expires_in, secure, http_only, **kwargs):
         """Chrome specific SQL insert command with required times"""
         now = self._current_time(epoch=_dt.datetime(1601, 1, 1), length=17)
-        exp = self._expire_time(epoch=_dt.datetime(1601, 1, 1), length=17)
+        exp = self._expire_time(epoch=_dt.datetime(1601, 1, 1), length=17,
+                                expires_in=expires_in)
 
         return cursor.execute(self._insert, (now, host, name, value, path,
                               exp, secure, http_only, now,
-                              extra.get('has_expires', 1),
-                              extra.get('persistent', 1),
-                              extra.get('priority', 1),
-                              extra.get('encrypted_value', ""),
-                              extra.get('first_party_only', 0)))
+                              kwargs.get('has_expires', 1),
+                              kwargs.get('persistent', 1),
+                              kwargs.get('priority', 1),
+                              kwargs.get('encrypted_value', ""),
+                              kwargs.get('first_party_only', 0)))
 
     def _delete_command(self, cursor, host, name):
         """Chrome specific SQL delete command"""
