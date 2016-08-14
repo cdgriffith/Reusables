@@ -20,7 +20,6 @@ def _to_secs(td):
     """Compatibility for 2.6 and 3.2 for timedelta.total_seconds()
 
     :return: float of seconds
-    :rtype: float
     """
     if (_sys.version_info[0:2] < (2, 7) or
        (2, 7) < _sys.version_info[0:2] < (3, 3)):
@@ -34,8 +33,7 @@ def _get_platform():
     """
     Provides the common name of the platform the code is currently running on.
 
-    :return: Platform name
-    :type: str
+    :return: Platform name as str
     """
     if "linux" in _sys.platform:
         return "linux"
@@ -109,8 +107,8 @@ class CookieManager(object):
         """Look at the default profile path based on system platform to
         find the browser's cookie database.
 
-        :return: Path the cookie file in the default profile.
-        :rtype: str
+        :return: Path the cookie file in the default profile as str
+
         """
         cookies_path = _os.path.expanduser(self._db_paths[_get_platform()])
 
@@ -258,7 +256,6 @@ class CookieManager(object):
         :param name: The name of the cookie
         :param value: Search the contents of the cookie
         :return: list of cookies in dict form
-        :rtype: list
         """
         if not host and not name and not value:
             raise BrowserException("Please specify something to search by")
@@ -295,7 +292,10 @@ class CookieManager(object):
         return results
 
     def dump(self):
-        """Dump the database to a list of dictionaries."""
+        """Dump the database to a list of dictionaries.
+
+        :return: list of every row from the Cookies database, as dictionaries
+        """
         conn, cur = self._connect()
 
         try:

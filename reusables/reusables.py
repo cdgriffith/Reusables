@@ -366,8 +366,7 @@ def count_all_files(directory=".", ext=None, name=None):
     :type directory: str
     :type ext: str
     :type name: str
-    :return: count of files matching requirements
-    :rtype: int
+    :return: count of files matching requirements as integer
     """
 
     if ext and isinstance(ext, str):
@@ -402,8 +401,6 @@ def find_all_files_generator(directory=".", ext=None, name=None):
     :type ext: str
     :type name: str
     :return: generator of all files in the specified directory
-    :rtype: generator
-
     """
     if ext and isinstance(ext, str):
         ext = [ext]
@@ -435,7 +432,6 @@ def find_all_files(directory=".", ext=None, name=None):
     :type ext: str
     :type name: str
     :return: list of all files in the specified directory
-    :rtype: list
     """
     return list(find_all_files_generator(directory, ext=ext, name=name))
 
@@ -451,7 +447,6 @@ def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True):
     :type dry_run: bool
     :type ignore_errors: bool
     :return: list of removed directories
-    :rtype: list
     """
     directory_list = []
     for root, directories, files in _os.walk(root_directory, topdown=False):
@@ -495,7 +490,6 @@ def remove_empty_files(root_directory, dry_run=False, ignore_errors=True):
     :type dry_run: bool
     :type ignore_errors: bool
     :return: list of removed files
-    :rtype: list
     """
     file_list = []
     for root, directories, files in _os.walk(root_directory):
