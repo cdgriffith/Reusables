@@ -25,7 +25,7 @@ Reusables is designed to not require any imports outside the standard library,
 but can be supplemented with those found in the requirements.txt file for
 additional functionality.
 
-Tested on:
+CI tests run on:
 
 * Python 2.6+
 * Python 3.3+

@@ -6,7 +6,7 @@ Version 0.4.0
 
 - Breaking change: Removed 'dnd' from functions for clearer 'dry_run' or 'delete_on_success'
 - Breaking change: Removing 'dangerzone' file, moving 'reuse' function to root namespace
-- Added management tools for Firefox and Chrome cookies (2.7+, 3.3+)
+- Added management tools for Firefox and Chrome cookies
 - Added unique wrapper tool, ensures return value has not been returned before
 - Changed all top level imports to have underscore before them like standard library
 
