@@ -8,7 +8,7 @@
 Logging helper functions and common log formats.
 """
 import logging as _logging
-import sys
+import sys as _sys
 
 log_common_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 log_level_first_format = '%(levelname)s - %(name)s - %(asctime)s - %(message)s'
@@ -20,7 +20,7 @@ log_easy_thread_format = '%(relativeCreated)8d %(threadName)s : %(name)-12s ' \
 log_detailed_format = '%(asctime)s : %(relativeCreated)5d %(threadName)s : ' \
                       '%(name)s %(levelname)s %(message)s'
 
-if sys.version_info < (2, 7):
+if _sys.version_info < (2, 7):
     class NullHandler(_logging.Handler):
         def emit(self, record):
             pass
@@ -28,7 +28,7 @@ if sys.version_info < (2, 7):
     _logging.NullHandler = NullHandler
 
 
-def get_stream_handler(stream=sys.stderr, level=_logging.INFO,
+def get_stream_handler(stream=_sys.stderr, level=_logging.INFO,
                        log_format=log_easy_read_format):
     """
     Returns a set up stream handler to add to a logger.
@@ -60,9 +60,9 @@ def get_file_handler(file_path="out.log", level=_logging.INFO,
     return fh
 
 
-def get_logger(module_name=__name__, level=_logging.INFO, stream=sys.stderr,
+def get_logger(module_name=__name__, level=_logging.INFO, stream=_sys.stderr,
                file_path=None, log_format=log_easy_read_format,
-               suppress_warning=True):
+               suppress_warning=True, ignore_existing=False):
     """
     Grabs the specified logger and adds wanted handlers to it. Will
     default to adding a stream handler.
@@ -76,9 +76,10 @@ def get_logger(module_name=__name__, level=_logging.INFO, stream=sys.stderr,
     :return: configured logger
     """
     new_logger = _logging.getLogger(module_name)
-    if stream:
+
+    if stream and not new_logger.handlers:
         new_logger.addHandler(get_stream_handler(stream, level, log_format))
-    elif not file_path and suppress_warning:
+    elif not file_path and suppress_warning and not new_logger.handlers:
             new_logger.addHandler(_logging.NullHandler())
 
     if file_path:

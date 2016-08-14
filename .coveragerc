@@ -5,3 +5,14 @@ omit =
     */test/*
     */pypy/*
     */nose/*
+exclude_lines =
+    pragma: no cover
+    elif "darwin" in _sys.platform:
+    return "mac"
+    elif _sys.platform in ("win32", "cygwin"):
+    return "windows"
+    raise BrowserException(str(err))
+    object.__setattr__(self, key, value)
+    raise AttributeError(key)
+    raise AttributeError(item)
+    object.__delattr__(self, item)

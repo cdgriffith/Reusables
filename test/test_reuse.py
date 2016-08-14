@@ -9,10 +9,11 @@ import tempfile
 import reusables
 
 test_root = os.path.abspath(os.path.dirname(__file__))
+data_dr = os.path.join(test_root, "data")
 
-test_structure_tar = os.path.join(test_root, "test_structure.tar.gz")
-test_structure_zip = os.path.join(test_root, "test_structure.zip")
-test_structure_rar = os.path.join(test_root, "test_structure.rar")
+test_structure_tar = os.path.join(data_dr, "test_structure.tar.gz")
+test_structure_zip = os.path.join(data_dr, "test_structure.zip")
+test_structure_rar = os.path.join(data_dr, "test_structure.rar")
 test_structure = os.path.join(test_root, "test_structure")
 
 
@@ -229,14 +230,14 @@ Key2 = Value2
 
     def test_extract_all(self):
         assert os.path.exists(test_structure_tar)
-        reusables.extract_all(test_structure_tar, path=test_root, dnd=True)
+        reusables.extract_all(test_structure_tar, path=test_root, delete_on_success=False)
         assert os.path.exists(test_structure)
         assert os.path.isdir(test_structure)
         shutil.rmtree(test_structure)
 
     def test_extract_all_zip(self):
         assert os.path.exists(test_structure_zip)
-        reusables.extract_all(test_structure_zip, path=test_root, dnd=True)
+        reusables.extract_all(test_structure_zip, path=test_root, delete_on_success=False)
         assert os.path.exists(test_structure)
         assert os.path.isdir(test_structure)
         shutil.rmtree(test_structure)
@@ -246,7 +247,7 @@ Key2 = Value2
             import rarfile
             rarfile.UNRAR_TOOL = "UnRAR.exe"
         assert os.path.exists(test_structure_rar)
-        reusables.extract_all(test_structure_rar, path=test_root, dnd=True, enable_rar=True)
+        reusables.extract_all(test_structure_rar, path=test_root, delete_on_success=False, enable_rar=True)
         assert os.path.exists(test_structure)
         assert os.path.isdir(test_structure)
         shutil.rmtree(test_structure)
@@ -256,7 +257,7 @@ Key2 = Value2
         path = os.path.join(test_structure, "Files", "file_1")
         assert os.path.exists(path)
         try:
-            reusables.extract_all(path, path=test_root, dnd=True)
+            reusables.extract_all(path, path=test_root, delete_on_success=False)
         except TypeError:
             pass
         else:
@@ -276,7 +277,7 @@ Key2 = Value2
         tmpdir = tempfile.mkdtemp()
         fname = tmpdir + "test.zip"
         shutil.copy(test_structure_zip, fname)
-        reusables.extract_all(fname, path=tmpdir, dnd=False)
+        reusables.extract_all(fname, path=tmpdir, delete_on_success=True)
         assert not os.path.exists(fname)
         shutil.rmtree(tmpdir)
 

@@ -4,21 +4,48 @@
 # Part of the Reusables package.
 #
 # Copyright (c) 2014-2016  - Chris Griffith - MIT License
-"""
-Code in the dangerzone is either inherently dangerous by design or not fully
-tested and should never be used in production code. This may sound like a
-generic warning like you would find with release candidate code, so let me
-reiterate this point:
+from functools import wraps as _wraps
+import time as _time
 
-    This code will muck up your project if you use it.
-
-Have fun!
-"""
+_unique_cache = dict()
 _reuse_cache = dict()  # Could use DefaultDict but eh, it's another import
+
+
+def unique(max_retries=10, wait=0, alt_return="-no_alt_return-",
+           exception=Exception, error_text="No result was unique"):
+    """Makes sure the function's return value has not been returned before
+    or else it run with the same inputs again.
+
+    :param max_retries: int of number of retries to attempt before failing
+    :param wait: float of seconds to wait between each try, defaults to 0
+    :param exception: Exception type of raise
+    :param error_text: text of the exception
+    :param alt_return: if specified, an exception is not raised on failure,
+     instead the provided value of any type of will be returned
+    """
+    def func_wrap(func):
+        @_wraps(func)
+        def wrapper(*args, **kwargs):
+            for i in range(max_retries):
+                value = func(*args, **kwargs)
+                if value not in _unique_cache.setdefault(func.__name__, []):
+                    _unique_cache[func.__name__].append(value)
+                    return value
+                if wait:
+                    _time.sleep(wait)
+            else:
+                if alt_return != "-no_alt_return-":
+                    return alt_return
+                raise exception(error_text)
+        return wrapper
+    return func_wrap
 
 
 def reuse(func):
     """
+    Warning: Don't use this, just don't. If you need this you're probably coding
+    wrong. This is for fun only.
+
     Save the variables entered into the function for reuse next time. Different
     from partials for the fact that it saves it to the original function,
     so that any module calling the default function will act as if it's a
