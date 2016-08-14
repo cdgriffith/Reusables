@@ -564,8 +564,7 @@ def dup_finder_generator(file_path, directory="."):
     size = _os.path.getsize(file_path)
     with open(file_path, 'rb') as f:
         first_twenty = f.read(20)
-    file_md5 = file_hash(file_path, "md5")
-    file_sha512 = file_hash(file_path, "sha512")
+    file_sha256 = file_hash(file_path, "sha256")
 
     for root, directories, files in _os.walk(directory):
         for each_file in files:
@@ -579,9 +578,8 @@ def dup_finder_generator(file_path, directory="."):
                                    "{}".format(test_file))
                 else:
                     if first_twenty == test_first_twenty:
-                        if file_hash(test_file, "md5") == file_md5:
-                            if file_hash(test_file, "sha512") == file_sha512:
-                                yield test_file
+                        if file_hash(test_file, "sha256") == file_sha256:
+                            yield test_file
 
 
 def list_to_csv(my_list, csv_file):
