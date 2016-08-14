@@ -4,9 +4,11 @@
 # Part of the Reusables package.
 #
 # Copyright (c) 2014-2016  - Chris Griffith - MIT License
-from functools import wraps as _wraps
 import time as _time
+from multiprocessing import Lock as _Lock
+from functools import wraps as _wraps
 
+_g_lock = _Lock()
 _unique_cache = dict()
 _reuse_cache = dict()  # Could use DefaultDict but eh, it's another import
 
@@ -80,3 +82,16 @@ def reuse(func):
                                            kwargs=local_kwargs)
         return result
     return wrapper
+
+
+def lock_it(lock=_g_lock, blocking=True, timeout=-1):
+    def func_wrapper(func):
+        @_wraps(func)
+        def wrapper(*args, **kwargs):
+            lock.acquire(blocking=blocking, timeout=timeout)
+            try:
+                return func(*args, **kwargs)
+            finally:
+                lock.release()
+        return wrapper
+    return func_wrapper

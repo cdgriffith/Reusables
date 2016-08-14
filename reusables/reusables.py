@@ -9,12 +9,13 @@ import os as _os
 import sys as _sys
 import re as _re
 import tempfile as _tempfile
+import csv as _csv
 
 from .namespace import Namespace
 from .log import get_logger
 
 __author__ = "Chris Griffith"
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 python_version = _sys.version_info[0:3]
 version_string = ".".join([str(x) for x in python_version])
@@ -557,6 +558,41 @@ def extract_all(archive_file, path=".", delete_on_success=False,
     if delete_on_success:
         logger.debug("Archive {0} will now be deleted".format(archive_file))
         _os.unlink(archive_file)
+
+
+def dup_finder_generator(file_path, directory="."):
+    size = _os.path.getsize(file_path)
+    with open(file_path, 'rb') as f:
+        first_twenty = f.read(20)
+    file_md5 = file_hash(file_path, "md5")
+    file_sha512 = file_hash(file_path, "sha512")
+
+    for root, directories, files in _os.walk(directory):
+        for each_file in files:
+            test_file = _os.path.join(root, each_file)
+            if _os.path.getsize(test_file) == size:
+                try:
+                    with open(test_file, 'rb') as f:
+                        test_first_twenty = f.read(20)
+                except OSError:
+                    logger.warning("Could not open file to compare - "
+                                   "{}".format(test_file))
+                else:
+                    if first_twenty == test_first_twenty:
+                        if file_hash(test_file, "md5") == file_md5:
+                            if file_hash(test_file, "sha512") == file_sha512:
+                                yield test_file
+
+
+def list_to_csv(my_list, csv_file):
+    with open(csv_file, 'w' if PY3 else 'wb') as f:
+        writer = _csv.writer(f, delimiter=',', quoting=_csv.QUOTE_ALL)
+        writer.writerow(my_list)
+
+
+def csv_to_list(csv_file):
+    with open(csv_file, 'r' if PY3 else 'rb') as f:
+        return list(_csv.reader(f))
 
 
 def main(command_line_options=""):
