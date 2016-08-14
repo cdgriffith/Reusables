@@ -1,7 +1,6 @@
-Cookie Management for Firefox and Chrome
-========================================
+Cookie Management
+=================
 
 .. automodule:: reusables.browser
    :members:
-
-
+   :undoc-members:

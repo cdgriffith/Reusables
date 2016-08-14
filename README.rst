@@ -31,8 +31,8 @@ Tested on:
 * Python 3.3+
 * Pypy
 
-
-\* python 2.6 requires argparse
+Examples are provided below, and the API documentation can always be found at
+readthedocs.org_.
 
 
 What's in the box
@@ -296,6 +296,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
    :target: http://reusables.readthedocs.org/en/latest/index.html
 .. _str.endswith: https://docs.python.org/2/library/stdtypes.html#str.endswith
 .. _str.startswith: https://docs.python.org/2/library/stdtypes.html#str.startswith
+.. _readthedocs.org: http://reusables.readthedocs.io/en/latest/
 
 Additional Info
 ---------------
