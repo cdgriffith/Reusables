@@ -66,7 +66,7 @@ help:
 develop:
 	sudo add-apt-repository ppa:fkrull/deadsnakes;
 	sudo apt-get update;
-	sudo apt-get install python2.6 python2.7 python3.5 python3.3 python3.4 pypy;
+	sudo apt-get install python2.6 python2.7 python3.5 python3.3 python3.4 pypy python-pip unrar -y;
 	sudo pip install virtualenv --upgrade;
 	rm -rf $(VENVS);
 	mkdir -p $(VENVS);
