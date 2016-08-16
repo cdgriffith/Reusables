@@ -10,6 +10,7 @@ import sys as _sys
 import re as _re
 import tempfile as _tempfile
 import csv as _csv
+import json as _json
 
 from .namespace import Namespace
 from .log import get_logger
@@ -17,6 +18,7 @@ from .log import get_logger
 __author__ = "Chris Griffith"
 __version__ = "0.5.0"
 
+version = __version__
 python_version = _sys.version_info[0:3]
 version_string = ".".join([str(x) for x in python_version])
 current_root = _os.path.abspath(".")
@@ -25,6 +27,7 @@ python2x = PY2 = python_version < (3, 0)
 nix_based = _os.name == "posix"
 win_based = _os.name == "nt"
 temp_directory = _tempfile.gettempdir()
+home = _os.path.abspath(_os.path.expanduser("~"))
 
 logger = get_logger(__name__)
 
@@ -591,6 +594,16 @@ def list_to_csv(my_list, csv_file):
 def csv_to_list(csv_file):
     with open(csv_file, 'r' if PY3 else 'rb') as f:
         return list(_csv.reader(f))
+
+
+def load_json(json_file, **kwargs):
+    with open(json_file) as f:
+        return _json.load(f, **kwargs)
+
+
+def save_json(data, json_file, indent=4, **kwargs):
+    with open(json_file, "w") as f:
+        _json.dump(data, f, indent=indent, **kwargs)
 
 
 def main(command_line_options=""):
