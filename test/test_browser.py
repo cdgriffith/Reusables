@@ -75,7 +75,7 @@ class TestReuse(unittest.TestCase):
             assert False
 
         try:
-            tb._select_command(None)
+            tb._limited_select_command(None)
         except NotImplementedError:
             assert True
         else:
@@ -83,6 +83,13 @@ class TestReuse(unittest.TestCase):
 
         try:
             tb._row_to_dict(None)
+        except NotImplementedError:
+            assert True
+        else:
+            assert False
+
+        try:
+            tb._match_command(None, None, None)
         except NotImplementedError:
             assert True
         else:
@@ -211,6 +218,14 @@ class TestReuse(unittest.TestCase):
         res3 = a.find_cookies(value="value")
         assert len(res3) == 1
         assert res3[0]["host"] == "example.com"
+
+    def test_firefox_dump(self):
+        a = reusables.FirefoxCookies(db=fox_db)
+        a.add_cookie("example.com", "test_name", "test_value")
+        a.add_cookie("example.com", "test_name2", "test_value2")
+        dump = a.dump()
+        assert len(dump) == 2
+        assert dump[0]["host"] == "example.com"
 
     def test_chrome_dump(self):
         a = reusables.ChromeCookies(db=chrome_db)

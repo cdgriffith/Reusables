@@ -54,6 +54,10 @@ class InvalidSchema(BrowserException):
     """The provided DB did not have a valid scheme"""
 
 
+class MissingCookiesDB(BrowserException):
+    """Could not find the Cookie DB"""
+
+
 class CookieManager(object):
     """
     Parent class for all cookies managers for better cross browser
@@ -115,7 +119,7 @@ class CookieManager(object):
         cookies_path = self._find_db_extra(cookies_path)
 
         if not _os.path.exists(cookies_path):
-            raise BrowserException("Cookie does not exist at "
+            raise MissingCookiesDB("Cookie does not exist at "
                                    "{0}".format(cookies_path))
         return cookies_path
 
@@ -158,7 +162,11 @@ class CookieManager(object):
         """Child class must override"""
         raise NotImplementedError()
 
-    def _select_command(self, cursor, match=None, value=None):
+    def _limited_select_command(self, cursor):
+        """Child class must override"""
+        raise NotImplementedError()
+
+    def _match_command(self, cursor, match, value):
         """Child class must override"""
         raise NotImplementedError()
 
@@ -171,6 +179,11 @@ class CookieManager(object):
         - value
         """
         raise NotImplementedError()
+
+    def _int_time_to_float(self, int_time, period_placement=10):
+        """Turn integer based time from DBs into regular float time"""
+        return float("{0}.{1}".format(str(int_time)[:period_placement],
+                                      str(int_time)[period_placement:]))
 
     def add_cookie(self, host, name, value, path="/",
                    expires_in=_dt.timedelta(days=1), secure=0,
@@ -194,7 +207,11 @@ class CookieManager(object):
         except Exception as err:
             raise BrowserException(str(err))
         else:
-            conn.commit()
+            try:
+                conn.commit()
+            except Exception as err:
+                raise BrowserException("Could not commit changes to database, "
+                                       "is browser open? - {0}".format(err))
         finally:
             conn.close()
 
@@ -210,7 +227,11 @@ class CookieManager(object):
         except Exception as err:
             raise BrowserException(str(err))
         else:
-            conn.commit()
+            try:
+                conn.commit()
+            except Exception as err:
+                raise BrowserException("Could not commit changes to database, "
+                                       "is browser open? - {0}".format(err))
         finally:
             conn.close()
 
@@ -243,7 +264,11 @@ class CookieManager(object):
         except Exception as err:
             raise BrowserException(str(err))
         else:
-            conn.commit()
+            try:
+                conn.commit()
+            except Exception as err:
+                raise BrowserException("Could not commit changes to database, "
+                                       "is browser open? - {0}".format(err))
         finally:
             conn.close()
 
@@ -262,7 +287,7 @@ class CookieManager(object):
         conn, cur = self._connect()
 
         try:
-            rows = self._select_command(cur)
+            rows = self._limited_select_command(cur)
         except Exception as err:
             conn.close()
             raise BrowserException(str(err))
@@ -282,7 +307,7 @@ class CookieManager(object):
 
         for result in result_ids:
             try:
-                row = self._select_command(cur, "rowid", result)
+                row = self._match_command(cur, "rowid", result)
             except Exception as err:
                 conn.close()
                 raise BrowserException(str(err))
@@ -299,7 +324,7 @@ class CookieManager(object):
         conn, cur = self._connect()
 
         try:
-            rows = self._select_command(cur)
+            rows = self._match_command(cur, 1, 1)
         except Exception as err:
             raise BrowserException(str(err))
         else:
@@ -343,7 +368,7 @@ class FirefoxCookiesV1(CookieManager):
         default = [x for x in _os.listdir(expanded_path)
                    if x.endswith(".default")]
         if not default:
-            raise BrowserException("No default profile in "
+            raise MissingCookiesDB("No default profile in "
                                    "{0}".format(expanded_path))
         return _os.path.join(expanded_path, default[0], "cookies.sqlite")
 
@@ -367,17 +392,21 @@ class FirefoxCookiesV1(CookieManager):
         return cursor.execute("DELETE FROM moz_cookies WHERE host=? AND name=?",
                               (host, name))
 
-    def _select_command(self, cursor, match=None, value=None):
+    def _limited_select_command(self, cursor):
         """Firefox specific SQL select command"""
-        if not match:
-            return cursor.execute("SELECT rowid, host, name, value FROM "
+        return cursor.execute("SELECT rowid, host, name, value FROM "
                                   "moz_cookies")
+
+    def _match_command(self, cursor, match, value):
+        """Firefox specific SQL select command with matching"""
         return cursor.execute("SELECT * FROM "
                               "moz_cookies WHERE {0}=?".format(match), (value,))
 
     def _row_to_dict(self, row):
         """Returns a SQL query row as a standard dictionary."""
-        return {"host": row[5], "name": row[3], "value": row[4]}
+        return {"host": row[5], "name": row[3], "value": row[4],
+                "created": self._int_time_to_float(row[9]),
+                "expires": self._int_time_to_float(row[7])}
 
 
 class ChromeCookiesV1(CookieManager):
@@ -432,22 +461,33 @@ class ChromeCookiesV1(CookieManager):
                               str(kwargs.get('encrypted_value', "")),
                               int(bool(kwargs.get('first_party_only', 0)))))
 
+    def _int_time_to_float(self, int_time, period_placement=10):
+        """Chrome has a stupid different epoch of 1601, 1 ,1"""
+        offset_time = (int_time -
+                       int(str(11644473600).ljust(len(str(int_time)), "0")))
+        return super(ChromeCookiesV1, self)._int_time_to_float(
+            int_time=offset_time, period_placement=period_placement)
+
     def _delete_command(self, cursor, host, name):
         """Chrome specific SQL delete command"""
         return cursor.execute("DELETE FROM cookies WHERE host_key=? AND name=?",
                               (host, name))
 
-    def _select_command(self, cursor, match=None, value=None):
+    def _limited_select_command(self, cursor):
         """Chrome specific SQL select command"""
-        if not match:
-            return cursor.execute("SELECT rowid, host_key, name, value FROM "
-                                  "cookies")
+        return cursor.execute("SELECT rowid, host_key, name, value FROM "
+                              "cookies")
+
+    def _match_command(self, cursor, match, value):
+        """Chrome specific SQL select command with matching"""
         return cursor.execute("SELECT * FROM "
                               "cookies WHERE {0}=?".format(match), (value,))
 
     def _row_to_dict(self, row):
         """Returns a SQL query row as a standard dictionary"""
-        return {"host": row[1], "name": row[2], "value": row[3]}
+        return {"host": row[1], "name": row[2], "value": row[3],
+                "created": self._int_time_to_float(row[0]),
+                "expires": 0 if not row[9] else self._int_time_to_float(row[5])}
 
 
 class FirefoxCookies(FirefoxCookiesV1):
