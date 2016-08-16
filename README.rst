@@ -1,7 +1,7 @@
 Reusables
 =========
 
-**Commonly Consumed Code Commodities** |Build Status| |Coverage Status| |Doc Status|
+**Commonly Consumed Code Commodities** |BuildStatus| |CoverageStatus| |DocStatus| |PyPi| |License|
 
 Overview
 --------
@@ -288,12 +288,16 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-.. |Build Status| image:: https://travis-ci.org/cdgriffith/Reusables.png?branch=master
+.. |BuildStatus| image:: https://travis-ci.org/cdgriffith/Reusables.png?branch=master
    :target: https://travis-ci.org/cdgriffith/Reusables
-.. |Coverage Status| image:: https://coveralls.io/repos/cdgriffith/Reusables/badge.png?branch=master
+.. |CoverageStatus| image:: https://img.shields.io/coveralls/cdgriffith/Reusables/master.svg?maxAge=2592000
    :target: https://coveralls.io/r/cdgriffith/Reusables?branch=master
-.. |Doc Status| image:: https://readthedocs.org/projects/reusables/badge/?version=latest
+.. |DocStatus| image:: https://readthedocs.org/projects/reusables/badge/?version=latest
    :target: http://reusables.readthedocs.org/en/latest/index.html
+.. |PyPi| image:: https://img.shields.io/pypi/v/reusables.svg?maxAge=2592000
+   :target: https://pypi.python.org/pypi/reusables/
+.. |License| image:: https://img.shields.io/pypi/l/reusables.svg
+   :target: https://pypi.python.org/pypi/reusables/
 .. _str.endswith: https://docs.python.org/2/library/stdtypes.html#str.endswith
 .. _str.startswith: https://docs.python.org/2/library/stdtypes.html#str.startswith
 .. _readthedocs.org: http://reusables.readthedocs.io/en/latest/

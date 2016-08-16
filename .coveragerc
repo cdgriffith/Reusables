@@ -7,12 +7,14 @@ omit =
     */nose/*
 exclude_lines =
     pragma: no cover
-    elif "darwin" in _sys.platform:
+    except Exception as err
+    conn.close
+    raise BrowserException
+    object.__setattr__
+    raise AttributeError
+    raise AttributeError
+    object.__delattr__
+    elif "darwin"
     return "mac"
-    elif _sys.platform in ("win32", "cygwin"):
+    elif _sys.platform
     return "windows"
-    raise BrowserException(str(err))
-    object.__setattr__(self, key, value)
-    raise AttributeError(key)
-    raise AttributeError(item)
-    object.__delattr__(self, item)

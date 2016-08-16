@@ -14,7 +14,7 @@ from .namespace import Namespace
 from .log import get_logger
 
 __author__ = "Chris Griffith"
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 
 python_version = _sys.version_info[0:3]
 version_string = ".".join([str(x) for x in python_version])

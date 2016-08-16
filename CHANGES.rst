@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Version 0.4.1
+-------------
+
+- Fixing Firefox dump command not working
+- Adding MissingCookiesDB exception for clearer
+- Wrapping commits with exceptions clauses for BrowserException
+- Adding "created" and "expires" in _row_to_dict for Browsers
+
 Version 0.4.0
 -------------
 
