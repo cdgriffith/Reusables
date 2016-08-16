@@ -1,12 +1,19 @@
 Changelog
 =========
-
 Version 0.5.0
 -------------
 
 - Adding lock wrapper for functions
 - Adding duplicate file finder
-- Adding easy CSV / list transformation
+- Adding easy CSV / list transformatio
+
+Version 0.4.1
+-------------
+
+- Fixing Firefox dump command not working
+- Adding MissingCookiesDB exception for clearer
+- Wrapping commits with exceptions clauses for BrowserException
+- Adding "created" and "expires" in _row_to_dict for Browsers
 
 Version 0.4.0
 -------------
