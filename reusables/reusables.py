@@ -402,7 +402,7 @@ def find_all_files_generator(directory=".", ext=None, name=None):
     :param ext: Extensions of the file you are looking for
     :param name: Part of the file name
     :type directory: str
-    :type ext: str
+    :type ext: str | tuple | list
     :type name: str
     :return: generator of all files in the specified directory
     """
@@ -564,7 +564,23 @@ def extract_all(archive_file, path=".", delete_on_success=False,
 
 
 def dup_finder_generator(file_path, directory="."):
+    """
+    Check a directory for duplicates of the specified file. It's designed to
+    be as fast as possible by doing lighter checks before progressing to
+    more extensive ones, in order they are:
+
+    1. File size
+    2. First twenty bytes
+    3. Full SHA256 compare
+
+    :param file_path: Path to file to check for duplicates of
+    :param directory: Directory to dig recurivly into to look for duplicates
+    :return: generators
+    """
     size = _os.path.getsize(file_path)
+    if size == 0:
+        for x in remove_empty_files(directory, dry_run=True):
+            yield x
     with open(file_path, 'rb') as f:
         first_twenty = f.read(20)
     file_sha256 = file_hash(file_path, "sha256")
@@ -586,45 +602,56 @@ def dup_finder_generator(file_path, directory="."):
 
 
 def list_to_csv(my_list, csv_file):
-    with open(csv_file, 'w' if PY3 else 'wb') as f:
-        writer = _csv.writer(f, delimiter=',', quoting=_csv.QUOTE_ALL)
-        writer.writerow(my_list)
+    """
+    Save a matrix (list of lists) to a file as a CSV
+
+    :param my_list: list of lists to save to CSV
+    :param csv_file: File to save data to
+    """
+    if PY3:
+        csv_handler = open(csv_file, 'w', newline='')
+    else:
+        csv_handler = open(csv_file, 'wb')
+
+    try:
+        writer = _csv.writer(csv_handler, delimiter=',', quoting=_csv.QUOTE_ALL)
+        writer.writerows(my_list)
+    finally:
+        csv_handler.close()
 
 
 def csv_to_list(csv_file):
+    """
+    Open and transform a CSV file into a matrix (list of lists),
+
+
+    :param csv_file: Path to CSV file as str
+    :return: list
+    """
     with open(csv_file, 'r' if PY3 else 'rb') as f:
         return list(_csv.reader(f))
 
 
 def load_json(json_file, **kwargs):
+    """
+    Open and load data from a JSON file
+
+    :param json_file: Path to JSON file as string
+    :param kwargs: Additional arguments for the json.load command
+    :return: Dictionary
+    """
     with open(json_file) as f:
         return _json.load(f, **kwargs)
 
 
 def save_json(data, json_file, indent=4, **kwargs):
+    """
+    Takes a dictory and saves it to a file as JSON
+
+    :param data: dictionary to save as JSON
+    :param json_file: Path to save file location as str
+    :param indent: Format the JSON file with so many numbers of spaces
+    :param kwargs: Additional arguments for the json.dump command
+    """
     with open(json_file, "w") as f:
         _json.dump(data, f, indent=indent, **kwargs)
-
-
-def main(command_line_options=""):
-    import argparse
-
-    parser = argparse.ArgumentParser(prog="reusables")
-    parser.add_argument("--safe-filename", dest="filename", action='append',
-                        help="Verify a filename contains only letters, numbers,\
-spaces, hyphens, underscores and periods")
-    parser.add_argument("--safe-path", dest="path", action='append',
-                        help="Verify a path contains only letters, numbers,\
-spaces, hyphens, underscores, periods (unix), separator, and drive (win)")
-    args = parser.parse_args(_sys.argv if not command_line_options else
-                             command_line_options)
-    if args.filename:
-        for filename in args.filename:
-            print(safe_filename(filename))
-    if args.path:
-        for path in args.path:
-            print(safe_path(path))
-
-
-if __name__ == "__main__":
-    main()
