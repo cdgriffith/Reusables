@@ -362,6 +362,27 @@ Key2 = Value2
         else:
             assert False
 
+    def test_csv(self):
+        matrix = [["Date", "System", "Size", "INFO"],
+                  ["2016-05-10", "MAIN", 456, [1, 2]],
+                  ["2016-06-11", "SECONDARY", 4556, 66]]
+        afile = reusables.join_paths(test_root, "test.csv")
+        try:
+            reusables.list_to_csv(matrix, afile)
+            from_save = reusables.csv_to_list(afile)
+        finally:
+            try:
+                os.unlink(afile)
+                pass
+            except OSError:
+                pass
+
+        assert len(from_save) == 3
+        assert from_save[0] == ["Date", "System", "Size", "INFO"], from_save[0]
+        assert from_save[1] == ["2016-05-10", "MAIN", '456', '[1, 2]'], from_save[1]
+        assert from_save[2] == ["2016-06-11", "SECONDARY", '4556', '66'], from_save[2]
+
+
 
 if reusables.win_based:
     class TestReuseWindows(unittest.TestCase):
