@@ -5,7 +5,7 @@
 #
 # Copyright (c) 2014-2016  - Chris Griffith - MIT License
 import time as _time
-from multiprocessing import Lock as _Lock
+from threading import Lock as _Lock
 from functools import wraps as _wraps
 
 _g_lock = _Lock()
@@ -84,14 +84,16 @@ def reuse(func):
     return wrapper
 
 
-def lock_it(lock=_g_lock, blocking=True, timeout=-1):
+def lock_it(lock=_g_lock):
+    """
+    Simple wrapper to make sure a function is only run once at a time.
+
+    :param lock: Which lock to use, uses unique default
+    """
     def func_wrapper(func):
         @_wraps(func)
         def wrapper(*args, **kwargs):
-            lock.acquire(blocking=blocking, timeout=timeout)
-            try:
+            with lock:
                 return func(*args, **kwargs)
-            finally:
-                lock.release()
         return wrapper
     return func_wrapper

@@ -29,7 +29,7 @@ win_based = _os.name == "nt"
 temp_directory = _tempfile.gettempdir()
 home = _os.path.abspath(_os.path.expanduser("~"))
 
-logger = get_logger(__name__)
+logger = get_logger("reusables", level=10, stream=None, file_path=None)
 
 # http://msdn.microsoft.com/en-us/library/aa365247%28v=vs.85%29.aspx
 
@@ -76,16 +76,21 @@ common_exts = {
                  ".ico", ".mng", ".tga", ".psd", ".xcf", ".svg", ".icns"),
     "video": (".mkv", ".avi", ".mp4", ".mov", ".flv", ".mpeg", ".mpg", ".3gp",
               ".m4v", ".ogv", ".asf", ".m1v", ".m2v", ".mpe", ".ogv", ".wmv",
-              ".rm", ".qt"),
+              ".rm", ".qt", ".3g2", ".asf", ".vob"),
     "music": (".mp3", ".ogg", ".wav", ".flac", ".aif", ".aiff", ".au", ".m4a",
               ".wma", ".mp2", ".m4a", ".m4p", ".aac", ".ra", ".mid", ".midi",
               ".mus", ".psf"),
     "documents": (".doc", ".docx", ".pdf", ".xls", ".xlsx", ".ppt", ".pptx",
                   ".csv", ".epub", ".gdoc", ".odt", ".rtf", ".txt", ".info",
-                  ".xps", ".gslides", ".gsheet"),
+                  ".xps", ".gslides", ".gsheet", ".pages", ".msg", ".tex",
+                  ".wpd", ".wps", ".csv"),
     "archives": (".zip", ".rar", ".7z", ".tar.gz", ".tgz", ".gz", ".bzip",
                  ".bzip2", ".bz2", ".xz", ".lzma", ".bin", ".tar"),
-    "cd_images": (".iso", ".nrg", ".img", ".mds", ".mdf", ".cue", ".daa")
+    "cd_images": (".iso", ".nrg", ".img", ".mds", ".mdf", ".cue", ".daa"),
+    "scripts": (".py", ".sh", ".bat"),
+    "binaries": (".msi", ".exe"),
+    "markup": (".html", ".htm", ".xml", "yaml", ".json"),
+
 }
 
 common_variables = {

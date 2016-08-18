@@ -193,12 +193,6 @@ Key2 = Value2
         resp = [x for x in resp]
         assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
 
-    def test_main(self):
-        reusables.main(["--safe-filename",
-                        "tease.txt",
-                         "--safe-path",
-                        "/var/lib"])
-
     def test_path_single(self):
         resp = reusables.safe_path('path')
         assert resp == 'path', resp
@@ -326,7 +320,6 @@ Key2 = Value2
         finally:
             try:
                 os.unlink(afile)
-                pass
             except OSError:
                 pass
 
@@ -335,6 +328,19 @@ Key2 = Value2
         assert from_save[1] == ["2016-05-10", "MAIN", '456', '[1, 2]'], from_save[1]
         assert from_save[2] == ["2016-06-11", "SECONDARY", '4556', '66'], from_save[2]
 
+    def test_json_save(self):
+        test_data = {"Hello": ["how", "are"], "You": "?", "I'm": True, "fine": 5}
+        afile = reusables.join_paths(test_root, "test.json")
+        try:
+            reusables.save_json(test_data, afile)
+            out_data = reusables.load_json(afile)
+        finally:
+            try:
+                os.unlink(afile)
+            except OSError:
+                pass
+
+        assert out_data == test_data
 
 
 if reusables.win_based:
