@@ -31,6 +31,7 @@ Key2 = Value2
             oc.write(config_file)
         if os.path.exists(test_structure):
             shutil.rmtree(test_structure)
+            shutil.rmtree(test_structure)
 
     @classmethod
     def tearDownClass(cls):
@@ -42,7 +43,7 @@ Key2 = Value2
         if not reusables.nix_based:
             self.skipTest("Linux based test")
         resp = reusables.join_paths('/test/', 'clean/', 'path')
-        assert resp == '/test/clean/path/', resp
+        assert resp == '/test/clean/path', resp
 
     def test_join_path_dirty(self):
         if not reusables.nix_based:
@@ -53,15 +54,8 @@ Key2 = Value2
     def test_join_path_clean_strict(self):
         if not reusables.nix_based:
             self.skipTest("Linux based test")
-        resp = reusables.join_paths('/test/', 'clean/', 'path/', strict=True)
-        assert resp == '/test/clean/path/', resp
-
-    def test_join_path_dirty_strict(self):
-        if not reusables.nix_based:
-            self.skipTest("Linux based test")
-        resp = reusables.join_paths('/test/', '/dirty/',
-                                    ' path.file ', strict=True)
-        assert resp == '/dirty/ path.file ', resp
+        resp = reusables.join_paths('/test/', 'clean/', 'path/')
+        assert resp == '/test/clean/path', resp
 
     def test_join_root(self):
         if not reusables.nix_based:
@@ -342,6 +336,11 @@ Key2 = Value2
 
         assert out_data == test_data
 
+    def test_dup_empty(self):
+        empty_file = reusables.join_paths(test_root, "empty")
+        self._extract_structure()
+        b = [x for x in reusables.dup_finder_generator(empty_file, test_root)]
+        print(b)
 
 if reusables.win_based:
     class TestReuseWindows(unittest.TestCase):
@@ -396,6 +395,7 @@ if reusables.win_based:
                 reusables.remove_empty_files(dir, ignore_errors=True)
             finally:
                 file.close()
+
 
 if __name__ == "__main__":
     unittest.main()

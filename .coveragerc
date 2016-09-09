@@ -18,3 +18,5 @@ exclude_lines =
     return "mac"
     elif _sys.platform
     return "windows"
+    except OSError as err
+    raise err

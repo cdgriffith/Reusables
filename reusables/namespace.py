@@ -110,3 +110,58 @@ def tree_view(dictionary, level=0, sep="|  "):
                    else "") for k, v in dictionary.items()])
 
 
+class ConfigNamespace(Namespace):
+    """
+    Modified namespace object to add object transforms.
+
+    Allows for build in transforms like:
+
+    cns = ConfigNamespace(my_bool='yes', my_int='5', my_list='5,4,3,3,2')
+
+    cns.bool('my_bool') # True
+    cns.int('my_int') # 5
+    cns.list('my_list', mod=lambda x: int(x)) # [5, 4, 3, 3, 2]
+
+    """
+
+    def bool(self, item):
+        """ Return value of key as a boolean
+
+        :param item: key of value to transform
+        :return: approximated bool of value
+        """
+        item = self.__getattr__(item)
+        if isinstance(item, (bool, int)):
+            return bool(item)
+
+        if (isinstance(item, str) and
+           item.lower() in ('n', 'no', 'false', 'f', '0')):
+            return False
+
+        return True if item else False
+
+    def int(self, item):
+        """ Return value of key as an int
+
+        :param item: key of value to transform
+        :return: int of value
+        """
+        item = self.__getattr__(item)
+        return int(item)
+
+    def list(self, item, spliter=",", strip=True, mod=None):
+        """ Return value of key as a list
+
+        :param item: key of value to transform
+        :param spliter: character to split str on
+        :param strip: clean the list with the `strip`
+        :param mod: function to map against list
+        :return: list of items
+        """
+        item = self.__getattr__(item)
+        if strip:
+            item = item.lstrip("[").rstrip("]")
+        out = [x.strip() if strip else x for x in item.split(spliter)]
+        if mod:
+            return map(mod, out)
+        return out

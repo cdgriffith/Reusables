@@ -12,7 +12,7 @@ import tempfile as _tempfile
 import csv as _csv
 import json as _json
 
-from .namespace import Namespace
+from .namespace import Namespace, ConfigNamespace
 from .log import get_logger
 
 __author__ = "Chris Griffith"
@@ -147,27 +147,23 @@ def os_tree(directory):
 
 def join_paths(*paths, **kwargs):
     """
-    Join multiple paths together and return the absolute path of them. This
-    function will 'clean' the path as well unless the option of 'strict' is
-    provided as True.
+    Join multiple paths together and return the absolute path of them. If 'safe'
+    is specified, this function will 'clean' the path with the 'safe_path'
+    function.
 
-    Would like to do 'strict=False' instead of '**kwargs' but stupider versions
+    Would like to do 'safe=False' instead of '**kwargs' but stupider versions
     of python *cough 2.6* don't like that after '*paths'.
 
     :param paths: paths to join together
-    :param kwargs: 'strict', make them into a safe path unless set True
+    :param kwargs: 'safe', make them into a safe path it True
     :return: path as string
     """
     path = _os.path.abspath(paths[0])
+
     for next_path in paths[1:]:
-        next_path = next_path.lstrip(_os.sep).strip() if not \
-            kwargs.get('strict') else next_path
-        path = _os.path.join(path, next_path)
-    if (not kwargs.get('strict') and
-        "." not in _os.path.basename(path) and
-            not path.endswith(_os.sep)):
-        path += _os.sep
-    return path if kwargs.get('strict') else safe_path(path)
+        path = _os.path.join(path, next_path.lstrip(_os.sep).strip())
+    path.rstrip(_os.sep)
+    return path if not kwargs.get('safe') else safe_path(path)
 
 
 def join_root(*paths, **kwargs):
@@ -244,8 +240,8 @@ def config_namespace(config_file=None, auto_find=False,
     :param cfg_options: options to pass to the parser
     :return: Namespace of the config files
     """
-    return Namespace(**config_dict(config_file, auto_find,
-                                   verify, **cfg_options))
+    return ConfigNamespace(**config_dict(config_file, auto_find,
+                                         verify, **cfg_options))
 
 
 def sort_by(unordered_list, key, **sort_args):
@@ -660,3 +656,5 @@ def save_json(data, json_file, indent=4, **kwargs):
     """
     with open(json_file, "w") as f:
         _json.dump(data, f, indent=indent, **kwargs)
+
+

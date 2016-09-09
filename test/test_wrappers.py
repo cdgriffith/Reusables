@@ -79,8 +79,10 @@ class TestWrappers(unittest.TestCase):
             time.sleep(2)
 
         start = time.time()
-        a = threading.Thread(target=func1, daemon=False)
-        b = threading.Thread(target=func1, daemon=False)
+        a = threading.Thread(target=func1)
+        b = threading.Thread(target=func1)
+        a.daemon = False
+        b.daemon = False
         a.start()
         b.start()
         a.join()
