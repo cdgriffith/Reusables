@@ -55,7 +55,7 @@ Key2 = Value2
         if not reusables.nix_based:
             self.skipTest("Linux based test")
         resp = reusables.join_paths('/test/', 'clean/', 'path/')
-        assert resp == '/test/clean/path', resp
+        assert resp == '/test/clean/path/', resp
 
     def test_join_root(self):
         if not reusables.nix_based:
