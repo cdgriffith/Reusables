@@ -187,7 +187,7 @@ class ConfigNamespace(Namespace):
             item = item.lstrip("[").rstrip("]")
         out = [x.strip() if strip else x for x in item.split(spliter)]
         if mod:
-            return map(mod, out)
+            return list(map(mod, out))
         return out
 
     # lose configparser compatibility
