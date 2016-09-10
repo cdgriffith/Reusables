@@ -338,9 +338,30 @@ Key2 = Value2
 
     def test_dup_empty(self):
         empty_file = reusables.join_paths(test_root, "empty")
+        reusables.touch(empty_file)
         self._extract_structure()
         b = [x for x in reusables.dup_finder_generator(empty_file, test_root)]
         print(b)
+
+    def test_config_reader(self):
+        cfg = reusables.config_namespace(
+            reusables.join_paths(test_root, "data", "test_config.ini"))
+
+        assert isinstance(cfg, reusables.ConfigNamespace)
+        assert cfg.General.example == "A regular string"
+
+        assert cfg["Section 2"].list(
+            "exampleList", mod=lambda x: int(x)) == [234, 123, 234, 543]
+
+    def test_config_reader_bad(self):
+        try:
+            cfg = reusables.config_namespace(
+                reusables.join_paths(test_root, "data", "test_bad_config.ini"))
+        except AttributeError:
+            pass
+        else:
+            assert False
+
 
 if reusables.win_based:
     class TestReuseWindows(unittest.TestCase):

@@ -5,7 +5,9 @@ Version 0.5.0
 
 - Adding lock wrapper for functions
 - Adding duplicate file finder
-- Adding easy CSV / list transformatio
+- Adding easy CSV / list transformation
+- Adding protected keys for namespaces
+- Adding touch
 
 Version 0.4.1
 -------------

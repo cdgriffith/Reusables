@@ -647,7 +647,7 @@ def load_json(json_file, **kwargs):
 
 def save_json(data, json_file, indent=4, **kwargs):
     """
-    Takes a dictory and saves it to a file as JSON
+    Takes a dictionary and saves it to a file as JSON
 
     :param data: dictionary to save as JSON
     :param json_file: Path to save file location as str
@@ -658,3 +658,11 @@ def save_json(data, json_file, indent=4, **kwargs):
         _json.dump(data, f, indent=indent, **kwargs)
 
 
+def touch(path):
+    """
+    Native 'touch' functionality in python
+
+    :param path: path to file to 'touch'
+    """
+    with open(path, 'a'):
+        _os.utime(path, None)

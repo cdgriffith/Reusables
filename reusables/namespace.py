@@ -21,6 +21,8 @@ class Namespace(dict):
         - namespace['spam'].eggs
     """
 
+    protected_keys = dir({}) + ['from_dict', 'to_dict']
+
     def __init__(self, *args, **kwargs):
         if len(args) == 1 and isinstance(args[0], dict):
             kwargs = args[0]
@@ -45,8 +47,10 @@ class Namespace(dict):
                 raise AttributeError(item)
 
     def __setattr__(self, key, value):
+        if key in self.protected_keys:
+            raise AttributeError("Key name '{0}' is protected".format(key))
         if isinstance(value, dict):
-            value = Namespace(**value)
+            value = self.__class__(**value)
         try:
             object.__getattribute__(self, key)
         except AttributeError:
@@ -124,6 +128,17 @@ class ConfigNamespace(Namespace):
 
     """
 
+    protected_keys = dir({}) + ['from_dict', 'to_dict', 'bool', 'int', 'float',
+                                'list', 'getboolean', 'getfloat', 'getint']
+
+    def __getattr__(self, item):
+        """Config file keys are stored in lower case, be a little more
+        loosey goosey"""
+        try:
+            return super(ConfigNamespace, self).__getattr__(item)
+        except AttributeError:
+            return super(ConfigNamespace, self).__getattr__(item.lower())
+
     def bool(self, item):
         """ Return value of key as a boolean
 
@@ -149,6 +164,15 @@ class ConfigNamespace(Namespace):
         item = self.__getattr__(item)
         return int(item)
 
+    def float(self, item):
+        """ Return value of key as a float
+
+        :param item: key of value to transform
+        :return: float of value
+        """
+        item = self.__getattr__(item)
+        return float(item)
+
     def list(self, item, spliter=",", strip=True, mod=None):
         """ Return value of key as a list
 
@@ -165,3 +189,14 @@ class ConfigNamespace(Namespace):
         if mod:
             return map(mod, out)
         return out
+
+    # lose configparser compatibility
+
+    def getboolean(self, item):
+        self.bool(item)
+
+    def getint(self, item):
+        self.int(item)
+
+    def getfloat(self, item):
+        self.float(item)

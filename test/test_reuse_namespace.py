@@ -77,3 +77,25 @@ class TestReuseNamespace(unittest.TestCase):
             assert True
         else:
             assert False, "Should have raised type error"
+
+    def test_config_namespace(self):
+        g = {"b0": 'no',
+             "b1": 'yes',
+             "b2": 'True',
+             "b3": 'false',
+             "i0": '34',
+             "f0": '5.5',
+             "f1": '3.333',
+             "l0": '4,5,6,7,8',
+             "l1": '[2 3 4 5 6]'}
+
+        cns = reusables.ConfigNamespace(g)
+        assert cns.list("l1", " ") == ["2", "3", "4", "5", "6"]
+        assert cns.list("l0", mod=lambda x: int(x)) == [4, 5, 6, 7, 8]
+        assert not cns.bool("b0")
+        assert cns.bool("b1")
+        assert cns.bool("b2")
+        assert not cns.bool("b3")
+        assert cns.int("i0") == 34
+        assert cns.float("f0") == 5.5
+        assert cns.float("f1") == 3.333
