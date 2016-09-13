@@ -100,6 +100,6 @@ class TestReuseNamespace(unittest.TestCase):
         assert cns.int("i0") == 34
         assert cns.float("f0") == 5.5
         assert cns.float("f1") == 3.333
-        assert cns.getboolean("b4")
+        assert cns.getboolean("b4"), cns.getboolean("b4")
         assert cns.getfloat("f0") == 5.5
         assert cns.getint("i0") == 34

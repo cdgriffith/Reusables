@@ -190,13 +190,13 @@ class ConfigNamespace(Namespace):
             return list(map(mod, out))
         return out
 
-    # lose configparser compatibility
+    # loose configparser compatibility
 
     def getboolean(self, item):
-        self.bool(item)
+        return self.bool(item)
 
     def getint(self, item):
-        self.int(item)
+        return self.int(item)
 
     def getfloat(self, item):
-        self.float(item)
+        return self.float(item)
