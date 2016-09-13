@@ -21,6 +21,8 @@ class Namespace(dict):
         - namespace['spam'].eggs
     """
 
+    protected_keys = dir({}) + ['from_dict', 'to_dict']
+
     def __init__(self, *args, **kwargs):
         if len(args) == 1 and isinstance(args[0], dict):
             kwargs = args[0]
@@ -45,8 +47,10 @@ class Namespace(dict):
                 raise AttributeError(item)
 
     def __setattr__(self, key, value):
+        if key in self.protected_keys:
+            raise AttributeError("Key name '{0}' is protected".format(key))
         if isinstance(value, dict):
-            value = Namespace(**value)
+            value = self.__class__(**value)
         try:
             object.__getattribute__(self, key)
         except AttributeError:
@@ -110,3 +114,89 @@ def tree_view(dictionary, level=0, sep="|  "):
                    else "") for k, v in dictionary.items()])
 
 
+class ConfigNamespace(Namespace):
+    """
+    Modified namespace object to add object transforms.
+
+    Allows for build in transforms like:
+
+    cns = ConfigNamespace(my_bool='yes', my_int='5', my_list='5,4,3,3,2')
+
+    cns.bool('my_bool') # True
+    cns.int('my_int') # 5
+    cns.list('my_list', mod=lambda x: int(x)) # [5, 4, 3, 3, 2]
+
+    """
+
+    protected_keys = dir({}) + ['from_dict', 'to_dict', 'bool', 'int', 'float',
+                                'list', 'getboolean', 'getfloat', 'getint']
+
+    def __getattr__(self, item):
+        """Config file keys are stored in lower case, be a little more
+        loosey goosey"""
+        try:
+            return super(ConfigNamespace, self).__getattr__(item)
+        except AttributeError:
+            return super(ConfigNamespace, self).__getattr__(item.lower())
+
+    def bool(self, item):
+        """ Return value of key as a boolean
+
+        :param item: key of value to transform
+        :return: approximated bool of value
+        """
+        item = self.__getattr__(item)
+        if isinstance(item, (bool, int)):
+            return bool(item)
+
+        if (isinstance(item, str) and
+           item.lower() in ('n', 'no', 'false', 'f', '0')):
+            return False
+
+        return True if item else False
+
+    def int(self, item):
+        """ Return value of key as an int
+
+        :param item: key of value to transform
+        :return: int of value
+        """
+        item = self.__getattr__(item)
+        return int(item)
+
+    def float(self, item):
+        """ Return value of key as a float
+
+        :param item: key of value to transform
+        :return: float of value
+        """
+        item = self.__getattr__(item)
+        return float(item)
+
+    def list(self, item, spliter=",", strip=True, mod=None):
+        """ Return value of key as a list
+
+        :param item: key of value to transform
+        :param spliter: character to split str on
+        :param strip: clean the list with the `strip`
+        :param mod: function to map against list
+        :return: list of items
+        """
+        item = self.__getattr__(item)
+        if strip:
+            item = item.lstrip("[").rstrip("]")
+        out = [x.strip() if strip else x for x in item.split(spliter)]
+        if mod:
+            return list(map(mod, out))
+        return out
+
+    # loose configparser compatibility
+
+    def getboolean(self, item):
+        return self.bool(item)
+
+    def getint(self, item):
+        return self.int(item)
+
+    def getfloat(self, item):
+        return self.float(item)

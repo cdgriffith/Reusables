@@ -1,6 +1,19 @@
 Changelog
 =========
 
+Version 0.5.0
+-------------
+
+- Adding ConfigNamespace
+- Adding lock wrapper for functions
+- Adding duplicate file finder
+- Adding easy CSV / list transformation
+- Adding protected keys for namespaces
+- Adding touch
+- Adding extensions for scripts, binary and markup files
+- Changing logging to be more explicit and run on sys.stdout
+- Breaking change: removed command line running options and main function
+
 Version 0.4.1
 -------------
 

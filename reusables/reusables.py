@@ -9,13 +9,16 @@ import os as _os
 import sys as _sys
 import re as _re
 import tempfile as _tempfile
+import csv as _csv
+import json as _json
 
-from .namespace import Namespace
+from .namespace import Namespace, ConfigNamespace
 from .log import get_logger
 
 __author__ = "Chris Griffith"
-__version__ = "0.4.1"
+__version__ = "0.5.0"
 
+version = __version__
 python_version = _sys.version_info[0:3]
 version_string = ".".join([str(x) for x in python_version])
 current_root = _os.path.abspath(".")
@@ -24,8 +27,9 @@ python2x = PY2 = python_version < (3, 0)
 nix_based = _os.name == "posix"
 win_based = _os.name == "nt"
 temp_directory = _tempfile.gettempdir()
+home = _os.path.abspath(_os.path.expanduser("~"))
 
-logger = get_logger(__name__)
+logger = get_logger("reusables", level=10, stream=_sys.stdout, file_path=None)
 
 # http://msdn.microsoft.com/en-us/library/aa365247%28v=vs.85%29.aspx
 
@@ -72,16 +76,22 @@ common_exts = {
                  ".ico", ".mng", ".tga", ".psd", ".xcf", ".svg", ".icns"),
     "video": (".mkv", ".avi", ".mp4", ".mov", ".flv", ".mpeg", ".mpg", ".3gp",
               ".m4v", ".ogv", ".asf", ".m1v", ".m2v", ".mpe", ".ogv", ".wmv",
-              ".rm", ".qt"),
+              ".rm", ".qt", ".3g2", ".asf", ".vob"),
     "music": (".mp3", ".ogg", ".wav", ".flac", ".aif", ".aiff", ".au", ".m4a",
               ".wma", ".mp2", ".m4a", ".m4p", ".aac", ".ra", ".mid", ".midi",
               ".mus", ".psf"),
     "documents": (".doc", ".docx", ".pdf", ".xls", ".xlsx", ".ppt", ".pptx",
                   ".csv", ".epub", ".gdoc", ".odt", ".rtf", ".txt", ".info",
-                  ".xps", ".gslides", ".gsheet"),
+                  ".xps", ".gslides", ".gsheet", ".pages", ".msg", ".tex",
+                  ".wpd", ".wps", ".csv"),
     "archives": (".zip", ".rar", ".7z", ".tar.gz", ".tgz", ".gz", ".bzip",
                  ".bzip2", ".bz2", ".xz", ".lzma", ".bin", ".tar"),
-    "cd_images": (".iso", ".nrg", ".img", ".mds", ".mdf", ".cue", ".daa")
+    "cd_images": (".iso", ".nrg", ".img", ".mds", ".mdf", ".cue", ".daa"),
+    "scripts": (".py", ".sh", ".bat"),
+    "binaries": (".msi", ".exe"),
+    "markup": (".html", ".htm", ".xml", ".yaml", ".json", ".raml", ".xhtml",
+               ".kml"),
+
 }
 
 common_variables = {
@@ -138,27 +148,23 @@ def os_tree(directory):
 
 def join_paths(*paths, **kwargs):
     """
-    Join multiple paths together and return the absolute path of them. This
-    function will 'clean' the path as well unless the option of 'strict' is
-    provided as True.
+    Join multiple paths together and return the absolute path of them. If 'safe'
+    is specified, this function will 'clean' the path with the 'safe_path'
+    function.
 
-    Would like to do 'strict=False' instead of '**kwargs' but stupider versions
+    Would like to do 'safe=False' instead of '**kwargs' but stupider versions
     of python *cough 2.6* don't like that after '*paths'.
 
     :param paths: paths to join together
-    :param kwargs: 'strict', make them into a safe path unless set True
+    :param kwargs: 'safe', make them into a safe path it True
     :return: path as string
     """
     path = _os.path.abspath(paths[0])
+
     for next_path in paths[1:]:
-        next_path = next_path.lstrip(_os.sep).strip() if not \
-            kwargs.get('strict') else next_path
-        path = _os.path.join(path, next_path)
-    if (not kwargs.get('strict') and
-        "." not in _os.path.basename(path) and
-            not path.endswith(_os.sep)):
-        path += _os.sep
-    return path if kwargs.get('strict') else safe_path(path)
+        path = _os.path.join(path, next_path.lstrip(_os.sep).strip())
+    path.rstrip(_os.sep)
+    return path if not kwargs.get('safe') else safe_path(path)
 
 
 def join_root(*paths, **kwargs):
@@ -235,8 +241,8 @@ def config_namespace(config_file=None, auto_find=False,
     :param cfg_options: options to pass to the parser
     :return: Namespace of the config files
     """
-    return Namespace(**config_dict(config_file, auto_find,
-                                   verify, **cfg_options))
+    return ConfigNamespace(**config_dict(config_file, auto_find,
+                                         verify, **cfg_options))
 
 
 def sort_by(unordered_list, key, **sort_args):
@@ -398,7 +404,7 @@ def find_all_files_generator(directory=".", ext=None, name=None):
     :param ext: Extensions of the file you are looking for
     :param name: Part of the file name
     :type directory: str
-    :type ext: str
+    :type ext: str | tuple | list
     :type name: str
     :return: generator of all files in the specified directory
     """
@@ -559,25 +565,105 @@ def extract_all(archive_file, path=".", delete_on_success=False,
         _os.unlink(archive_file)
 
 
-def main(command_line_options=""):
-    import argparse
+def dup_finder_generator(file_path, directory="."):
+    """
+    Check a directory for duplicates of the specified file. It's designed to
+    be as fast as possible by doing lighter checks before progressing to
+    more extensive ones, in order they are:
 
-    parser = argparse.ArgumentParser(prog="reusables")
-    parser.add_argument("--safe-filename", dest="filename", action='append',
-                        help="Verify a filename contains only letters, numbers,\
-spaces, hyphens, underscores and periods")
-    parser.add_argument("--safe-path", dest="path", action='append',
-                        help="Verify a path contains only letters, numbers,\
-spaces, hyphens, underscores, periods (unix), separator, and drive (win)")
-    args = parser.parse_args(_sys.argv if not command_line_options else
-                             command_line_options)
-    if args.filename:
-        for filename in args.filename:
-            print(safe_filename(filename))
-    if args.path:
-        for path in args.path:
-            print(safe_path(path))
+    1. File size
+    2. First twenty bytes
+    3. Full SHA256 compare
+
+    :param file_path: Path to file to check for duplicates of
+    :param directory: Directory to dig recurivly into to look for duplicates
+    :return: generators
+    """
+    size = _os.path.getsize(file_path)
+    if size == 0:
+        for x in remove_empty_files(directory, dry_run=True):
+            yield x
+    with open(file_path, 'rb') as f:
+        first_twenty = f.read(20)
+    file_sha256 = file_hash(file_path, "sha256")
+
+    for root, directories, files in _os.walk(directory):
+        for each_file in files:
+            test_file = _os.path.join(root, each_file)
+            if _os.path.getsize(test_file) == size:
+                try:
+                    with open(test_file, 'rb') as f:
+                        test_first_twenty = f.read(20)
+                except OSError:
+                    logger.warning("Could not open file to compare - "
+                                   "{}".format(test_file))
+                else:
+                    if first_twenty == test_first_twenty:
+                        if file_hash(test_file, "sha256") == file_sha256:
+                            yield test_file
 
 
-if __name__ == "__main__":
-    main()
+def list_to_csv(my_list, csv_file):
+    """
+    Save a matrix (list of lists) to a file as a CSV
+
+    :param my_list: list of lists to save to CSV
+    :param csv_file: File to save data to
+    """
+    if PY3:
+        csv_handler = open(csv_file, 'w', newline='')
+    else:
+        csv_handler = open(csv_file, 'wb')
+
+    try:
+        writer = _csv.writer(csv_handler, delimiter=',', quoting=_csv.QUOTE_ALL)
+        writer.writerows(my_list)
+    finally:
+        csv_handler.close()
+
+
+def csv_to_list(csv_file):
+    """
+    Open and transform a CSV file into a matrix (list of lists),
+
+
+    :param csv_file: Path to CSV file as str
+    :return: list
+    """
+    with open(csv_file, 'r' if PY3 else 'rb') as f:
+        return list(_csv.reader(f))
+
+
+def load_json(json_file, **kwargs):
+    """
+    Open and load data from a JSON file
+
+    :param json_file: Path to JSON file as string
+    :param kwargs: Additional arguments for the json.load command
+    :return: Dictionary
+    """
+    with open(json_file) as f:
+        return _json.load(f, **kwargs)
+
+
+def save_json(data, json_file, indent=4, **kwargs):
+    """
+    Takes a dictionary and saves it to a file as JSON
+
+    :param data: dictionary to save as JSON
+    :param json_file: Path to save file location as str
+    :param indent: Format the JSON file with so many numbers of spaces
+    :param kwargs: Additional arguments for the json.dump command
+    """
+    with open(json_file, "w") as f:
+        _json.dump(data, f, indent=indent, **kwargs)
+
+
+def touch(path):
+    """
+    Native 'touch' functionality in python
+
+    :param path: path to file to 'touch'
+    """
+    with open(path, 'a'):
+        _os.utime(path, None)

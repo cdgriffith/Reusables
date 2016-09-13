@@ -31,6 +31,7 @@ Key2 = Value2
             oc.write(config_file)
         if os.path.exists(test_structure):
             shutil.rmtree(test_structure)
+            shutil.rmtree(test_structure)
 
     @classmethod
     def tearDownClass(cls):
@@ -42,7 +43,7 @@ Key2 = Value2
         if not reusables.nix_based:
             self.skipTest("Linux based test")
         resp = reusables.join_paths('/test/', 'clean/', 'path')
-        assert resp == '/test/clean/path/', resp
+        assert resp == '/test/clean/path', resp
 
     def test_join_path_dirty(self):
         if not reusables.nix_based:
@@ -53,15 +54,8 @@ Key2 = Value2
     def test_join_path_clean_strict(self):
         if not reusables.nix_based:
             self.skipTest("Linux based test")
-        resp = reusables.join_paths('/test/', 'clean/', 'path/', strict=True)
+        resp = reusables.join_paths('/test/', 'clean/', 'path/')
         assert resp == '/test/clean/path/', resp
-
-    def test_join_path_dirty_strict(self):
-        if not reusables.nix_based:
-            self.skipTest("Linux based test")
-        resp = reusables.join_paths('/test/', '/dirty/',
-                                    ' path.file ', strict=True)
-        assert resp == '/dirty/ path.file ', resp
 
     def test_join_root(self):
         if not reusables.nix_based:
@@ -193,12 +187,6 @@ Key2 = Value2
         resp = [x for x in resp]
         assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
 
-    def test_main(self):
-        reusables.main(["--safe-filename",
-                        "tease.txt",
-                         "--safe-path",
-                        "/var/lib"])
-
     def test_path_single(self):
         resp = reusables.safe_path('path')
         assert resp == 'path', resp
@@ -315,6 +303,65 @@ Key2 = Value2
         else:
             assert False
 
+    def test_csv(self):
+        matrix = [["Date", "System", "Size", "INFO"],
+                  ["2016-05-10", "MAIN", 456, [1, 2]],
+                  ["2016-06-11", "SECONDARY", 4556, 66]]
+        afile = reusables.join_paths(test_root, "test.csv")
+        try:
+            reusables.list_to_csv(matrix, afile)
+            from_save = reusables.csv_to_list(afile)
+        finally:
+            try:
+                os.unlink(afile)
+            except OSError:
+                pass
+
+        assert len(from_save) == 3
+        assert from_save[0] == ["Date", "System", "Size", "INFO"], from_save[0]
+        assert from_save[1] == ["2016-05-10", "MAIN", '456', '[1, 2]'], from_save[1]
+        assert from_save[2] == ["2016-06-11", "SECONDARY", '4556', '66'], from_save[2]
+
+    def test_json_save(self):
+        test_data = {"Hello": ["how", "are"], "You": "?", "I'm": True, "fine": 5}
+        afile = reusables.join_paths(test_root, "test.json")
+        try:
+            reusables.save_json(test_data, afile)
+            out_data = reusables.load_json(afile)
+        finally:
+            try:
+                os.unlink(afile)
+            except OSError:
+                pass
+
+        assert out_data == test_data
+
+    def test_dup_empty(self):
+        empty_file = reusables.join_paths(test_root, "empty")
+        reusables.touch(empty_file)
+        self._extract_structure()
+        b = [x for x in reusables.dup_finder_generator(empty_file, test_root)]
+        print(b)
+
+    def test_config_reader(self):
+        cfg = reusables.config_namespace(
+            reusables.join_paths(test_root, "data", "test_config.ini"))
+
+        assert isinstance(cfg, reusables.ConfigNamespace)
+        assert cfg.General.example == "A regular string"
+
+        assert cfg["Section 2"].list(
+            "exampleList", mod=lambda x: int(x)) == [234, 123, 234, 543]
+
+    def test_config_reader_bad(self):
+        try:
+            cfg = reusables.config_namespace(
+                reusables.join_paths(test_root, "data", "test_bad_config.ini"))
+        except AttributeError:
+            pass
+        else:
+            assert False
+
 
 if reusables.win_based:
     class TestReuseWindows(unittest.TestCase):
@@ -369,6 +416,7 @@ if reusables.win_based:
                 reusables.remove_empty_files(dir, ignore_errors=True)
             finally:
                 file.close()
+
 
 if __name__ == "__main__":
     unittest.main()

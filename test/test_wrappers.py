@@ -3,7 +3,7 @@
 import time
 import unittest
 
-from reusables import reuse, unique
+from reusables import reuse, unique, lock_it
 
 
 @reuse
@@ -69,6 +69,26 @@ class TestWrappers(unittest.TestCase):
         c = unique_function_3()
 
         assert c > b > a
+
+    def test_locker(self):
+        import threading
+
+        @lock_it()
+        def func1():
+            import time
+            time.sleep(2)
+
+        start = time.time()
+        a = threading.Thread(target=func1)
+        b = threading.Thread(target=func1)
+        a.daemon = False
+        b.daemon = False
+        a.start()
+        b.start()
+        a.join()
+        b.join()
+        assert (time.time() - start) > 3
+
 
 
 if __name__ == "__main__":

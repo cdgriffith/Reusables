@@ -4,9 +4,11 @@
 # Part of the Reusables package.
 #
 # Copyright (c) 2014-2016  - Chris Griffith - MIT License
-from functools import wraps as _wraps
 import time as _time
+from threading import Lock as _Lock
+from functools import wraps as _wraps
 
+_g_lock = _Lock()
 _unique_cache = dict()
 _reuse_cache = dict()  # Could use DefaultDict but eh, it's another import
 
@@ -80,3 +82,18 @@ def reuse(func):
                                            kwargs=local_kwargs)
         return result
     return wrapper
+
+
+def lock_it(lock=_g_lock):
+    """
+    Simple wrapper to make sure a function is only run once at a time.
+
+    :param lock: Which lock to use, uses unique default
+    """
+    def func_wrapper(func):
+        @_wraps(func)
+        def wrapper(*args, **kwargs):
+            with lock:
+                return func(*args, **kwargs)
+        return wrapper
+    return func_wrapper
