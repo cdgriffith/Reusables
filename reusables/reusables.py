@@ -29,7 +29,7 @@ win_based = _os.name == "nt"
 temp_directory = _tempfile.gettempdir()
 home = _os.path.abspath(_os.path.expanduser("~"))
 
-logger = get_logger("reusables", level=10, stream=None, file_path=None)
+logger = get_logger("reusables", level=10, stream=_sys.stdout, file_path=None)
 
 # http://msdn.microsoft.com/en-us/library/aa365247%28v=vs.85%29.aspx
 
@@ -89,7 +89,8 @@ common_exts = {
     "cd_images": (".iso", ".nrg", ".img", ".mds", ".mdf", ".cue", ".daa"),
     "scripts": (".py", ".sh", ".bat"),
     "binaries": (".msi", ".exe"),
-    "markup": (".html", ".htm", ".xml", "yaml", ".json"),
+    "markup": (".html", ".htm", ".xml", ".yaml", ".json", ".raml", ".xhtml",
+               ".kml"),
 
 }
 

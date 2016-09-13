@@ -83,6 +83,7 @@ class TestReuseNamespace(unittest.TestCase):
              "b1": 'yes',
              "b2": 'True',
              "b3": 'false',
+             "b4": True,
              "i0": '34',
              "f0": '5.5',
              "f1": '3.333',
@@ -99,3 +100,6 @@ class TestReuseNamespace(unittest.TestCase):
         assert cns.int("i0") == 34
         assert cns.float("f0") == 5.5
         assert cns.float("f1") == 3.333
+        assert cns.getboolean("b4")
+        assert cns.getfloat("f0") == 5.5
+        assert cns.getint("i0") == 34

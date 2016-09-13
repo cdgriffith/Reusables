@@ -20,3 +20,4 @@ exclude_lines =
     return "windows"
     except OSError as err
     raise err
+    except NameError
