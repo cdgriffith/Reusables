@@ -15,10 +15,7 @@ import json as _json
 from .namespace import Namespace, ConfigNamespace
 from .log import get_logger
 
-__author__ = "Chris Griffith"
-__version__ = "0.5.0"
 
-version = __version__
 python_version = _sys.version_info[0:3]
 version_string = ".".join([str(x) for x in python_version])
 current_root = _os.path.abspath(".")

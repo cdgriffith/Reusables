@@ -396,15 +396,6 @@ if reusables.win_based:
             resp = reusables.join_paths('C:\\test\\', 'D:\\dirty', ' path.file ')
             assert resp == 'D:\\dirty\\path.file', resp
 
-        def test_win_join_path_clean_strict(self):
-            resp = reusables.join_paths('C:\\test', 'clean\\', 'path', strict=True).rstrip("\\")
-            assert resp == 'C:\\test\\clean\\path', resp
-
-        def test_win_join_path_dirty_strict(self):
-            resp = reusables.join_paths('C:\\test\\', 'D:\\dirty',
-                                        ' path.file ', strict=True)
-            assert resp == 'D:\\dirty\\ path.file ', resp
-
         def test_win_join_root(self):
             if not reusables.win_based:
                 self.skipTest("Windows based test")

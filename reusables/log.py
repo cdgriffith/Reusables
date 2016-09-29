@@ -135,3 +135,16 @@ def remove_all_handlers(logger):
     remove_file_handlers(logger)
     logger.handlers = []
 
+
+def change_logger_levels(logger, level=_logging.DEBUG):
+    """
+    Go through the logger and handlers and update their levels to the
+    one specified.
+
+    :param logger: logging object to modify
+    :param level: logging level to set at (10=Debug, 20=Info, 30=Warn, 40=Error)
+    :return:
+    """
+    logger.setLevel(level)
+    for handler in logger.handlers:
+        handler.level = level
