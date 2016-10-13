@@ -669,6 +669,17 @@ def touch(path):
 
 def run(command, input=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
         timeout=None, **kwargs):
+    """
+    Cross platform compatible subprocess with CompletedProcess return.
+
+    :param command: command to run, str if shell=True otherwise must be list
+    :param input: send something `communicate`
+    :param stdout: PIPE or None
+    :param stderr: PIPE or None
+    :param timeout: max time to wait for command to complete
+    :param kwargs: additional arguments to pass to Popen
+    :return: CompletedProcess class
+    """
     if _sys.version_info >= (3, 5):
         return _subprocess.run(command, input=input, stdout=stdout,
                                stderr=stderr, timeout=timeout, **kwargs)
@@ -684,12 +695,11 @@ def run(command, input=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
 
         def __repr__(self):
             args = ['args={!r}'.format(self.args),
-                    'returncode={!r}'.format(self.returncode)]
-            if self.stdout is not None:
-                args.append('stdout={!r}'.format(self.stdout))
-            if self.stderr is not None:
-                args.append('stderr={!r}'.format(self.stderr))
-            return "{}({})".format(type(self).__name__, ', '.join(args))
+                    'returncode={!r}'.format(self.returncode),
+                    'stdout={!r}'.format(self.stdout) if self.stdout else '',
+                    'stderr={!r}'.format(self.stderr) if self.stderr else '']
+            return "{}({})".format(type(self).__name__,
+                                   ', '.join(filter(None, args)))
 
         def check_returncode(self):
             if self.returncode:

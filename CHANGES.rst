@@ -8,6 +8,7 @@ Version 0.5.1
 - Adding change_logger_levels
 - Changing __version__ location to __init__ so it can be accessed properly
 - Changing protected_keys in Namespace to be hidden from documentation
+- Changing linux only tests to be in their own class
 - Breaking change: keyword arg position for confignamespace.list now has 'default' as first kwarg
 
 Version 0.5.0
