@@ -7,6 +7,7 @@ import shutil
 import tarfile
 import tempfile
 import reusables
+import subprocess
 
 test_root = os.path.abspath(os.path.dirname(__file__))
 data_dr = os.path.join(test_root, "data")
@@ -38,31 +39,6 @@ Key2 = Value2
         os.unlink(os.path.join(test_root, "test_config.cfg"))
         if os.path.exists(test_structure):
             shutil.rmtree(test_structure)
-
-    def test_join_path_clean(self):
-        if not reusables.nix_based:
-            self.skipTest("Linux based test")
-        resp = reusables.join_paths('/test/', 'clean/', 'path')
-        assert resp == '/test/clean/path', resp
-
-    def test_join_path_dirty(self):
-        if not reusables.nix_based:
-            self.skipTest("Linux based test")
-        resp = reusables.join_paths('/test/', '/dirty/', ' path.file ')
-        assert resp == '/test/dirty/path.file', resp
-
-    def test_join_path_clean_strict(self):
-        if not reusables.nix_based:
-            self.skipTest("Linux based test")
-        resp = reusables.join_paths('/test/', 'clean/', 'path/')
-        assert resp == '/test/clean/path/', resp
-
-    def test_join_root(self):
-        if not reusables.nix_based:
-            self.skipTest("Linux based test")
-        resp = reusables.join_root('clean/')
-        path = os.path.abspath(os.path.join(".", 'clean/'))
-        assert resp == path, (resp, path)
 
     def test_get_config_dict(self):
         resp = reusables.config_dict(os.path.join(test_root, 'test_config.cfg'))
@@ -104,21 +80,7 @@ Key2 = Value2
         resp = reusables.safe_filename(infilename)
         assert resp == infilename, resp
 
-    def test_safe_bad_path(self):
-        if not reusables.nix_based:
-            self.skipTest("Linux based test")
-        path = "/var/lib\\/test/p?!ath/fi\0lename.txt"
-        expected = "/var/lib_/test/p__ath/fi_lename.txt"
-        resp = reusables.safe_path(path)
-        assert not [x for x in ("!", "?", "\0", "^", "&", "*") if x in resp], resp
-        assert resp == expected, resp
 
-    def test_safe_good_path(self):
-        if not reusables.nix_based:
-            self.skipTest("Linux based test")
-        path = "/var/lib/test/path/filename.txt"
-        resp = reusables.safe_path(path)
-        assert resp == path, resp
 
     def test_sorting(self):
         al = [{"name": "a"}, {"name": "c"}, {"name": "b"}]
@@ -362,26 +324,50 @@ Key2 = Value2
         else:
             assert False
 
-    def test_csv(self):
-        matrix = [["Date", "System", "Size", "INFO"],
-                  ["2016-05-10", "MAIN", 456, [1, 2]],
-                  ["2016-06-11", "SECONDARY", 4556, 66]]
-        afile = reusables.join_paths(test_root, "test.csv")
+    def test_run(self):
+        cl = reusables.run('echo test', shell=True, stderr=None)
         try:
-            reusables.list_to_csv(matrix, afile)
-            from_save = reusables.csv_to_list(afile)
-        finally:
-            try:
-                os.unlink(afile)
-                pass
-            except OSError:
-                pass
+            cl.check_returncode()
+        except subprocess.CalledProcessError:
+            pass
+        assert cl.stdout == (b'test\n' if reusables.nix_based else b'test\r\n'), cl
 
-        assert len(from_save) == 3
-        assert from_save[0] == ["Date", "System", "Size", "INFO"], from_save[0]
-        assert from_save[1] == ["2016-05-10", "MAIN", '456', '[1, 2]'], from_save[1]
-        assert from_save[2] == ["2016-06-11", "SECONDARY", '4556', '66'], from_save[2]
+        outstr = "CompletedProcess(args='echo test', returncode=0, stdout=b'test{}\\n')".format('\\r' if reusables.win_based else '')
 
+        assert str(cl) == outstr, "{} != {}".format(str(cl), outstr)
+
+
+if reusables.nix_based:
+    class TestReuseLinux(unittest.TestCase):
+        def test_safe_bad_path(self):
+            path = "/var/lib\\/test/p?!ath/fi\0lename.txt"
+            expected = "/var/lib_/test/p__ath/fi_lename.txt"
+            resp = reusables.safe_path(path)
+            assert not [x for x in ("!", "?", "\0", "^", "&", "*") if
+                        x in resp], resp
+            assert resp == expected, resp
+
+        def test_safe_good_path(self):
+            path = "/var/lib/test/path/filename.txt"
+            resp = reusables.safe_path(path)
+            assert resp == path, resp
+
+        def test_join_path_clean(self):
+            resp = reusables.join_paths('/test/', 'clean/', 'path')
+            assert resp == '/test/clean/path', resp
+
+        def test_join_path_dirty(self):
+            resp = reusables.join_paths('/test/', '/dirty/', ' path.file ')
+            assert resp == '/test/dirty/path.file', resp
+
+        def test_join_path_clean_strict(self):
+            resp = reusables.join_paths('/test/', 'clean/', 'path/')
+            assert resp == '/test/clean/path/', resp
+
+        def test_join_root(self):
+            resp = reusables.join_root('clean/')
+            path = os.path.abspath(os.path.join(".", 'clean/'))
+            assert resp == path, (resp, path)
 
 
 if reusables.win_based:
@@ -397,8 +383,6 @@ if reusables.win_based:
             assert resp == 'D:\\dirty\\path.file', resp
 
         def test_win_join_root(self):
-            if not reusables.win_based:
-                self.skipTest("Windows based test")
             resp = reusables.join_root('clean\\')
             path = os.path.abspath(os.path.join(".", 'clean\\'))
             assert resp == path, (resp, path)
