@@ -709,5 +709,10 @@ def run(command, input=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
                                                      self.stderr)
 
     proc = _subprocess.Popen(command, stdout=stdout, stderr=stderr, **kwargs)
-    out, err = proc.communicate(input=input, timeout=timeout)
+    if PY3:
+        out, err = proc.communicate(input=input, timeout=timeout)
+    else:
+        if timeout:
+            raise NotImplementedError("Timeout is only available on python 3")
+        out, err = proc.communicate(input=input)
     return CompletedProcess(command, proc.returncode, out, err)

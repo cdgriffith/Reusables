@@ -80,8 +80,6 @@ Key2 = Value2
         resp = reusables.safe_filename(infilename)
         assert resp == infilename, resp
 
-
-
     def test_sorting(self):
         al = [{"name": "a"}, {"name": "c"}, {"name": "b"}]
         resp = reusables.sort_by(al, "name")
@@ -335,6 +333,16 @@ Key2 = Value2
         outstr = "CompletedProcess(args='echo test', returncode=0, stdout=b'test{}\\n')".format('\\r' if reusables.win_based else '')
 
         assert str(cl) == outstr, "{} != {}".format(str(cl), outstr)
+
+        try:
+            cl2 = reusables.run('echo test', shell=True, timeout=5)
+        except NotImplementedError:
+            if reusables.PY3:
+                raise AssertionError("Should only happen on PY2")
+            pass
+        else:
+            if reusables.PY2:
+                raise AssertionError("Timeout should not have worked for PY2")
 
 
 if reusables.nix_based:
