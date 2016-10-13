@@ -11,6 +11,7 @@ import re as _re
 import tempfile as _tempfile
 import csv as _csv
 import json as _json
+import subprocess as _subprocess
 
 from .namespace import Namespace, ConfigNamespace
 from .log import get_logger
@@ -664,3 +665,39 @@ def touch(path):
     """
     with open(path, 'a'):
         _os.utime(path, None)
+
+
+def run(command, input=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
+        timeout=None, **kwargs):
+    if _sys.version_info >= (3, 5):
+        return _subprocess.run(command, input=input, stdout=stdout,
+                               stderr=stderr, timeout=timeout, **kwargs)
+
+    class CompletedProcess(object):
+        """A backwards compatible clone of subprocess.CompletedProcess"""
+
+        def __init__(self, args, returncode, stdout=None, stderr=None):
+            self.args = args
+            self.returncode = returncode
+            self.stdout = stdout
+            self.stderr = stderr
+
+        def __repr__(self):
+            args = ['args={!r}'.format(self.args),
+                    'returncode={!r}'.format(self.returncode)]
+            if self.stdout is not None:
+                args.append('stdout={!r}'.format(self.stdout))
+            if self.stderr is not None:
+                args.append('stderr={!r}'.format(self.stderr))
+            return "{}({})".format(type(self).__name__, ', '.join(args))
+
+        def check_returncode(self):
+            if self.returncode:
+                raise _subprocess.CalledProcessError(self.returncode,
+                                                     self.args,
+                                                     self.stdout,
+                                                     self.stderr)
+
+    proc = _subprocess.Popen(command, stdout=stdout, stderr=stderr, **kwargs)
+    out, err = proc.communicate(input=input, timeout=timeout)
+    return CompletedProcess(command, proc.returncode, out, err)
