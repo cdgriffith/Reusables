@@ -53,9 +53,8 @@ def reuse(func):
     so that any module calling the default function will act as if it's a
     partial, and then may unknowingly change what the partial becomes!
     """
-    import functools
 
-    @functools.wraps(func)
+    @_wraps(func)
     def wrapper(*args, **kwargs):
         global _reuse_cache
         cache = _reuse_cache.get(func.__name__, dict(args=[], kwargs={}))
