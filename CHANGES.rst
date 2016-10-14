@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 0.5.2
+-------------
+
+- Fix setup.py to use __init__.py instead of reusables.py for attrs
+
 Version 0.5.1
 -------------
 
