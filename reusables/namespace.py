@@ -21,7 +21,7 @@ class Namespace(dict):
         - namespace['spam'].eggs
     """
 
-    protected_keys = dir({}) + ['from_dict', 'to_dict']
+    _protected_keys = dir({}) + ['from_dict', 'to_dict']
 
     def __init__(self, *args, **kwargs):
         if len(args) == 1 and isinstance(args[0], dict):
@@ -47,7 +47,7 @@ class Namespace(dict):
                 raise AttributeError(item)
 
     def __setattr__(self, key, value):
-        if key in self.protected_keys:
+        if key in self._protected_keys:
             raise AttributeError("Key name '{0}' is protected".format(key))
         if isinstance(value, dict):
             value = self.__class__(**value)
@@ -128,8 +128,8 @@ class ConfigNamespace(Namespace):
 
     """
 
-    protected_keys = dir({}) + ['from_dict', 'to_dict', 'bool', 'int', 'float',
-                                'list', 'getboolean', 'getfloat', 'getint']
+    _protected_keys = dir({}) + ['from_dict', 'to_dict', 'bool', 'int', 'float',
+                                 'list', 'getboolean', 'getfloat', 'getint']
 
     def __getattr__(self, item):
         """Config file keys are stored in lower case, be a little more
@@ -139,13 +139,20 @@ class ConfigNamespace(Namespace):
         except AttributeError:
             return super(ConfigNamespace, self).__getattr__(item.lower())
 
-    def bool(self, item):
+    def bool(self, item, default=None):
         """ Return value of key as a boolean
 
         :param item: key of value to transform
+        :param default: value to return if item does not exist
         :return: approximated bool of value
         """
-        item = self.__getattr__(item)
+        try:
+            item = self.__getattr__(item)
+        except AttributeError as err:
+            if default is not None:
+                return default
+            raise err
+
         if isinstance(item, (bool, int)):
             return bool(item)
 
@@ -155,34 +162,52 @@ class ConfigNamespace(Namespace):
 
         return True if item else False
 
-    def int(self, item):
+    def int(self, item, default=None):
         """ Return value of key as an int
 
         :param item: key of value to transform
+        :param default: value to return if item does not exist
         :return: int of value
         """
-        item = self.__getattr__(item)
+        try:
+            item = self.__getattr__(item)
+        except AttributeError as err:
+            if default is not None:
+                return default
+            raise err
         return int(item)
 
-    def float(self, item):
+    def float(self, item, default=None):
         """ Return value of key as a float
 
         :param item: key of value to transform
+        :param default: value to return if item does not exist
         :return: float of value
         """
-        item = self.__getattr__(item)
+        try:
+            item = self.__getattr__(item)
+        except AttributeError as err:
+            if default is not None:
+                return default
+            raise err
         return float(item)
 
-    def list(self, item, spliter=",", strip=True, mod=None):
+    def list(self, item, default=None, spliter=",", strip=True, mod=None):
         """ Return value of key as a list
 
         :param item: key of value to transform
+        :param mod: function to map against list
+        :param default: value to return if item does not exist
         :param spliter: character to split str on
         :param strip: clean the list with the `strip`
-        :param mod: function to map against list
         :return: list of items
         """
-        item = self.__getattr__(item)
+        try:
+            item = self.__getattr__(item)
+        except AttributeError as err:
+            if default is not None:
+                return default
+            raise err
         if strip:
             item = item.lstrip("[").rstrip("]")
         out = [x.strip() if strip else x for x in item.split(spliter)]
@@ -192,11 +217,11 @@ class ConfigNamespace(Namespace):
 
     # loose configparser compatibility
 
-    def getboolean(self, item):
-        return self.bool(item)
+    def getboolean(self, item, default=None):
+        return self.bool(item, default)
 
-    def getint(self, item):
-        return self.int(item)
+    def getint(self, item, default=None):
+        return self.int(item, default)
 
-    def getfloat(self, item):
-        return self.float(item)
+    def getfloat(self, item, default=None):
+        return self.float(item, default)

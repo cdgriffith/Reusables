@@ -11,14 +11,12 @@ import re as _re
 import tempfile as _tempfile
 import csv as _csv
 import json as _json
+import subprocess as _subprocess
 
 from .namespace import Namespace, ConfigNamespace
 from .log import get_logger
 
-__author__ = "Chris Griffith"
-__version__ = "0.5.0"
 
-version = __version__
 python_version = _sys.version_info[0:3]
 version_string = ".".join([str(x) for x in python_version])
 current_root = _os.path.abspath(".")
@@ -667,3 +665,54 @@ def touch(path):
     """
     with open(path, 'a'):
         _os.utime(path, None)
+
+
+def run(command, input=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
+        timeout=None, **kwargs):
+    """
+    Cross platform compatible subprocess with CompletedProcess return.
+
+    :param command: command to run, str if shell=True otherwise must be list
+    :param input: send something `communicate`
+    :param stdout: PIPE or None
+    :param stderr: PIPE or None
+    :param timeout: max time to wait for command to complete
+    :param kwargs: additional arguments to pass to Popen
+    :return: CompletedProcess class
+    """
+    if _sys.version_info >= (3, 5):
+        return _subprocess.run(command, input=input, stdout=stdout,
+                               stderr=stderr, timeout=timeout, **kwargs)
+
+    class CompletedProcess(object):
+        """A backwards compatible clone of subprocess.CompletedProcess"""
+
+        def __init__(self, args, returncode, stdout=None, stderr=None):
+            self.args = args
+            self.returncode = returncode
+            self.stdout = stdout
+            self.stderr = stderr
+
+        def __repr__(self):
+            args = ['args={0!r}'.format(self.args),
+                    'returncode={0!r}'.format(self.returncode),
+                    'stdout={0!r}'.format(self.stdout) if self.stdout else '',
+                    'stderr={0!r}'.format(self.stderr) if self.stderr else '']
+            return "{0}({1})".format(type(self).__name__,
+                                     ', '.join(filter(None, args)))
+
+        def check_returncode(self):
+            if self.returncode:
+                raise _subprocess.CalledProcessError(self.returncode,
+                                                     self.args,
+                                                     self.stdout,
+                                                     self.stderr)
+
+    proc = _subprocess.Popen(command, stdout=stdout, stderr=stderr, **kwargs)
+    if PY3:
+        out, err = proc.communicate(input=input, timeout=timeout)
+    else:
+        if timeout:
+            raise NotImplementedError("Timeout is only available on python 3")
+        out, err = proc.communicate(input=input)
+    return CompletedProcess(command, proc.returncode, out, err)

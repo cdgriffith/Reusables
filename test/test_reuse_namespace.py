@@ -91,7 +91,7 @@ class TestReuseNamespace(unittest.TestCase):
              "l1": '[2 3 4 5 6]'}
 
         cns = reusables.ConfigNamespace(g)
-        assert cns.list("l1", " ") == ["2", "3", "4", "5", "6"]
+        assert cns.list("l1", spliter=" ") == ["2", "3", "4", "5", "6"]
         assert cns.list("l0", mod=lambda x: int(x)) == [4, 5, 6, 7, 8]
         assert not cns.bool("b0")
         assert cns.bool("b1")
@@ -103,3 +103,7 @@ class TestReuseNamespace(unittest.TestCase):
         assert cns.getboolean("b4"), cns.getboolean("b4")
         assert cns.getfloat("f0") == 5.5
         assert cns.getint("i0") == 34
+        assert cns.getint("Hello!", 5) == 5
+        assert cns.getfloat("Wooo", 4.4) == 4.4
+        assert cns.getboolean("huh", True) is True
+        assert cns.list("Waaaa", [1]) == [1]

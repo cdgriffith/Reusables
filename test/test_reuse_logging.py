@@ -47,8 +47,21 @@ class TestReuseLogging(unittest.TestCase):
         assert "ERROR" in lines[1]
         assert "Example error log" in lines[1]
 
+    def test_change_log_level(self):
+        logger = reusables.get_logger(__name__,
+                                      level=logging.WARNING,
+                                      stream=None,
+                                      file_path=my_stream_path)
+        logger.debug("Hello There, sexy")
+        reusables.change_logger_levels(logger, 10)
+        logger.debug("This isn't a good idea")
+        with open(my_stream_path) as f:
+            line = f.readline()
+        assert "good idea" in line, line
+
     def test_get_file_logger(self):
-        logger = reusables.get_logger(__name__, stream=None, file_path=my_stream_path)
+        logger = reusables.get_logger(__name__, stream=None,
+                                      file_path=my_stream_path)
         logger.info("Test log")
         logger.error("Example 2nd error log")
         reusables.remove_file_handlers(logger)

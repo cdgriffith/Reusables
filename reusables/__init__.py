@@ -6,4 +6,5 @@ from .log import *
 from .browser import *
 from .wrappers import *
 
-
+__author__ = "Chris Griffith"
+__version__ = "0.5.1"
