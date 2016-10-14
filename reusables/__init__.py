@@ -5,6 +5,7 @@ from .dt import *
 from .log import *
 from .browser import *
 from .wrappers import *
+from .tasker import Tasker
 
 __author__ = "Chris Griffith"
-__version__ = "0.5.2"
+__version__ = "0.6.0"
