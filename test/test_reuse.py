@@ -330,9 +330,9 @@ Key2 = Value2
             pass
         assert cl.stdout == (b'test\n' if reusables.nix_based else b'test\r\n'), cl
 
-        outstr = "CompletedProcess(args='echo test', returncode=0, stdout={}'test{}\\n')".format('b' if reusables.PY3 else '', '\\r' if reusables.win_based else '')
+        outstr = "CompletedProcess(args='echo test', returncode=0, stdout={0}'test{1}\\n')".format('b' if reusables.PY3 else '', '\\r' if reusables.win_based else '')
 
-        assert str(cl) == outstr, "{} != {}".format(str(cl), outstr)
+        assert str(cl) == outstr, "{0} != {1}".format(str(cl), outstr)
 
         try:
             cl2 = reusables.run('echo test', shell=True, timeout=5)

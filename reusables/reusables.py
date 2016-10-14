@@ -694,12 +694,12 @@ def run(command, input=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
             self.stderr = stderr
 
         def __repr__(self):
-            args = ['args={!r}'.format(self.args),
-                    'returncode={!r}'.format(self.returncode),
-                    'stdout={!r}'.format(self.stdout) if self.stdout else '',
-                    'stderr={!r}'.format(self.stderr) if self.stderr else '']
-            return "{}({})".format(type(self).__name__,
-                                   ', '.join(filter(None, args)))
+            args = ['args={0!r}'.format(self.args),
+                    'returncode={0!r}'.format(self.returncode),
+                    'stdout={0!r}'.format(self.stdout) if self.stdout else '',
+                    'stderr={0!r}'.format(self.stderr) if self.stderr else '']
+            return "{0}({1})".format(type(self).__name__,
+                                     ', '.join(filter(None, args)))
 
         def check_returncode(self):
             if self.returncode:
