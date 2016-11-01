@@ -11,7 +11,7 @@ except ImportError:
 
 from .reusables import safe_filename
 
-log = _logging.getLogger('reusables.web')
+_logger = _logging.getLogger('reusables.web')
 
 
 def download(url, save_to_file=True, save_dir=".", filename=None,
@@ -36,7 +36,7 @@ def download(url, save_to_file=True, save_dir=".", filename=None,
                 filename = "downloaded_at_{}.file".format(_time.time())
         save_location = _os.path.abspath(_os.path.join(save_dir, filename))
         if _os.path.exists(save_location) and not overwrite:
-            log.error("File {0} already exists".format(save_location))
+            _logger.error("File {0} already exists".format(save_location))
             return False
     else:
         save_location = "memory"
@@ -45,27 +45,27 @@ def download(url, save_to_file=True, save_dir=".", filename=None,
         request = urlopen(url)
     except ValueError as err:
         if not quiet and "unknown url type" in str(err):
-            log.error("Please make sure URL is formatted correctly and"
-                      " starts with http:// or other protocol")
+            _logger.error("Please make sure URL is formatted correctly and"
+                          " starts with http:// or other protocol")
         raise err
     except Exception as err:
         if not quiet:
-            log.error("Could not download {0} - {1}".format(url, err))
+            _logger.error("Could not download {0} - {1}".format(url, err))
         raise err
 
     try:
         kb_size = int(request.headers["Content-Length"]) / 1024
     except Exception as err:
         if not quiet:
-            log.debug("Could not determine file size - {0}".format(err))
+            _logger.debug("Could not determine file size - {0}".format(err))
         file_size = "(unknown size)"
     else:
         file_size = "({0:.1f} {1})".format(*(kb_size, "KB") if kb_size < 9999
                                            else (kb_size / 1024, "MB"))
 
     if not quiet:
-        log.info("Downloading {0} {1} to {2}".format(url, file_size,
-                                                     save_location))
+        _logger.info("Downloading {0} {1} to {2}".format(url, file_size,
+                                                         save_location))
 
     if save_to_file:
         with open(save_location, "wb") as f:

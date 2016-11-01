@@ -27,7 +27,7 @@ win_based = _os.name == "nt"
 temp_directory = _tempfile.gettempdir()
 home = _os.path.abspath(_os.path.expanduser("~"))
 
-logger = get_logger("reusables", level=10, stream=_sys.stdout, file_path=None)
+_logger = get_logger("reusables", level=10, stream=_sys.stdout, file_path=None)
 
 # http://msdn.microsoft.com/en-us/library/aa365247%28v=vs.85%29.aspx
 
@@ -217,7 +217,7 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
         cfg_files.extend(find_all_files(current_root,
                                         ext=(".cfg", ".config", ".ini")))
 
-    logger.info("config files to be used: {0}".format(cfg_files))
+    _logger.info("config files to be used: {0}".format(cfg_files))
 
     if verify:
         cfg_parser.read([cfg for cfg in cfg_files if _os.path.exists(cfg)])
@@ -462,7 +462,7 @@ def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True):
                     _os.rmdir(root)
                 except OSError as err:
                     if ignore_errors:
-                        logger.info("{0} could not be deleted".format(root))
+                        _logger.info("{0} could not be deleted".format(root))
                     else:
                         raise err
         elif directories and not files:
@@ -476,7 +476,7 @@ def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True):
                             _os.rmdir(directory)
                         except OSError as err:
                             if ignore_errors:
-                                logger.info("{0} could not be deleted".format(
+                                _logger.info("{0} could not be deleted".format(
                                     directory))
                             else:
                                 raise err
@@ -511,7 +511,7 @@ def remove_empty_files(root_directory, dry_run=False, ignore_errors=True):
                 _os.unlink(afile)
             except OSError as err:
                 if ignore_errors:
-                    logger.info("File {0} could not be deleted".format(afile))
+                    _logger.info("File {0} could not be deleted".format(afile))
                 else:
                     raise err
 
@@ -532,26 +532,27 @@ def extract_all(archive_file, path=".", delete_on_success=False,
     import tarfile
 
     if not _os.path.exists(archive_file) or not _os.path.getsize(archive_file):
-        logger.error("File {0} unextractable".format(archive_file))
+        _logger.error("File {0} unextractable".format(archive_file))
         raise OSError("File does not exist or has zero size")
 
     archive = None
     if zipfile.is_zipfile(archive_file):
-        logger.debug("File {0} detected as a zip file".format(archive_file))
+        _logger.debug("File {0} detected as a zip file".format(archive_file))
         archive = zipfile.ZipFile(archive_file)
     elif tarfile.is_tarfile(archive_file):
-        logger.debug("File {0} detected as a tar file".format(archive_file))
+        _logger.debug("File {0} detected as a tar file".format(archive_file))
         archive = tarfile.open(archive_file)
     elif enable_rar:
         import rarfile
         if rarfile.is_rarfile(archive_file):
-            logger.debug("File {0} detected as a rar file".format(archive_file))
+            _logger.debug("File {0} detected as "
+                          "a rar file".format(archive_file))
             archive = rarfile.RarFile(archive_file)
 
     if not archive:
         raise TypeError("File is not a known archive")
 
-    logger.debug("Extracting files to {0}".format(path))
+    _logger.debug("Extracting files to {0}".format(path))
 
     try:
         archive.extractall(path=path)
@@ -559,7 +560,7 @@ def extract_all(archive_file, path=".", delete_on_success=False,
         archive.close()
 
     if delete_on_success:
-        logger.debug("Archive {0} will now be deleted".format(archive_file))
+        _logger.debug("Archive {0} will now be deleted".format(archive_file))
         _os.unlink(archive_file)
 
 
@@ -593,8 +594,8 @@ def dup_finder_generator(file_path, directory="."):
                     with open(test_file, 'rb') as f:
                         test_first_twenty = f.read(20)
                 except OSError:
-                    logger.warning("Could not open file to compare - "
-                                   "{}".format(test_file))
+                    _logger.warning("Could not open file to compare - "
+                                    "{}".format(test_file))
                 else:
                     if first_twenty == test_first_twenty:
                         if file_hash(test_file, "sha256") == file_sha256:

@@ -6,29 +6,35 @@ try:
 except ImportError:
     import Queue as _queue
 import multiprocessing as _mp
+import multiprocessing.pool as _pool
 import uuid as _uuid
 import time as _time
 import logging as _logging
+from functools import partial as _partial
 
-log = _logging.getLogger('reusables.tasker')
+_logger = _logging.getLogger('reusables.tasker')
 #TODO make logger multiprocessing safe
 
 
 class Tasker(object):
 
-    def __init__(self, max_tasks=2, task_timeout=None):
+    def __init__(self, tasks=(), max_tasks=4, task_timeout=None):
         self.task_queue = _mp.Queue()
+        if tasks:
+            for task in tasks:
+                self.task_queue.put(task)
         self.command_queue = _mp.Queue()
+        self.result_queue = _mp.Queue()
         self.free_tasks = [_uuid.uuid4() for _ in range(max_tasks)]
         self.current_tasks = {task_id: {} for task_id in self.free_tasks}
         self.busy_tasks = []
         self.max_tasks = max_tasks
         self.timeout = task_timeout
         self.pause, self.end = False, False
-        self._internal_code_check = self.perform_task.__code__
         self.background_process = None
 
-    def perform_task(self):
+    @staticmethod
+    def perform_task(task, queue):
         raise NotImplementedError()
 
     def _update_tasks(self):
@@ -43,8 +49,8 @@ class Tasker(object):
                 try:
                     self.current_tasks[task_id]['proc'].terminate()
                 except Exception as err:
-                    log.exception("Error while terminating "
-                                  "task {} - {}".format(task_id, err))
+                    _logger.exception("Error while terminating "
+                                      "task {} - {}".format(task_id, err))
                 self.free_tasks.append(task_id)
             else:
                 still_busy.append(task_id)
@@ -64,7 +70,7 @@ class Tasker(object):
 
     def _start_task(self, task_id, task):
         self.current_tasks[task_id]['proc'] = _mp.Process(
-            target=self.perform_task, args=(task, ))
+            target=self.perform_task, args=(task, self.result_queue))
         self.current_tasks[task_id]['start_time'] = _time.time()
         self.current_tasks[task_id]['proc'].start()
 
@@ -79,9 +85,9 @@ class Tasker(object):
         try:
             size = int(size)
         except ValueError:
-            log.error("Someone provided a non integer size")
+            _logger.error("Someone provided a non integer size")
         if size < 0:
-            log.error("Someone provided a less than 0 size")
+            _logger.error("Someone provided a less than 0 size")
             return
         if size < self.max_tasks:
             diff = self.max_tasks - size
@@ -114,9 +120,13 @@ class Tasker(object):
                 pass
 
     def _perform_command(self, timeout=None):
-        command = self.command_queue.get(timeout=timeout)
+        try:
+            command = self.command_queue.get(timeout=timeout)
+        except _queue.Empty:
+            return
+
         if 'task' not in command:
-            log.error("Malformed command: {}".format(command))
+            _logger.error("Malformed command: {}".format(command))
         elif command['command'] == 'max_tasks':
             self.change_task_size(command['value'])
         elif command['command'] == 'pause':
@@ -126,10 +136,16 @@ class Tasker(object):
         elif command['command'] == 'stop':
             self.stop()
 
-    def run(self):
-        if self._internal_code_check == self.perform_task.__code__:
-            raise Exception("Tasker requires you to overwrite "
-                            "the 'perform_task' method")
+    def get_state(self):
+        return {"started": (True if self.background_process and
+                            self.background_process.is_alive() else False),
+                "paused": self.pause,
+                "stopped": self.end,
+                "tasks": len(self.current_tasks),
+                "busy_tasks": len(self.busy_tasks),
+                "free_tasks": len(self.free_tasks)}
+
+    def _run(self):
         while True:
             if self.end:
                 break
@@ -144,9 +160,33 @@ class Tasker(object):
                 except _queue.Empty:
                     self._return_task(task_id)
                 else:
+                    _logger.debug("Starting task on {0}".format(task_id))
                     self._start_task(task_id, task)
             self._perform_command(timeout=.1)
 
     def run_in_background(self):
-        self.background_process = _mp.Process(target=self.run)
+        self.background_process = _mp.Process(target=self._run)
         self.background_process.start()
+
+
+def run_in_pool(target, iterable, threaded=True, processes=4,
+                async=False, target_kwargs=None):
+    """ Run a set of iterables to a function in a Threaded or MP Pool
+
+    :param target: function to run
+    :param iterable: positional arg to pass to function
+    :param threaded: Threaded if True Multiprocessed if False
+    :param processes: Number of workers
+    :param async: will do map_async if True
+    :param target_kwargs: Keyword arguments to set on the function as a partial
+    :return: pool results
+    """
+    pool = _pool.ThreadPool if threaded else _pool.Pool
+
+    if target_kwargs:
+        target = _partial(target, **target_kwargs if target_kwargs else None)
+
+    with pool(processes) as p:
+        return (p.map_async(target, iterable) if async
+                else p.map(target, iterable))
+
