@@ -13,6 +13,7 @@ import logging as _logging
 log = _logging.getLogger('reusables.tasker')
 #TODO make logger multiprocessing safe
 
+
 class Tasker(object):
 
     def __init__(self, max_tasks=2, task_timeout=None):

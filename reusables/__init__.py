@@ -6,6 +6,7 @@ from .log import *
 from .browser import *
 from .wrappers import *
 from .tasker import Tasker
+from .web import *
 
 __author__ = "Chris Griffith"
 __version__ = "0.6.0"
