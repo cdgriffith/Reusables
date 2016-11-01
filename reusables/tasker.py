@@ -26,7 +26,9 @@ class Tasker(object):
         self.command_queue = _mp.Queue()
         self.result_queue = _mp.Queue()
         self.free_tasks = [_uuid.uuid4() for _ in range(max_tasks)]
-        self.current_tasks = {task_id: {} for task_id in self.free_tasks}
+        self.current_tasks = {}
+        for task_id in self.free_tasks:
+            self.current_tasks[task_id] = {}
         self.busy_tasks = []
         self.max_tasks = max_tasks
         self.timeout = task_timeout
@@ -186,7 +188,11 @@ def run_in_pool(target, iterable, threaded=True, processes=4,
     if target_kwargs:
         target = _partial(target, **target_kwargs if target_kwargs else None)
 
-    with pool(processes) as p:
-        return (p.map_async(target, iterable) if async
-                else p.map(target, iterable))
-
+    p = pool(processes)
+    try:
+        results = (p.map_async(target, iterable) if async
+                   else p.map(target, iterable))
+    finally:
+        p.close()
+        p.join()
+    return results
