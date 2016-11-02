@@ -11,7 +11,6 @@ data_dr = os.path.join(test_root, "data")
 
 class TestWeb(unittest.TestCase):
 
-
     def test_server_and_download(self):
         try:
             os.unlink("example_file")

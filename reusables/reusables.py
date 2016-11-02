@@ -700,6 +700,9 @@ def run(command, input=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
 
         def check_returncode(self):
             if self.returncode:
+                if python_version <= (2, 6):
+                    raise _subprocess.CalledProcessError(self.returncode,
+                                                         self.args)
                 raise _subprocess.CalledProcessError(self.returncode,
                                                      self.args,
                                                      self.stdout)
