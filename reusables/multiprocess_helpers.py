@@ -13,18 +13,27 @@ import logging as _logging
 from functools import partial as _partial
 
 _logger = _logging.getLogger('reusables.tasker')
-#TODO make logger multiprocessing safe
 
 
 class Tasker(object):
+    """ An advanced multiprocessing pool, with ability to change number of
+    workers or pause the service all together.
 
-    def __init__(self, tasks=(), max_tasks=4, task_timeout=None):
-        self.task_queue = _mp.Queue()
+    Simply subclass Tasker, overwrite `perform_task` and `run`!
+
+    It has in and out queues (task_queue, result_queue) which can be provided
+    or will automatically be created as `multiprocessing.Queue()`s.
+
+    Note: Do not use with PyPy on Windows at this time
+    """
+
+    def __init__(self, tasks=(), max_tasks=4, task_timeout=None,
+                 task_queue=None, result_queue=None):
+        self.task_queue = task_queue or _mp.Queue()
         if tasks:
             for task in tasks:
                 self.task_queue.put(task)
-        self.command_queue = _mp.Queue()
-        self.result_queue = _mp.Queue()
+        self.result_queue = result_queue or _mp.Queue()
         self.free_tasks = [str(_uuid.uuid4()) for _ in range(max_tasks)]
         self.current_tasks = {}
         for task_id in self.free_tasks:
@@ -36,7 +45,7 @@ class Tasker(object):
         self.background_process = None
 
     @staticmethod
-    def perform_task(task, queue):
+    def perform_task(task, result_queue):
         raise NotImplementedError()
 
     def _update_tasks(self):

@@ -5,6 +5,7 @@ import unittest
 import time
 import reusables
 import logging
+import platform
 
 reusables.change_logger_levels(logging.getLogger('reusables'), logging.INFO)
 
@@ -27,6 +28,8 @@ class ExampleAddTasker(reusables.Tasker):
 class TestTasker(unittest.TestCase):
 
     def test_example_add_tasker(self):
+        if reusables.win_based and platform.python_implementation() == 'PyPy':
+            return
         tasker = ExampleAddTasker(list(range(100)))
         try:
             tasker.run()

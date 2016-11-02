@@ -12,7 +12,6 @@ exclude_lines =
     raise BrowserException
     object.__setattr__
     raise AttributeError
-    raise AttributeError
     object.__delattr__
     elif "darwin"
     return "mac"
@@ -21,3 +20,5 @@ exclude_lines =
     except OSError as err
     raise err
     except NameError
+    def _background_runner
+    raise TypeError

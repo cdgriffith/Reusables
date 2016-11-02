@@ -378,5 +378,7 @@ improve existing code is warmly welcomed!
    log
    datetime
    namespace
+   web
+   multiprocess_helpers
    wrappers
    changelog
