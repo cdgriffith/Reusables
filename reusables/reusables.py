@@ -26,6 +26,7 @@ nix_based = _os.name == "posix"
 win_based = _os.name == "nt"
 temp_directory = _tempfile.gettempdir()
 home = _os.path.abspath(_os.path.expanduser("~"))
+_saved_paths = []
 
 _logger = get_logger("reusables", level=10, stream=_sys.stdout, file_path=None)
 
@@ -367,9 +368,6 @@ def count_all_files(directory=".", ext=None, name=None):
     :param directory: Top location to recursively search for matching files
     :param ext: Extensions of the file you are looking for
     :param name: Part of the file name
-    :type directory: str
-    :type ext: str
-    :type name: str
     :return: count of files matching requirements as integer
     """
 
@@ -401,9 +399,6 @@ def find_all_files_generator(directory=".", ext=None, name=None):
     :param directory: Top location to recursively search for matching files
     :param ext: Extensions of the file you are looking for
     :param name: Part of the file name
-    :type directory: str
-    :type ext: str | tuple | list
-    :type name: str
     :return: generator of all files in the specified directory
     """
     if ext and isinstance(ext, str):
@@ -432,9 +427,6 @@ def find_all_files(directory=".", ext=None, name=None):
     :param directory: Top location to recursively search for matching files
     :param ext: Extensions of the file you are looking for
     :param name: Part of the file name
-    :type directory: str
-    :type ext: str
-    :type name: str
     :return: list of all files in the specified directory
     """
     return list(find_all_files_generator(directory, ext=ext, name=name))
@@ -447,9 +439,6 @@ def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True):
     :param root_directory: base directory to start at
     :param dry_run: just return a list of what would be removed
     :param ignore_errors: Permissions are a pain, just ignore if you blocked
-    :type root_directory: str
-    :type dry_run: bool
-    :type ignore_errors: bool
     :return: list of removed directories
     """
     directory_list = []
@@ -490,9 +479,6 @@ def remove_empty_files(root_directory, dry_run=False, ignore_errors=True):
     :param root_directory: base directory to start at
     :param dry_run: just return a list of what would be removed
     :param ignore_errors: Permissions are a pain, just ignore if you blocked
-    :type root_directory: str
-    :type dry_run: bool
-    :type ignore_errors: bool
     :return: list of removed files
     """
     file_list = []
@@ -717,3 +703,30 @@ def run(command, input=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
             raise NotImplementedError("Timeout is only available on python 3")
         out, err = proc.communicate(input=input)
     return CompletedProcess(command, proc.returncode, out, err)
+
+
+def pushd(directory):
+    """Change working directories in style and stay organized!
+
+    :param directory: Where do you want to go and remember?
+    :return: saved directory stack
+    """
+    directory = _os.path.expanduser(directory)
+    _saved_paths.insert(0, _os.path.abspath(_os.getcwd()))
+    _os.chdir(directory)
+    return [directory] + _saved_paths
+
+
+def popd():
+    """Go back to where you once were.
+
+    :return: saved directory stack
+    """
+    try:
+        directory = _saved_paths.pop(0)
+    except IndexError:
+        return [_os.getcwd()]
+    _os.chdir(directory)
+    return [directory] + _saved_paths
+
+
