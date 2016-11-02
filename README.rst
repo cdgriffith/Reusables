@@ -97,11 +97,15 @@ that sub-dictionaries are recursively made into namespaces.
 Command line controls
 ---------------------
 
+Use the Python interpreter as much as a shell? Here's some handy helpers to
+fill the void. (Please don't do `import *` in production code, this is used
+as an easy to use example using the interpreter interactively.)
+
 .. code:: python
 
         from reusables import *
 
-        cd("~")
+        cd("~") # Automatic user expansion unlike of os.chdir()
 
         pwd()
         # '/home/user'
@@ -126,6 +130,10 @@ Command line controls
         # CompletedProcess(args='whoami', returncode=0, stdout=b'user\n', stderr=b'')
 
         # Can just do `run('whoami').stdout` to return `b'james\n'`
+
+        download('https://www.python.org/ftp/python/README.html', save_to_file=False)
+        # 2016-11-02 10:37:23,644 - reusables.web  INFO      Downloading https://www.python.org/ftp/python/README.html (2.3 KB) to memory
+        # b'<PRE>\nPython Distribution...
 
 DateTime
 ~~~~~~~~
