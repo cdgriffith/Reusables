@@ -21,7 +21,17 @@ class TestWeb(unittest.TestCase):
             dl = reusables.download("http://localhost:9999/example_file",
                                     save_to_file=False)
             assert dl.decode("utf-8") == test_data
+            dl2 = reusables.download("http://localhost:9999/example_file")
+            assert not dl2
+            dl3 = reusables.download("http://localhost:9999/example_file", filename="dlfile")
+            assert dl3
+            with open("dlfile", "r") as f:
+                f.read() == test_data
         finally:
             server.stop()
-            os.unlink("example_file")
-
+            try:
+                os.unlink("example_file")
+                os.unlink("dlfile")
+            except OSError:
+                pass
+            reusables.popd()
