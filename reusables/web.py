@@ -4,10 +4,17 @@
 import os as _os
 import logging as _logging
 import time as _time
+import multiprocessing as _mp
 try:
-    from urllib2 import urlopen
+    from urllib2 import urlopen as _urlopen
 except ImportError:
-    from urllib.request import urlopen
+    from urllib.request import urlopen as _urlopen
+try:
+    from http.server import HTTPServer, BaseHTTPRequestHandler as _server, \
+        _handler
+except ImportError:
+    from SimpleHTTPServer import SimpleHTTPRequestHandler as _handler
+    from SocketServer import TCPServer as _server
 
 from .reusables import safe_filename
 
@@ -42,7 +49,7 @@ def download(url, save_to_file=True, save_dir=".", filename=None,
         save_location = "memory"
 
     try:
-        request = urlopen(url)
+        request = _urlopen(url)
     except ValueError as err:
         if not quiet and "unknown url type" in str(err):
             _logger.error("Please make sure URL is formatted correctly and"
@@ -77,3 +84,27 @@ def download(url, save_to_file=True, save_dir=".", filename=None,
         return True
     else:
         return request.read()
+
+
+class Server(object):
+
+    def __init__(self, name="", port=8080, auto_start=True):
+        self.httpd = _server((name, port), _handler)
+        self._process = None
+        if auto_start:
+            self.run()
+
+    @staticmethod
+    def _background_runner(httpd):
+        httpd.serve_forever()
+
+    def run(self):
+        self._process = _mp.Process(target=self._background_runner,
+                                    args=(self.httpd, ))
+        self._process.start()
+
+    def stop(self):
+        if self._process:
+            self._process.terminate()
+
+
