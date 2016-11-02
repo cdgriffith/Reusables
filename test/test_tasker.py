@@ -29,7 +29,7 @@ class TestTasker(unittest.TestCase):
     def test_example_add_tasker(self):
         tasker = ExampleAddTasker(list(range(100)))
         try:
-            tasker.run_in_background()
+            tasker.run()
             tasker.change_task_size(2)
             tasker.change_task_size(6)
             tasker.pause()
@@ -39,6 +39,11 @@ class TestTasker(unittest.TestCase):
             tasker.stop()
 
         assert len(results) == 100
+
+    def test_stop_at_emtpy(self):
+        tasker = ExampleSleepTasker([.1, .2])
+        tasker.main_loop(True)
+        assert [tasker.result_queue.get() for _ in (0, 0)] == [.1, .2]
 
 
 class TestPool(unittest.TestCase):

@@ -145,7 +145,7 @@ class Tasker(object):
                 "busy_tasks": len(self.busy_tasks),
                 "free_tasks": len(self.free_tasks)}
 
-    def _run(self):
+    def main_loop(self, stop_at_empty=False):
         while True:
             if self._end.value:
                 break
@@ -158,6 +158,8 @@ class Tasker(object):
                 try:
                     task = self.task_queue.get(timeout=.1)
                 except _queue.Empty:
+                    if stop_at_empty:
+                        break
                     self._return_task(task_id)
                 else:
                     _logger.debug("Starting task on {0}".format(task_id))
@@ -167,8 +169,8 @@ class Tasker(object):
                         _logger.exception("Could not start task {0} -"
                                           " {1}".format(task_id, err))
 
-    def run_in_background(self):
-        self.background_process = _mp.Process(target=self._run)
+    def run(self):
+        self.background_process = _mp.Process(target=self.main_loop)
         self.background_process.start()
 
 
