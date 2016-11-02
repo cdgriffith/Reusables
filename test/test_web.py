@@ -3,6 +3,7 @@
 
 import unittest
 import os
+import random
 import reusables
 
 test_root = os.path.abspath(os.path.dirname(__file__))
@@ -25,6 +26,7 @@ class TestWeb(unittest.TestCase):
         reusables.pushd(data_dr)
         with open("example_file", "w") as f:
             f.write(test_data)
+
         server = reusables.FileServer(port=9999)
         try:
             dl = reusables.download("http://localhost:9999/example_file",
