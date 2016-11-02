@@ -361,7 +361,7 @@ def file_hash(path, hash_type="md5", block_size=65536):
     return hashed.hexdigest()
 
 
-def count_all_files(directory=".", ext=None, name=None):
+def count_all_files(directory=".", ext=None, name=None, match_case=False):
     """
     Perform the same operation as 'find_all_files' but return an integer count
     instead of a list.
@@ -369,6 +369,7 @@ def count_all_files(directory=".", ext=None, name=None):
     :param directory: Top location to recursively search for matching files
     :param ext: Extensions of the file you are looking for
     :param name: Part of the file name
+    :param match_case: If name has to be a direct match or not
     :return: count of files matching requirements as integer
     """
 
@@ -386,13 +387,16 @@ def count_all_files(directory=".", ext=None, name=None):
                 else:
                     continue
             if name:
-                if name.lower() not in file_name.lower():
+                if match_case and name not in file_name:
+                    continue
+                elif name.lower() not in file_name.lower():
                     continue
             count += 1
     return count
 
 
-def find_all_files_generator(directory=".", ext=None, name=None):
+def find_all_files_generator(directory=".", ext=None, name=None,
+                             match_case=False):
     """
     Walk through a file directory and return an iterator of files
     that match requirements.
@@ -400,6 +404,7 @@ def find_all_files_generator(directory=".", ext=None, name=None):
     :param directory: Top location to recursively search for matching files
     :param ext: Extensions of the file you are looking for
     :param name: Part of the file name
+    :param match_case: If name has to be a direct match or not
     :return: generator of all files in the specified directory
     """
     if ext and isinstance(ext, str):
@@ -415,12 +420,14 @@ def find_all_files_generator(directory=".", ext=None, name=None):
                 else:
                     continue
             if name:
-                if name.lower() not in file_name.lower():
+                if match_case and name not in file_name:
                     continue
-            yield join_paths(root, file_name, strict=True)
+                elif name.lower() not in file_name.lower():
+                    continue
+            yield _os.path.join(root, file_name)
 
 
-def find_all_files(directory=".", ext=None, name=None):
+def find_all_files(directory=".", ext=None, name=None, match_case=False):
     """
     Returns a list of all files in a sub directory that match an extension
     and or part of a filename.
@@ -428,9 +435,11 @@ def find_all_files(directory=".", ext=None, name=None):
     :param directory: Top location to recursively search for matching files
     :param ext: Extensions of the file you are looking for
     :param name: Part of the file name
+    :param match_case: If name has to be a direct match or not
     :return: list of all files in the specified directory
     """
-    return list(find_all_files_generator(directory, ext=ext, name=name))
+    return list(find_all_files_generator(directory, ext=ext, name=name,
+                                         match_case=match_case))
 
 
 def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True):
@@ -562,7 +571,7 @@ def dup_finder_generator(file_path, directory="."):
     3. Full SHA256 compare
 
     :param file_path: Path to file to check for duplicates of
-    :param directory: Directory to dig recurivly into to look for duplicates
+    :param directory: Directory to dig recursively into to look for duplicates
     :return: generators
     """
     size = _os.path.getsize(file_path)
@@ -745,14 +754,15 @@ def cd(directory):
 
 
 def ls(params="", directory=".", printed=True):
-    """Know the best python implantation of ls? It's just subprocess ls...
+    """Know the best python implantation of ls? It's just to subprocess ls...
 
     :param params: options to pass to ls
     :param directory: if not this directory
     :param printed: If you're using this, you probably wanted it just printed
     :return: if not printed, you can parse it yourself
     """
-    response = run(["ls"] + _shlex.split(params) + [directory])
+    response = run(["ls" if not win_based else "dir"] +
+                   _shlex.split(params) + [directory])
     response.check_returncode()
     if printed:
         print(response.stdout.decode("utf-8"))

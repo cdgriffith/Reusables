@@ -5,6 +5,8 @@ import time
 import reusables
 import shlex
 
+# Compare find all files vs linux `find`
+
 path = "/home"
 runs = 20
 

@@ -11,7 +11,6 @@ programmers may find themselves often recreating.
 
 It includes:
 
-- Cookie Management for Firefox and Chrome
 - Archive extraction (zip, tar, rar)
 - Path (file and folders) management
 - Fast logging setup
@@ -20,6 +19,10 @@ It includes:
 - Config to dict parsing
 - Common regular expressions and file extensions
 - Unique function wrappers
+- Bash analogues
+- Easy downloading
+- Multiprocessing helpers
+- Cookie Management for Firefox and Chrome
 
 Reusables is designed to not require any imports outside the standard library,
 but can be supplemented with those found in the requirements.txt file for
@@ -45,14 +48,14 @@ General Helpers and File Management
 
         import reusables
 
+        reusables.find_all_files(".", ext=reusables.exts.pictures)
+        # ['/home/user/background.jpg', '/home/user/private.png']
+
         reusables.extract_all("test/test_structure.zip", "my_archive")
         # All files in the zip will be extracted into directory "my_archive"
 
         reusables.config_dict('my_config.cfg')
         # {'Section 1': {'key 1': 'value 1', 'key2': 'Value2'}, 'Section 2': {}}
-
-        reusables.find_all_files(".", ext=reusables.exts.pictures)
-        # ['/home/user/background.jpg', '/home/user/private.png']
 
         reusables.count_all_files(".")
         # 405
@@ -63,23 +66,6 @@ General Helpers and File Management
         reusables.safe_path('/home/user/eViL User\0\\/newdir$^&*/new^%file.txt')
         # '/home/user/eViL User__/newdir____/new__file.txt'
 
-
-Cookie Management
-~~~~~~~~~~~~~~~~~
-
-Firefox and Chrome Cookie management. (Chrome requires SQLite 3.8 or greater.)
-
-.. code:: python
-
-        fox = reusables.FirefoxCookies()
-        # Automatically uses the DB of the default profile, can specify db=<path>
-
-        fox.add_cookie("example.com", "MyCookie", "Cookie contents!")
-
-        fox.find_cookies(host="Example")
-        # [{'host': u'example.com', 'name': u'MyCookie', 'value': u'Cookie contents!'}]
-
-        fox.delete_cookie("example.com", "MyCookie")
 
 Namespace
 ~~~~~~~~~
@@ -108,7 +94,38 @@ that sub-dictionaries are recursively made into namespaces.
         # {'spam': <Namespace: {'eggs': {'sausage': {'bacon': '...>}
         # This is NOT the same as .to_dict() as it is not recursive
 
+Command line controls
+---------------------
 
+.. code:: python
+
+        from reusables import *
+
+        cd("~")
+
+        pwd()
+        # '/home/user'
+
+        pushd("Downloads")
+        # ['Downloads', '/home/user']
+
+        pwd()
+        # '/home/user/Downloads'
+
+        popd()
+        # ['/home/user']
+
+        ls("-lah")  # Uses `ls` on linux and `dir` on windows
+        #  total 1.5M
+        #  drwxr-xr-x 49 james james 4.0K Nov  1 20:09 .
+        #  drwxr-xr-x  3 root  root  4.0K Aug 21  2015 ..
+        #  -rw-rw-r--  1 james james  22K Aug 22 13:21 picture.jpg
+        #  -rw-------  1 james james  17K Nov  1 20:08 .bash_history
+
+        run('whoami') # Cross version supported `subprocess.run`
+        # CompletedProcess(args='whoami', returncode=0, stdout=b'user\n', stderr=b'')
+
+        # Can just do `run('whoami').stdout` to return `b'james\n'`
 
 DateTime
 ~~~~~~~~
@@ -228,11 +245,14 @@ That's right, str.endswith_ (as well as str.startswith_) accept a tuple to searc
  File Type             Extensions
 ===================== ===================
  pictures              .jpeg .jpg .png .gif .bmp .tif .tiff .ico .mng .tga .psd .xcf .svg .icns
- video                 .mkv .avi .mp4 .mov .flv .mpeg .mpg .3gp .m4v .ogv .asf .m1v .m2v .mpe .ogv .wmv .rm .qt
+ video                 .mkv .avi .mp4 .mov .flv .mpeg .mpg .3gp .m4v .ogv .asf .m1v .m2v .mpe .ogv .wmv .rm .qt .3g2 .asf .vob
  music                 .mp3 .ogg .wav .flac .aif .aiff .au .m4a .wma .mp2 .m4a .m4p .aac .ra .mid .midi .mus .psf
- documents             .doc .docx .pdf .xls .xlsx .ppt .pptx .csv .epub .gdoc .odt .rtf .txt .info .xps .gslides .gsheet
+ documents             .doc .docx .pdf .xls .xlsx .ppt .pptx .csv .epub .gdoc .odt .rtf .txt .info .xps .gslides .gsheet .pages .msg .tex .wpd .wps .csv
  archives              .zip .rar .7z .tar.gz .tgz .gz .bzip .bzip2 .bz2 .xz .lzma .bin .tar
  cd_images             .iso .nrg .img .mds .mdf .cue .daa
+ scripts               .py .sh .bat
+ binaries              .msi .exe
+ markup                .html .htm .xml .yaml .json .raml .xhtml .kml
 ===================== ===================
 
 
@@ -249,6 +269,23 @@ different take that requires the function returns a result not yet provided.
         import random
         return random.randint(0, 100)
 
+
+Cookie Management
+~~~~~~~~~~~~~~~~~
+
+Firefox and Chrome Cookie management. (Chrome requires SQLite 3.8 or greater.)
+
+.. code:: python
+
+        fox = reusables.FirefoxCookies()
+        # Automatically uses the DB of the default profile, can specify db=<path>
+
+        fox.add_cookie("example.com", "MyCookie", "Cookie contents!")
+
+        fox.find_cookies(host="Example")
+        # [{'host': u'example.com', 'name': u'MyCookie', 'value': u'Cookie contents!'}]
+
+        fox.delete_cookie("example.com", "MyCookie")
 
 
 Common Issues
