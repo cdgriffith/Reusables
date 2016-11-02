@@ -10,8 +10,8 @@ try:
 except ImportError:
     from urllib.request import urlopen as _urlopen
 try:
-    from http.server import HTTPServer, BaseHTTPRequestHandler as _server, \
-        _handler
+    from http.server import (HTTPServer as _server,
+                             SimpleHTTPRequestHandler as _handler)
 except ImportError:
     from SimpleHTTPServer import SimpleHTTPRequestHandler as _handler
     from SocketServer import TCPServer as _server
@@ -86,7 +86,7 @@ def download(url, save_to_file=True, save_dir=".", filename=None,
         return request.read()
 
 
-class Server(object):
+class FileServer(object):
 
     def __init__(self, name="", port=8080, auto_start=True):
         self.httpd = _server((name, port), _handler)

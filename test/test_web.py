@@ -16,7 +16,7 @@ class TestWeb(unittest.TestCase):
         reusables.pushd(data_dr)
         with open("example_file", "w") as f:
             f.write(test_data)
-        server = reusables.Server(port=9999)
+        server = reusables.FileServer(port=9999)
         try:
             dl = reusables.download("http://localhost:9999/example_file",
                                     save_to_file=False)
