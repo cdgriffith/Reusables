@@ -12,6 +12,7 @@ import tempfile as _tempfile
 import csv as _csv
 import json as _json
 import subprocess as _subprocess
+import shlex as _shlex
 
 from .namespace import Namespace, ConfigNamespace
 from .log import get_logger
@@ -729,4 +730,32 @@ def popd():
     _os.chdir(directory)
     return [directory] + _saved_paths
 
+
+def pwd():
+    """Get the current working directory"""
+    return _os.getcwd()
+
+
+def cd(directory):
+    """Change working directory, with built in user (~) expansion
+
+    :param directory: New place you wanted to go
+    """
+    _os.chdir(_os.path.expanduser(directory))
+
+
+def ls(params="", directory=".", printed=True):
+    """Know the best python implantation of ls? It's just subprocess ls...
+
+    :param params: options to pass to ls
+    :param directory: if not this directory
+    :param printed: If you're using this, you probably wanted it just printed
+    :return: if not printed, you can parse it yourself
+    """
+    response = run(["ls"] + _shlex.split(params) + [directory])
+    response.check_returncode()
+    if printed:
+        print(response.stdout.decode("utf-8"))
+    else:
+        return response.stdout
 
