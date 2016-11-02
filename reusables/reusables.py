@@ -702,8 +702,7 @@ def run(command, input=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
             if self.returncode:
                 raise _subprocess.CalledProcessError(self.returncode,
                                                      self.args,
-                                                     self.stdout,
-                                                     self.stderr)
+                                                     self.stdout)
 
     proc = _subprocess.Popen(command, stdout=stdout, stderr=stderr, **kwargs)
     if PY3:

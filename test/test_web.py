@@ -11,7 +11,17 @@ data_dr = os.path.join(test_root, "data")
 
 class TestWeb(unittest.TestCase):
 
+
     def test_server_and_download(self):
+        try:
+            os.unlink("example_file")
+        except OSError:
+            pass
+        try:
+            os.unlink("dlfile")
+        except OSError:
+            pass
+
         test_data = "Test data of a fox jumping"
         reusables.pushd(data_dr)
         with open("example_file", "w") as f:
@@ -31,6 +41,9 @@ class TestWeb(unittest.TestCase):
             server.stop()
             try:
                 os.unlink("example_file")
+            except OSError:
+                pass
+            try:
                 os.unlink("dlfile")
             except OSError:
                 pass
