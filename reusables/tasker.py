@@ -25,14 +25,14 @@ class Tasker(object):
                 self.task_queue.put(task)
         self.command_queue = _mp.Queue()
         self.result_queue = _mp.Queue()
-        self.free_tasks = [_uuid.uuid4() for _ in range(max_tasks)]
+        self.free_tasks = [str(_uuid.uuid4()) for _ in range(max_tasks)]
         self.current_tasks = {}
         for task_id in self.free_tasks:
             self.current_tasks[task_id] = {}
         self.busy_tasks = []
         self.max_tasks = max_tasks
         self.timeout = task_timeout
-        self.pause, self.end = False, False
+        self._pause, self._end = _mp.Value('b', False), _mp.Value('b', False)
         self.background_process = None
 
     @staticmethod
@@ -56,12 +56,12 @@ class Tasker(object):
                 self.free_tasks.append(task_id)
             else:
                 still_busy.append(task_id)
-        self.busy_nodes = still_busy
+        self.busy_tasks = still_busy
 
     def _free_task(self):
         if self.free_tasks:
             task_id = self.free_tasks.pop(0)
-            self.busy_nodes.append(task_id)
+            self.busy_tasks.append(task_id)
             return task_id
         else:
             return False
@@ -80,10 +80,12 @@ class Tasker(object):
         self.current_tasks = {}
         self.free_tasks = []
         self.busy_tasks = []
-        self.pause = True
+        self._pause.value = True
 
     def change_task_size(self, size):
         """Blocking request to change number of running tasks"""
+        self._pause.value = True
+        _logger.debug("About to change task size to {0}".format(size))
         try:
             size = int(size)
         except ValueError:
@@ -93,12 +95,14 @@ class Tasker(object):
             return
         if size < self.max_tasks:
             diff = self.max_tasks - size
+            _logger.debug("Reducing size offset by {0}".format(diff))
             while True:
                 self._update_tasks()
                 if len(self.free_tasks) >= diff:
                     for i in range(diff):
                         task_id = self.free_tasks.pop(0)
                         del self.current_tasks[task_id]
+                    break
                 _time.sleep(0.5)
             if not size:
                 self._reset_and_pause()
@@ -107,52 +111,46 @@ class Tasker(object):
             diff = size - self.max_tasks
             self.max_tasks = size
             for i in range(diff):
-                task_id = _uuid.uuid4()
+                task_id = str(_uuid.uuid4())
                 self.current_tasks[task_id] = {}
                 self.free_tasks.append(task_id)
-        self.pause = False
+        self._pause.value = False
+        _logger.debug("Task size changed to {0}".format(size))
 
     def stop(self):
-        self.end = True
-        self.change_task_size(0)
+        self._end.value = True
         if self.background_process:
             try:
                 self.background_process.terminate()
             except Exception:
                 pass
+        for task_id, values in self.current_tasks.items():
+            try:
+                values['proc'].terminate()
+            except Exception:
+                pass
 
-    def _perform_command(self, timeout=None):
-        try:
-            command = self.command_queue.get(timeout=timeout)
-        except _queue.Empty:
-            return
+    def pause(self):
+        self._pause.value = True
 
-        if 'task' not in command:
-            _logger.error("Malformed command: {}".format(command))
-        elif command['command'] == 'max_tasks':
-            self.change_task_size(command['value'])
-        elif command['command'] == 'pause':
-            self.pause = True
-        elif command['command'] == 'unpuase':
-            self.pause = False
-        elif command['command'] == 'stop':
-            self.stop()
+    def unpuase(self):
+        self._pause.value = False
 
     def get_state(self):
         return {"started": (True if self.background_process and
                             self.background_process.is_alive() else False),
-                "paused": self.pause,
-                "stopped": self.end,
+                "paused": self._pause.value,
+                "stopped": self._end.value,
                 "tasks": len(self.current_tasks),
                 "busy_tasks": len(self.busy_tasks),
                 "free_tasks": len(self.free_tasks)}
 
     def _run(self):
         while True:
-            if self.end:
+            if self._end.value:
                 break
-            if self.pause:
-                self._perform_command()
+            if self._pause.value:
+                _time.sleep(.5)
                 continue
             self._update_tasks()
             task_id = self._free_task()
@@ -163,8 +161,11 @@ class Tasker(object):
                     self._return_task(task_id)
                 else:
                     _logger.debug("Starting task on {0}".format(task_id))
-                    self._start_task(task_id, task)
-            self._perform_command(timeout=.1)
+                    try:
+                        self._start_task(task_id, task)
+                    except Exception as err:
+                        _logger.exception("Could not start task {0} -"
+                                          " {1}".format(task_id, err))
 
     def run_in_background(self):
         self.background_process = _mp.Process(target=self._run)

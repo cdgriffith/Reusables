@@ -2,16 +2,11 @@
 # -*- coding: UTF-8 -*-
 
 import unittest
-import os
 import time
-import shutil
-import tarfile
-import tempfile
 import reusables
-import subprocess
 import logging
 
-log = reusables.get_logger()
+reusables.change_logger_levels(logging.getLogger('reusables'), logging.INFO)
 
 
 class ExampleSleepTasker(reusables.Tasker):
@@ -31,16 +26,19 @@ class ExampleAddTasker(reusables.Tasker):
 
 class TestTasker(unittest.TestCase):
 
-    @unittest.skip
     def test_example_add_tasker(self):
         tasker = ExampleAddTasker(list(range(100)))
-        log.info("about to start")
-        tasker.run_in_background()
-        log.info(tasker.get_state())
-        time.sleep(2)
-        tasker.stop()
-        while True:
-            log.info(tasker.result_queue.get())
+        try:
+            tasker.run_in_background()
+            tasker.change_task_size(2)
+            tasker.change_task_size(6)
+            tasker.pause()
+            tasker.unpuase()
+            results = [tasker.result_queue.get() for _ in range(100)]
+        finally:
+            tasker.stop()
+
+        assert len(results) == 100
 
 
 class TestPool(unittest.TestCase):
