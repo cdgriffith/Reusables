@@ -89,18 +89,20 @@ def download(url, save_to_file=True, save_dir=".", filename=None,
 class FileServer(object):
 
     def __init__(self, name="", port=8080, auto_start=True):
-        self.httpd = _server((name, port), _handler)
+        self.name = name
+        self.port = port
         self._process = None
         if auto_start:
             self.run()
 
     @staticmethod
-    def _background_runner(httpd):
+    def _background_runner(name, port):
+        httpd = _server((name, port), _handler)
         httpd.serve_forever()
 
     def run(self):
         self._process = _mp.Process(target=self._background_runner,
-                                    args=(self.httpd, ))
+                                    args=(self.name, self.port))
         self._process.start()
 
     def stop(self):

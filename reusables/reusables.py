@@ -781,8 +781,9 @@ def ls(params="", directory=".", printed=True):
     :param printed: If you're using this, you probably wanted it just printed
     :return: if not printed, you can parse it yourself
     """
-    response = run(["ls" if not win_based else "dir"] +
-                   _shlex.split(params) + [directory])
+    command = "{0} {1} {2}".format("ls" if not win_based else "dir",
+                                   params, directory)
+    response = run(command, shell=True)  # Shell required for windows
     response.check_returncode()
     if printed:
         print(response.stdout.decode("utf-8"))

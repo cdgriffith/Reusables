@@ -24,23 +24,29 @@ class TestReuseLogging(unittest.TestCase):
     def setUp(self):
         logging.getLogger(__name__).handlers = []
         if os.path.exists(my_stream_path):
-            os.unlink(my_stream_path)
-            
+            try:
+                os.unlink(my_stream_path)
+            except WindowsError:
+                pass
+
     @classmethod
     def tearDownClass(cls):
         log = logging.getLogger(__name__)
         reusables.remove_all_handlers(log)
 
         if os.path.exists(my_stream_path):
-            os.unlink(my_stream_path)
+            try:
+                os.unlink(my_stream_path)
+            except WindowsError:
+                pass
 
     def test_get_stream_logger(self):
         my_stream = open(my_stream_path, "w")
         logger = reusables.get_logger(__name__, stream=my_stream)
         logger.info("Test log")
         logger.error("Example error log")
-        reusables.remove_all_handlers(logger)
         my_stream.close()
+        reusables.remove_all_handlers(logger)
         with open(my_stream_path) as f:
             lines = f.readlines()
         assert "INFO" in lines[0]
@@ -55,6 +61,7 @@ class TestReuseLogging(unittest.TestCase):
         logger.debug("Hello There, sexy")
         reusables.change_logger_levels(logger, 10)
         logger.debug("This isn't a good idea")
+        reusables.remove_file_handlers(logger)
         with open(my_stream_path) as f:
             line = f.readline()
         assert "good idea" in line, line

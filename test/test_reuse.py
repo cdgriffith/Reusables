@@ -329,8 +329,10 @@ Key2 = Value2
         except subprocess.CalledProcessError:
             pass
         assert cl.stdout == (b'test\n' if reusables.nix_based else b'test\r\n'), cl
-
-        outstr = "CompletedProcess(args='echo test', returncode=0, stdout={0}'test{1}\\n')".format('b' if reusables.PY3 else '', '\\r' if reusables.win_based else '')
+        import platform
+        outstr = "CompletedProcess(args='echo test', returncode=0{2}, stdout={0}'test{1}\\n')".format('b' if reusables.PY3 else '',
+                                                                                                      '\\r' if reusables.win_based else '',
+                                                                                                      'L' if reusables.win_based and platform.python_implementation() == 'PyPy' else '')
 
         assert str(cl) == outstr, "{0} != {1}".format(str(cl), outstr)
 
@@ -358,9 +360,10 @@ Key2 = Value2
         saved = sys.stdout
         sys.stdout = open(save_file, "w")
         reusables.cmd(">&2 echo 'hello'", raise_on_return=True)
+        sys.stdout.close()
         sys.stdout = saved
         try:
-            with open(save_file) as f:
+            with open(save_file, "r") as f:
                 assert "hello" in f.read()
         finally:
             os.unlink(save_file)
