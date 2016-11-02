@@ -89,9 +89,10 @@ class Tasker(object):
         try:
             size = int(size)
         except ValueError:
-            _logger.error("Someone provided a non integer size")
+            _logger.error("Cannot change task size, non integer size provided")
+            return
         if size < 0:
-            _logger.error("Someone provided a less than 0 size")
+            _logger.error("Cannot change task size, less than 0 size provided")
             return
         if size < self.max_tasks:
             diff = self.max_tasks - size
