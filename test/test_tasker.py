@@ -48,6 +48,19 @@ class TestTasker(unittest.TestCase):
         tasker.main_loop(True)
         assert [tasker.result_queue.get() for _ in (0, 0)] == [.1, .2]
 
+    def test_bad_size_change(self):
+        tasker = reusables.Tasker()
+        try:
+            tasker.perform_task(1,2)
+        except NotImplementedError:
+            pass
+        else:
+            assert False
+
+        assert not tasker.change_task_size(-1)
+        assert not tasker.change_task_size('a')
+        tasker._reset_and_pause()
+
 
 class TestPool(unittest.TestCase):
 

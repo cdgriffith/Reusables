@@ -373,6 +373,7 @@ Key2 = Value2
         assert push[0] == data_dr
         assert reusables.popd()[0] == os.getcwd()
         assert reusables.popd()[0] == os.getcwd()
+        assert reusables.popd()[0] == os.getcwd()
         assert reusables.pwd() == os.getcwd()
         cur = os.getcwd()
         reusables.cd(data_dr)

@@ -99,10 +99,10 @@ class Tasker(object):
             size = int(size)
         except ValueError:
             _logger.error("Cannot change task size, non integer size provided")
-            return
+            return False
         if size < 0:
             _logger.error("Cannot change task size, less than 0 size provided")
-            return
+            return False
         if size < self.max_tasks:
             diff = self.max_tasks - size
             _logger.debug("Reducing size offset by {0}".format(diff))
@@ -116,7 +116,7 @@ class Tasker(object):
                 _time.sleep(0.5)
             if not size:
                 self._reset_and_pause()
-
+                return True
         elif size > self.max_tasks:
             diff = size - self.max_tasks
             self.max_tasks = size
@@ -126,6 +126,7 @@ class Tasker(object):
                 self.free_tasks.append(task_id)
         self._pause.value = False
         _logger.debug("Task size changed to {0}".format(size))
+        return True
 
     def stop(self):
         self._end.value = True
