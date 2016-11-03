@@ -45,8 +45,10 @@ def unique(max_retries=10, wait=0, alt_return="-no_alt_return-",
 
 def reuse(func):
     """
-    Warning: Don't use this, just don't. If you need this you're probably coding
-    wrong. This is for fun only.
+    .. warning::
+
+        Don't use this, just don't. If you need this you're probably coding
+        wrong. This is for fun only.
 
     Save the variables entered into the function for reuse next time. Different
     from partials for the fact that it saves it to the original function,

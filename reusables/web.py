@@ -87,25 +87,25 @@ def download(url, save_to_file=True, save_dir=".", filename=None,
 
 
 class ThreadedServer(object):
-    """Defaulting as a FileServer, this class allows for fast creation of
+    """
+    Defaulting as a FileServer, this class allows for fast creation of
     a threaded server that is easily stoppable.
 
-    my_server = reusables.ThreadedServer()
-    reusables.download("http://localhost:8080", False)
-    # '...<html>\n<title>Directory listing for /</title>...'
-    my_server.stop()
+    .. code:: python
 
+        my_server = reusables.ThreadedServer()
+        reusables.download("http://localhost:8080", False)
+        # '...<html>\n<title>Directory listing for /</title>...'
+        my_server.stop()
+
+    :param name: server name
+    :param port: int of port to run server on (below 1024 requires root)
+    :param auto_start: automatically start the background thread and serve
+    :param server: Default is TCPServer (py2) or HTTPServer (py3)
+    :param handler: Default is SimpleHTTPRequestHandler
     """
     def __init__(self, name="", port=8080, auto_start=True, server=_server,
                  handler=_handler):
-        """Start a ThreadedServer instance
-
-        :param name: server name
-        :param port: int of port to run server on (below 1024 requires root)
-        :param auto_start: automatically start the background thread and serve
-        :param server: Default is TCPServer (py2) or HTTPServer (py3)
-        :param handler: Default is SimpleHTTPRequestHandler
-        """
         self.name = name
         self.port = port
         self._process = None

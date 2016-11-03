@@ -16,7 +16,8 @@ _logger = _logging.getLogger('reusables.tasker')
 
 
 class Tasker(object):
-    """ An advanced multiprocessing pool, with ability to change number of
+    """
+    An advanced multiprocessing pool, with ability to change number of
     workers or pause the service all together.
 
     Simply subclass Tasker, overwrite `perform_task` and `run`!
@@ -24,19 +25,19 @@ class Tasker(object):
     It has in and out queues (task_queue, result_queue) which can be provided
     or will automatically be created as `multiprocessing.Queue()`s.
 
-    Note: Do not use with PyPy on Windows at this time
+    .. warning::
+
+        Do not use with PyPy on Windows at this time
+
+    :param tasks: list of tasks to pre-populate the queue with
+    :param max_tasks: the max number of parallel workers
+    :param task_timeout: how long can each task take
+    :param task_queue: option to specify an existing queue of tasks
+    :param result_queue: option to specify an existing queue for results
     """
 
     def __init__(self, tasks=(), max_tasks=4, task_timeout=None,
                  task_queue=None, result_queue=None):
-        """Initiate the Tasker class
-
-        :param tasks: list of tasks to pre-populate the queue with
-        :param max_tasks: the max number of parallel workers
-        :param task_timeout: how long can each task take
-        :param task_queue: option to specify an existing queue of tasks
-        :param result_queue: option to specify an existing queue for results
-        """
         self.task_queue = task_queue or _mp.Queue()
         if tasks:
             for task in tasks:
