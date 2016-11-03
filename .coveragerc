@@ -7,11 +7,10 @@ omit =
     */nose/*
 exclude_lines =
     pragma: no cover
-    except Exception as err
+    except Exception
     conn.close
     raise BrowserException
     object.__setattr__
-    raise AttributeError
     raise AttributeError
     object.__delattr__
     elif "darwin"
@@ -21,3 +20,8 @@ exclude_lines =
     except OSError as err
     raise err
     except NameError
+    def _background_runner
+    raise TypeError
+    self.free_tasks
+    self.busy_tasks
+    self.current_tasks

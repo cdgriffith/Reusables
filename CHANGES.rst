@@ -1,6 +1,17 @@
 Changelog
 =========
 
+Version 0.6.0
+-------------
+
+- Adding multiprocessing helpers, Tasker class and run_in_pool
+- Adding download and cmd helper functions
+- Adding ThreadedServer class, for running a server (defaults to local file server) in the background
+- Adding terminal analogue functions: cd, pwd, ls, pushd, popd
+- Adding match_case option for find_all_files and count_all_files
+- Fix 'run' call to CalledProcessError on older python versions
+- Changing logger to _logger to be hidden by default (should not be breaking, if so you coded wrong)
+
 Version 0.5.2
 -------------
 

@@ -329,8 +329,10 @@ Key2 = Value2
         except subprocess.CalledProcessError:
             pass
         assert cl.stdout == (b'test\n' if reusables.nix_based else b'test\r\n'), cl
-
-        outstr = "CompletedProcess(args='echo test', returncode=0, stdout={0}'test{1}\\n')".format('b' if reusables.PY3 else '', '\\r' if reusables.win_based else '')
+        import platform
+        outstr = "CompletedProcess(args='echo test', returncode=0{2}, stdout={0}'test{1}\\n')".format('b' if reusables.PY3 else '',
+                                                                                                      '\\r' if reusables.win_based else '',
+                                                                                                      'L' if reusables.win_based and platform.python_implementation() == 'PyPy' else '')
 
         assert str(cl) == outstr, "{0} != {1}".format(str(cl), outstr)
 
@@ -343,6 +345,46 @@ Key2 = Value2
         else:
             if reusables.PY2:
                 raise AssertionError("Timeout should not have worked for PY2")
+
+        cl3 = reusables.run('exit 1', shell=True)
+        try:
+            cl3.check_returncode()
+        except subprocess.CalledProcessError:
+            pass
+        else:
+            assert False
+
+    def test_cmd(self):
+        import sys
+        save_file = os.path.join(data_dr, "stdout")
+        saved = sys.stdout
+        sys.stdout = open(save_file, "w")
+        reusables.cmd(">&2 echo 'hello'", raise_on_return=True)
+        sys.stdout.close()
+        sys.stdout = saved
+        try:
+            with open(save_file, "r") as f:
+                assert "hello" in f.read()
+        finally:
+            os.unlink(save_file)
+
+    def test_paths(self):
+        push = reusables.pushd(data_dr)
+        assert push[0] == data_dr
+        assert reusables.popd()[0] == os.getcwd()
+        assert reusables.popd()[0] == os.getcwd()
+        assert reusables.popd()[0] == os.getcwd()
+        assert reusables.pwd() == os.getcwd()
+        cur = os.getcwd()
+        reusables.cd(data_dr)
+        assert reusables.pwd() == data_dr
+        os.chdir(cur)
+
+    def test_ls(self):
+        reusables.pushd(data_dr)
+        test1 = reusables.ls(printed=False)
+        assert "test" in test1.decode("utf-8")
+        test2 = reusables.ls()
 
 
 if reusables.nix_based:

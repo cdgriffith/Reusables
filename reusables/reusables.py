@@ -26,8 +26,9 @@ nix_based = _os.name == "posix"
 win_based = _os.name == "nt"
 temp_directory = _tempfile.gettempdir()
 home = _os.path.abspath(_os.path.expanduser("~"))
+_saved_paths = []
 
-logger = get_logger("reusables", level=10, stream=_sys.stdout, file_path=None)
+_logger = get_logger("reusables", level=10, stream=_sys.stdout, file_path=None)
 
 # http://msdn.microsoft.com/en-us/library/aa365247%28v=vs.85%29.aspx
 
@@ -217,7 +218,7 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
         cfg_files.extend(find_all_files(current_root,
                                         ext=(".cfg", ".config", ".ini")))
 
-    logger.info("config files to be used: {0}".format(cfg_files))
+    _logger.info("config files to be used: {0}".format(cfg_files))
 
     if verify:
         cfg_parser.read([cfg for cfg in cfg_files if _os.path.exists(cfg)])
@@ -359,7 +360,7 @@ def file_hash(path, hash_type="md5", block_size=65536):
     return hashed.hexdigest()
 
 
-def count_all_files(directory=".", ext=None, name=None):
+def count_all_files(directory=".", ext=None, name=None, match_case=False):
     """
     Perform the same operation as 'find_all_files' but return an integer count
     instead of a list.
@@ -367,9 +368,7 @@ def count_all_files(directory=".", ext=None, name=None):
     :param directory: Top location to recursively search for matching files
     :param ext: Extensions of the file you are looking for
     :param name: Part of the file name
-    :type directory: str
-    :type ext: str
-    :type name: str
+    :param match_case: If name has to be a direct match or not
     :return: count of files matching requirements as integer
     """
 
@@ -387,13 +386,16 @@ def count_all_files(directory=".", ext=None, name=None):
                 else:
                     continue
             if name:
-                if name.lower() not in file_name.lower():
+                if match_case and name not in file_name:
+                    continue
+                elif name.lower() not in file_name.lower():
                     continue
             count += 1
     return count
 
 
-def find_all_files_generator(directory=".", ext=None, name=None):
+def find_all_files_generator(directory=".", ext=None, name=None,
+                             match_case=False):
     """
     Walk through a file directory and return an iterator of files
     that match requirements.
@@ -401,9 +403,7 @@ def find_all_files_generator(directory=".", ext=None, name=None):
     :param directory: Top location to recursively search for matching files
     :param ext: Extensions of the file you are looking for
     :param name: Part of the file name
-    :type directory: str
-    :type ext: str | tuple | list
-    :type name: str
+    :param match_case: If name has to be a direct match or not
     :return: generator of all files in the specified directory
     """
     if ext and isinstance(ext, str):
@@ -419,12 +419,14 @@ def find_all_files_generator(directory=".", ext=None, name=None):
                 else:
                     continue
             if name:
-                if name.lower() not in file_name.lower():
+                if match_case and name not in file_name:
                     continue
-            yield join_paths(root, file_name, strict=True)
+                elif name.lower() not in file_name.lower():
+                    continue
+            yield _os.path.join(root, file_name)
 
 
-def find_all_files(directory=".", ext=None, name=None):
+def find_all_files(directory=".", ext=None, name=None, match_case=False):
     """
     Returns a list of all files in a sub directory that match an extension
     and or part of a filename.
@@ -432,12 +434,11 @@ def find_all_files(directory=".", ext=None, name=None):
     :param directory: Top location to recursively search for matching files
     :param ext: Extensions of the file you are looking for
     :param name: Part of the file name
-    :type directory: str
-    :type ext: str
-    :type name: str
+    :param match_case: If name has to be a direct match or not
     :return: list of all files in the specified directory
     """
-    return list(find_all_files_generator(directory, ext=ext, name=name))
+    return list(find_all_files_generator(directory, ext=ext, name=name,
+                                         match_case=match_case))
 
 
 def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True):
@@ -447,9 +448,6 @@ def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True):
     :param root_directory: base directory to start at
     :param dry_run: just return a list of what would be removed
     :param ignore_errors: Permissions are a pain, just ignore if you blocked
-    :type root_directory: str
-    :type dry_run: bool
-    :type ignore_errors: bool
     :return: list of removed directories
     """
     directory_list = []
@@ -462,7 +460,7 @@ def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True):
                     _os.rmdir(root)
                 except OSError as err:
                     if ignore_errors:
-                        logger.info("{0} could not be deleted".format(root))
+                        _logger.info("{0} could not be deleted".format(root))
                     else:
                         raise err
         elif directories and not files:
@@ -476,7 +474,7 @@ def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True):
                             _os.rmdir(directory)
                         except OSError as err:
                             if ignore_errors:
-                                logger.info("{0} could not be deleted".format(
+                                _logger.info("{0} could not be deleted".format(
                                     directory))
                             else:
                                 raise err
@@ -490,9 +488,6 @@ def remove_empty_files(root_directory, dry_run=False, ignore_errors=True):
     :param root_directory: base directory to start at
     :param dry_run: just return a list of what would be removed
     :param ignore_errors: Permissions are a pain, just ignore if you blocked
-    :type root_directory: str
-    :type dry_run: bool
-    :type ignore_errors: bool
     :return: list of removed files
     """
     file_list = []
@@ -511,7 +506,7 @@ def remove_empty_files(root_directory, dry_run=False, ignore_errors=True):
                 _os.unlink(afile)
             except OSError as err:
                 if ignore_errors:
-                    logger.info("File {0} could not be deleted".format(afile))
+                    _logger.info("File {0} could not be deleted".format(afile))
                 else:
                     raise err
 
@@ -532,26 +527,27 @@ def extract_all(archive_file, path=".", delete_on_success=False,
     import tarfile
 
     if not _os.path.exists(archive_file) or not _os.path.getsize(archive_file):
-        logger.error("File {0} unextractable".format(archive_file))
+        _logger.error("File {0} unextractable".format(archive_file))
         raise OSError("File does not exist or has zero size")
 
     archive = None
     if zipfile.is_zipfile(archive_file):
-        logger.debug("File {0} detected as a zip file".format(archive_file))
+        _logger.debug("File {0} detected as a zip file".format(archive_file))
         archive = zipfile.ZipFile(archive_file)
     elif tarfile.is_tarfile(archive_file):
-        logger.debug("File {0} detected as a tar file".format(archive_file))
+        _logger.debug("File {0} detected as a tar file".format(archive_file))
         archive = tarfile.open(archive_file)
     elif enable_rar:
         import rarfile
         if rarfile.is_rarfile(archive_file):
-            logger.debug("File {0} detected as a rar file".format(archive_file))
+            _logger.debug("File {0} detected as "
+                          "a rar file".format(archive_file))
             archive = rarfile.RarFile(archive_file)
 
     if not archive:
         raise TypeError("File is not a known archive")
 
-    logger.debug("Extracting files to {0}".format(path))
+    _logger.debug("Extracting files to {0}".format(path))
 
     try:
         archive.extractall(path=path)
@@ -559,7 +555,7 @@ def extract_all(archive_file, path=".", delete_on_success=False,
         archive.close()
 
     if delete_on_success:
-        logger.debug("Archive {0} will now be deleted".format(archive_file))
+        _logger.debug("Archive {0} will now be deleted".format(archive_file))
         _os.unlink(archive_file)
 
 
@@ -574,7 +570,7 @@ def dup_finder_generator(file_path, directory="."):
     3. Full SHA256 compare
 
     :param file_path: Path to file to check for duplicates of
-    :param directory: Directory to dig recurivly into to look for duplicates
+    :param directory: Directory to dig recursively into to look for duplicates
     :return: generators
     """
     size = _os.path.getsize(file_path)
@@ -593,8 +589,8 @@ def dup_finder_generator(file_path, directory="."):
                     with open(test_file, 'rb') as f:
                         test_first_twenty = f.read(20)
                 except OSError:
-                    logger.warning("Could not open file to compare - "
-                                   "{}".format(test_file))
+                    _logger.warning("Could not open file to compare - "
+                                    "{}".format(test_file))
                 else:
                     if first_twenty == test_first_twenty:
                         if file_hash(test_file, "sha256") == file_sha256:
@@ -703,16 +699,93 @@ def run(command, input=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
 
         def check_returncode(self):
             if self.returncode:
+                if python_version < (2, 7):
+                    raise _subprocess.CalledProcessError(self.returncode,
+                                                         self.args)
                 raise _subprocess.CalledProcessError(self.returncode,
                                                      self.args,
-                                                     self.stdout,
-                                                     self.stderr)
+                                                     self.stdout)
 
     proc = _subprocess.Popen(command, stdout=stdout, stderr=stderr, **kwargs)
     if PY3:
         out, err = proc.communicate(input=input, timeout=timeout)
     else:
         if timeout:
-            raise NotImplementedError("Timeout is only available on python 3")
+            raise NotImplementedError("Timeout is only available on Python 3")
         out, err = proc.communicate(input=input)
     return CompletedProcess(command, proc.returncode, out, err)
+
+
+def cmd(command, ignore_stderr=False, raise_on_return=False, timeout=None,
+        encoding="utf-8"):
+    """ Run a shell command and have it automatically decoded and printed
+
+    :param command: Command to run as str
+    :param ignore_stderr: To not print stderr
+    :param raise_on_return: Run CompletedProcess.check_returncode()
+    :param timeout: timeout to pass to communicate if python 3
+    :param encoding: How the output should be decoded
+    """
+    result = run(command, timeout=timeout, shell=True)
+    if raise_on_return:
+        result.check_returncode()
+    print(result.stdout.decode(encoding))
+    if not ignore_stderr and result.stderr:
+        print(result.stderr.decode(encoding))
+
+
+def pushd(directory):
+    """Change working directories in style and stay organized!
+
+    :param directory: Where do you want to go and remember?
+    :return: saved directory stack
+    """
+    directory = _os.path.expanduser(directory)
+    _saved_paths.insert(0, _os.path.abspath(_os.getcwd()))
+    _os.chdir(directory)
+    return [directory] + _saved_paths
+
+
+def popd():
+    """Go back to where you once were.
+
+    :return: saved directory stack
+    """
+    try:
+        directory = _saved_paths.pop(0)
+    except IndexError:
+        return [_os.getcwd()]
+    _os.chdir(directory)
+    return [directory] + _saved_paths
+
+
+def pwd():
+    """Get the current working directory"""
+    return _os.getcwd()
+
+
+def cd(directory):
+    """Change working directory, with built in user (~) expansion
+
+    :param directory: New place you wanted to go
+    """
+    _os.chdir(_os.path.expanduser(directory))
+
+
+def ls(params="", directory=".", printed=True):
+    """Know the best python implantation of ls? It's just to subprocess ls...
+
+    :param params: options to pass to ls
+    :param directory: if not this directory
+    :param printed: If you're using this, you probably wanted it just printed
+    :return: if not printed, you can parse it yourself
+    """
+    command = "{0} {1} {2}".format("ls" if not win_based else "dir",
+                                   params, directory)
+    response = run(command, shell=True)  # Shell required for windows
+    response.check_returncode()
+    if printed:
+        print(response.stdout.decode("utf-8"))
+    else:
+        return response.stdout
+

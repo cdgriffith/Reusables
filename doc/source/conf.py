@@ -31,7 +31,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(root, "..", "..")))
 shutil.copy(os.path.join("..", "..", "README.rst"), "index.rst")
 shutil.copy(os.path.join("..", "..", "CHANGES.rst"), "changelog.rst")
 
-with open(os.path.join("..", "..", "reusables", "reusables.py"), "r") as reuse_file:
+with open(os.path.join("..", "..", "reusables", "__init__.py"), "r") as reuse_file:
     reuse_content = reuse_file.read()
 
 

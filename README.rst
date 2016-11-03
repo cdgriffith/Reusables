@@ -1,7 +1,9 @@
 Reusables
 =========
 
-**Commonly Consumed Code Commodities** |BuildStatus| |CoverageStatus| |DocStatus| |PyPi| |License|
+|BuildStatus| |CoverageStatus| |License| |PyPi| |DocStatus|
+
+**Commonly Consumed Code Commodities**
 
 Overview
 --------
@@ -11,7 +13,6 @@ programmers may find themselves often recreating.
 
 It includes:
 
-- Cookie Management for Firefox and Chrome
 - Archive extraction (zip, tar, rar)
 - Path (file and folders) management
 - Fast logging setup
@@ -20,6 +21,10 @@ It includes:
 - Config to dict parsing
 - Common regular expressions and file extensions
 - Unique function wrappers
+- Bash analogues
+- Easy downloading
+- Multiprocessing helpers
+- Cookie Management for Firefox and Chrome
 
 Reusables is designed to not require any imports outside the standard library,
 but can be supplemented with those found in the requirements.txt file for
@@ -45,14 +50,14 @@ General Helpers and File Management
 
         import reusables
 
+        reusables.find_all_files(".", ext=reusables.exts.pictures)
+        # ['/home/user/background.jpg', '/home/user/private.png']
+
         reusables.extract_all("test/test_structure.zip", "my_archive")
         # All files in the zip will be extracted into directory "my_archive"
 
         reusables.config_dict('my_config.cfg')
         # {'Section 1': {'key 1': 'value 1', 'key2': 'Value2'}, 'Section 2': {}}
-
-        reusables.find_all_files(".", ext=reusables.exts.pictures)
-        # ['/home/user/background.jpg', '/home/user/private.png']
 
         reusables.count_all_files(".")
         # 405
@@ -63,23 +68,8 @@ General Helpers and File Management
         reusables.safe_path('/home/user/eViL User\0\\/newdir$^&*/new^%file.txt')
         # '/home/user/eViL User__/newdir____/new__file.txt'
 
-
-Cookie Management
-~~~~~~~~~~~~~~~~~
-
-Firefox and Chrome Cookie management. (Chrome requires SQLite 3.8 or greater.)
-
-.. code:: python
-
-        fox = reusables.FirefoxCookies()
-        # Automatically uses the DB of the default profile, can specify db=<path>
-
-        fox.add_cookie("example.com", "MyCookie", "Cookie contents!")
-
-        fox.find_cookies(host="Example")
-        # [{'host': u'example.com', 'name': u'MyCookie', 'value': u'Cookie contents!'}]
-
-        fox.delete_cookie("example.com", "MyCookie")
+        reusables.run("echo 'hello there!'", shell=True)
+        # CompletedProcess(args="echo 'hello there!'", returncode=0, stdout='hello there!\n')
 
 Namespace
 ~~~~~~~~~
@@ -108,7 +98,46 @@ that sub-dictionaries are recursively made into namespaces.
         # {'spam': <Namespace: {'eggs': {'sausage': {'bacon': '...>}
         # This is NOT the same as .to_dict() as it is not recursive
 
+Command line helpers
+--------------------
 
+Use the Python interpreter as much as a shell? Here's some handy helpers to
+fill the void. (Please don't do 'import *' in production code, this is used
+as an easy to use example using the interpreter interactively.)
+
+.. code:: python
+
+        from reusables import *
+
+        cd("~") # Automatic user expansion unlike os.chdir()
+
+        pwd()
+        # '/home/user'
+
+        pushd("Downloads")
+        # ['Downloads', '/home/user']
+
+        pwd()
+        # '/home/user/Downloads'
+
+        popd()
+        # ['/home/user']
+
+        ls("-lah")  # Uses 'ls' on linux and 'dir' on windows
+        #  total 1.5M
+        #  drwxr-xr-x 49 james james 4.0K Nov  1 20:09 .
+        #  drwxr-xr-x  3 root  root  4.0K Aug 21  2015 ..
+        #  -rw-rw-r--  1 james james  22K Aug 22 13:21 picture.jpg
+        #  -rw-------  1 james james  17K Nov  1 20:08 .bash_history
+
+        cmd("ifconfig") # Shells, decodes and prints 'reusables.run' output
+        #   eth0      Link encap:Ethernet  HWaddr de:ad:be:ef:00:00
+        #             inet addr:10.0.2.5  Bcast:10.0.2.255  Mask:255.255.255.0
+        #             ...
+
+        download('https://www.python.org/ftp/python/README.html', save_to_file=False)
+        # 2016-11-02 10:37:23,644 - reusables.web  INFO      Downloading https://www.python.org/ftp/python/README.html (2.3 KB) to memory
+        # b'<PRE>\nPython Distribution...
 
 DateTime
 ~~~~~~~~
@@ -228,11 +257,14 @@ That's right, str.endswith_ (as well as str.startswith_) accept a tuple to searc
  File Type             Extensions
 ===================== ===================
  pictures              .jpeg .jpg .png .gif .bmp .tif .tiff .ico .mng .tga .psd .xcf .svg .icns
- video                 .mkv .avi .mp4 .mov .flv .mpeg .mpg .3gp .m4v .ogv .asf .m1v .m2v .mpe .ogv .wmv .rm .qt
+ video                 .mkv .avi .mp4 .mov .flv .mpeg .mpg .3gp .m4v .ogv .asf .m1v .m2v .mpe .ogv .wmv .rm .qt .3g2 .asf .vob
  music                 .mp3 .ogg .wav .flac .aif .aiff .au .m4a .wma .mp2 .m4a .m4p .aac .ra .mid .midi .mus .psf
- documents             .doc .docx .pdf .xls .xlsx .ppt .pptx .csv .epub .gdoc .odt .rtf .txt .info .xps .gslides .gsheet
+ documents             .doc .docx .pdf .xls .xlsx .ppt .pptx .csv .epub .gdoc .odt .rtf .txt .info .xps .gslides .gsheet .pages .msg .tex .wpd .wps .csv
  archives              .zip .rar .7z .tar.gz .tgz .gz .bzip .bzip2 .bz2 .xz .lzma .bin .tar
  cd_images             .iso .nrg .img .mds .mdf .cue .daa
+ scripts               .py .sh .bat
+ binaries              .msi .exe
+ markup                .html .htm .xml .yaml .json .raml .xhtml .kml
 ===================== ===================
 
 
@@ -250,12 +282,44 @@ different take that requires the function returns a result not yet provided.
         return random.randint(0, 100)
 
 
+Cookie Management
+~~~~~~~~~~~~~~~~~
 
-Common Issues
--------------
+Firefox and Chrome Cookie management. (Chrome requires SQLite 3.8 or greater.)
 
-**UnRAR path issues**
+.. code:: python
 
+        fox = reusables.FirefoxCookies()
+        # Automatically uses the DB of the default profile, can specify db=<path>
+
+        fox.add_cookie("example.com", "MyCookie", "Cookie contents!")
+
+        fox.find_cookies(host="Example")
+        # [{'host': u'example.com', 'name': u'MyCookie', 'value': u'Cookie contents!'}]
+
+        fox.delete_cookie("example.com", "MyCookie")
+
+
+FAQ
+---
+
+**How can I help? / Why doesn't it do what I want it too?**
+
+Please feel free to make suggestions in the 'issues' section of github, or to be super duper helpful go ahead and submit a PR for the
+functionality you want to see! Only requirements are that it's well thought out and is more in place here rather than it's own project
+(to be merged will need documentation and basic unittests as well, but not a requirement for opening the PR).
+Please don't hesitate if you're new to python! Even the smallest PR contributions will earn a mention in a brand new Contributors section.
+
+
+**Why all the underscored imports?**
+
+The rational behind this is just like the standard library, so that the user is sure anything they have access to is solely from this library
+and not one of it's imports. Several variables are also hidden like this, as they are only to be used by the library itself. For example, loggers
+should not have their objects modified by direct reference, but rather obtained through 'logging.getLogger('reusables')', as it helps sort out those who
+know what they are doing.
+
+
+**Unrar not installed?**
 
 A common error to see, especially on Windows based systems, is: "rarfile.RarCannotExec: Unrar not installed? (rarfile.UNRAR_TOOL='unrar')"
 
@@ -318,5 +382,7 @@ improve existing code is warmly welcomed!
    log
    datetime
    namespace
+   web
+   multiprocess_helpers
    wrappers
    changelog
