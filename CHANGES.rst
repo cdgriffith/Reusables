@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Version 0.6.1
+-------------
+
+- Changing config_dict auto_find to accept a path to search at
+- PyPI is stupid is why 0.6.0 is not up there
+
 Version 0.6.0
 -------------
 

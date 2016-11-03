@@ -46,7 +46,7 @@ Key2 = Value2
         assert resp['Section 2'] == {}
 
     def test_get_config_dict_auto(self):
-        resp = reusables.config_dict(auto_find=True)
+        resp = reusables.config_dict(auto_find="test")
         assert resp.get('Section1') == {'key 1': 'value 1', 'key2': 'Value2'}
 
     def test_get_config_dict_no_verify(self):

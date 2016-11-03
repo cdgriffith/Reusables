@@ -215,8 +215,9 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
             cfg_files.extend(config_file)
 
     if auto_find:
-        cfg_files.extend(find_all_files(current_root,
-                                        ext=(".cfg", ".config", ".ini")))
+        cfg_files.extend(find_all_files(
+            current_root if isinstance(auto_find, bool) else auto_find,
+            ext=(".cfg", ".config", ".ini")))
 
     _logger.info("config files to be used: {0}".format(cfg_files))
 
