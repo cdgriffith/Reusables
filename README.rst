@@ -100,7 +100,7 @@ Command line helpers
 --------------------
 
 Use the Python interpreter as much as a shell? Here's some handy helpers to
-fill the void. (Please don't do `import *` in production code, this is used
+fill the void. (Please don't do 'import *' in production code, this is used
 as an easy to use example using the interpreter interactively.)
 
 .. code:: python
@@ -121,14 +121,14 @@ as an easy to use example using the interpreter interactively.)
         popd()
         # ['/home/user']
 
-        ls("-lah")  # Uses `ls` on linux and `dir` on windows
+        ls("-lah")  # Uses 'ls' on linux and 'dir' on windows
         #  total 1.5M
         #  drwxr-xr-x 49 james james 4.0K Nov  1 20:09 .
         #  drwxr-xr-x  3 root  root  4.0K Aug 21  2015 ..
         #  -rw-rw-r--  1 james james  22K Aug 22 13:21 picture.jpg
         #  -rw-------  1 james james  17K Nov  1 20:08 .bash_history
 
-        cmd("ifconfig") # Shells, decodes and prints `reusables.run` output
+        cmd("ifconfig") # Shells, decodes and prints 'reusables.run' output
         #   eth0      Link encap:Ethernet  HWaddr de:ad:be:ef:00:00
         #             inet addr:10.0.2.5  Bcast:10.0.2.255  Mask:255.255.255.0
         #             ...
@@ -303,7 +303,7 @@ FAQ
 
 **How can I help? / Why doesn't it do what I want it too?**
 
-Please feel free to make suggestions in the `issues` section of github, or to be super duper helpful go ahead and submit a PR for the
+Please feel free to make suggestions in the 'issues' section of github, or to be super duper helpful go ahead and submit a PR for the
 functionality you want to see! Only requirements are that it's well thought out and is more in place here rather than it's own project
 (to be merged will need documentation and basic unittests as well, but not a requirement for opening the PR).
 Please don't hesitate if you're new to python! Even the smallest PR contributions will earn a mention in a brand new Contributors section.
@@ -313,7 +313,7 @@ Please don't hesitate if you're new to python! Even the smallest PR contribution
 
 The rational behind this is just like the standard library, so that the user is sure anything they have access to is solely from this library
 and not one of it's imports. Several variables are also hidden like this, as they are only to be used by the library itself. For example, loggers
-should not have their objects modified by direct reference, but rather obtained through `logging.getLogger('reusables')`, as it helps sort out those who
+should not have their objects modified by direct reference, but rather obtained through 'logging.getLogger('reusables')', as it helps sort out those who
 know what they are doing.
 
 
