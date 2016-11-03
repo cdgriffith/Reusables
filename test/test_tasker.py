@@ -37,6 +37,7 @@ class TestTasker(unittest.TestCase):
             tasker.change_task_size(6)
             tasker.pause()
             tasker.unpuase()
+            assert isinstance(tasker.get_state(), dict)
             results = [tasker.result_queue.get() for _ in range(100)]
         finally:
             tasker.stop()

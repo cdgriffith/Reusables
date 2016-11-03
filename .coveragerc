@@ -22,3 +22,6 @@ exclude_lines =
     except NameError
     def _background_runner
     raise TypeError
+    self.free_tasks
+    self.busy_tasks
+    self.current_tasks
