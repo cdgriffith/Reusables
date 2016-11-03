@@ -1,7 +1,9 @@
 Reusables
 =========
 
-**Commonly Consumed Code Commodities** |BuildStatus| |CoverageStatus| |DocStatus| |PyPi| |License|
+|BuildStatus| |CoverageStatus| |License| |PyPi| |DocStatus|
+
+**Commonly Consumed Code Commodities**
 
 Overview
 --------

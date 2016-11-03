@@ -95,7 +95,7 @@ class ThreadedServer(object):
 
         my_server = reusables.ThreadedServer()
         reusables.download("http://localhost:8080", False)
-        # '...<html>\n<title>Directory listing for /</title>...'
+        # '...<html><title>Directory listing for /</title>...'
         my_server.stop()
 
     :param name: server name
