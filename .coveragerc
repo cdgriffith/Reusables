@@ -7,7 +7,7 @@ omit =
     */nose/*
 exclude_lines =
     pragma: no cover
-    except Exception as err
+    except Exception
     conn.close
     raise BrowserException
     object.__setattr__

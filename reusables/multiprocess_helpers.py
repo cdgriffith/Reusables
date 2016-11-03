@@ -29,6 +29,14 @@ class Tasker(object):
 
     def __init__(self, tasks=(), max_tasks=4, task_timeout=None,
                  task_queue=None, result_queue=None):
+        """Initiate the Tasker class
+
+        :param tasks: list of tasks to pre-populate the queue with
+        :param max_tasks: the max number of parallel workers
+        :param task_timeout: how long can each task take
+        :param task_queue: option to specify an existing queue of tasks
+        :param result_queue: option to specify an existing queue for results
+        """
         self.task_queue = task_queue or _mp.Queue()
         if tasks:
             for task in tasks:
@@ -44,8 +52,17 @@ class Tasker(object):
         self._pause, self._end = _mp.Value('b', False), _mp.Value('b', False)
         self.background_process = None
 
+    def get(self, timeout=None):
+        """Retrieve next result from the queue"""
+        return self.result_queue.get(timeout=timeout)
+
+    def put(self, task):
+        """Add a task to be processed to the queue"""
+        return self.task_queue.put(task)
+
     @staticmethod
     def perform_task(task, result_queue):
+        """Function to be overwritten that performs the tasks from the list"""
         raise NotImplementedError()
 
     def _update_tasks(self):
@@ -129,6 +146,7 @@ class Tasker(object):
         return True
 
     def stop(self):
+        """Hard stop the server and sub process"""
         self._end.value = True
         if self.background_process:
             try:
@@ -142,12 +160,15 @@ class Tasker(object):
                 pass
 
     def pause(self):
+        """Stop any more tasks from being run"""
         self._pause.value = True
 
     def unpuase(self):
+        """Allows tasks to be run again"""
         self._pause.value = False
 
     def get_state(self):
+        """Get general information about the state of the class"""
         return {"started": (True if self.background_process and
                             self.background_process.is_alive() else False),
                 "paused": self._pause.value,
@@ -157,6 +178,9 @@ class Tasker(object):
                 "free_tasks": len(self.free_tasks)}
 
     def main_loop(self, stop_at_empty=False):
+        """Blocking function that can be run directly, if so would probably
+        want to specify 'stop_at_empty' to true, or have a separate process
+        adding items to the queue. """
         while True:
             if self._end.value:
                 break
@@ -181,6 +205,7 @@ class Tasker(object):
                                           " {1}".format(task_id, err))
 
     def run(self):
+        """Start the main loop as a background process."""
         self.background_process = _mp.Process(target=self.main_loop)
         self.background_process.start()
 
@@ -191,7 +216,7 @@ def run_in_pool(target, iterable, threaded=True, processes=4,
 
     :param target: function to run
     :param iterable: positional arg to pass to function
-    :param threaded: Threaded if True Multiprocessed if False
+    :param threaded: Threaded if True multiprocessed if False
     :param processes: Number of workers
     :param async: will do map_async if True
     :param target_kwargs: Keyword arguments to set on the function as a partial

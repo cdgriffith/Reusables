@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 0.6.0
+-------------
+
+- Adding multiprocessing helpers, 'Tasker' class and 'run_in_pool'
+- Adding download function
+- Adding ThreadedServer class, for running a server (defaults to local file server) in the background
+- Adding terminal analogues: 'cd', 'pwd', 'ls', 'pushd', 'popd', and shell executer 'cmd'
+- Fix 'run' call to CalledProcessError on older python versions
+
 Version 0.5.2
 -------------
 

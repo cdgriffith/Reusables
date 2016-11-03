@@ -29,7 +29,7 @@ class TestWeb(unittest.TestCase):
         with open("example_file", "w") as f:
             f.write(test_data)
 
-        server = reusables.FileServer(port=port)
+        server = reusables.ThreadedServer(port=port)
         try:
             dl = reusables.download("http://localhost:{0}/"
                                     "example_file".format(port),

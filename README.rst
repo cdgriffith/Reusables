@@ -66,6 +66,8 @@ General Helpers and File Management
         reusables.safe_path('/home/user/eViL User\0\\/newdir$^&*/new^%file.txt')
         # '/home/user/eViL User__/newdir____/new__file.txt'
 
+        reusables.run("echo 'hello there!'", shell=True)
+        # CompletedProcess(args="echo 'hello there!'", returncode=0, stdout='hello there!\n')
 
 Namespace
 ~~~~~~~~~

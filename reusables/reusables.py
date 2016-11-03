@@ -12,7 +12,6 @@ import tempfile as _tempfile
 import csv as _csv
 import json as _json
 import subprocess as _subprocess
-import shlex as _shlex
 
 from .namespace import Namespace, ConfigNamespace
 from .log import get_logger
