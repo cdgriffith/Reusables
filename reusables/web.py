@@ -4,7 +4,7 @@
 import os as _os
 import logging as _logging
 import time as _time
-import multiprocessing as _mp
+import threading as _threading
 try:
     from urllib2 import urlopen as _urlopen
 except ImportError:
@@ -92,21 +92,20 @@ class FileServer(object):
         self.name = name
         self.port = port
         self._process = None
+        self.httpd = _server((name, port), _handler)
         if auto_start:
-            self.run()
+            self.start()
 
-    @staticmethod
-    def _background_runner(name, port):
-        httpd = _server((name, port), _handler)
-        httpd.serve_forever()
+    def _background_runner(self):
+        self.httpd.serve_forever()
 
-    def run(self):
-        self._process = _mp.Process(target=self._background_runner,
-                                    args=(self.name, self.port))
+    def start(self):
+        self._process = _threading.Thread(target=self._background_runner)
         self._process.start()
 
     def stop(self):
-        if self._process:
-            self._process.terminate()
+        self.httpd.shutdown()
+        self._process.join()
+
 
 
