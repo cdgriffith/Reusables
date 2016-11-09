@@ -102,7 +102,7 @@ Command line helpers
 --------------------
 
 Use the Python interpreter as much as a shell? Here's some handy helpers to
-fill the void. (Please don't do 'import *' in production code, this is used
+fill the void. (Please don't do 'import \*' in production code, this is used
 as an easy to use example using the interpreter interactively.)
 
 .. code:: python
