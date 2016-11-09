@@ -9,4 +9,4 @@ from .multiprocess_helpers import *
 from .web import *
 
 __author__ = "Chris Griffith"
-__version__ = "0.6.1"
+__version__ = "0.7.0"

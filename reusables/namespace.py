@@ -21,7 +21,7 @@ class Namespace(dict):
         - namespace['spam'].eggs
     """
 
-    _protected_keys = dir({}) + ['from_dict', 'to_dict']
+    _protected_keys = dir({}) + ['from_dict', 'to_dict', 'tree_view']
 
     def __init__(self, *args, **kwargs):
         if len(args) == 1 and isinstance(args[0], dict):
@@ -62,6 +62,8 @@ class Namespace(dict):
             object.__setattr__(self, key, value)
 
     def __delattr__(self, item):
+        if item in self._protected_keys:
+            raise AttributeError("Key name '{0}' is protected".format(item))
         try:
             object.__getattribute__(self, item)
         except AttributeError:
@@ -128,8 +130,9 @@ class ConfigNamespace(Namespace):
 
     """
 
-    _protected_keys = dir({}) + ['from_dict', 'to_dict', 'bool', 'int', 'float',
-                                 'list', 'getboolean', 'getfloat', 'getint']
+    _protected_keys = dir({}) + ['from_dict', 'to_dict', 'tree_view',
+                                 'bool', 'int', 'float', 'list', 'getboolean',
+                                 'getfloat', 'getint']
 
     def __getattr__(self, item):
         """Config file keys are stored in lower case, be a little more

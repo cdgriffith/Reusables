@@ -19,7 +19,7 @@ class TestReuseNamespace(unittest.TestCase):
         setattr(namespace, 'TEST_KEY', 'VALUE')
         assert namespace.TEST_KEY == 'VALUE'
         delattr(namespace, 'TEST_KEY')
-        assert 'TEST_KEY' not in namespace.to_dict()
+        assert 'TEST_KEY' not in namespace.to_dict(), namespace.to_dict()
         assert isinstance(namespace['Key 2'].Key4, reusables.Namespace)
         assert "'key1': 'value1'" in str(namespace)
         assert repr(namespace).startswith("<Namespace:")
@@ -36,7 +36,7 @@ class TestReuseNamespace(unittest.TestCase):
         assert namespace['Key 2'].new_thing == "test"
         namespace['Key 2'].new_thing += "2"
         assert namespace['Key 2'].new_thing == "test2"
-        assert namespace['Key 2'].to_dict()['new_thing'] == "test2"
+        assert namespace['Key 2'].to_dict()['new_thing'] == "test2", namespace['Key 2'].to_dict()
         assert namespace.to_dict()['Key 2']['new_thing'] == "test2"
         namespace.__setattr__('key1', 1)
         assert namespace['key1'] == 1

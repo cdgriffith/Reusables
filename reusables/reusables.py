@@ -12,9 +12,11 @@ import tempfile as _tempfile
 import csv as _csv
 import json as _json
 import subprocess as _subprocess
+import glob as _glob
 
 from .namespace import Namespace, ConfigNamespace
 from .log import get_logger
+from .dt import DateTime
 
 
 python_version = _sys.version_info[0:3]
@@ -28,7 +30,7 @@ temp_directory = _tempfile.gettempdir()
 home = _os.path.abspath(_os.path.expanduser("~"))
 _saved_paths = []
 
-_logger = get_logger("reusables", level=10, stream=_sys.stdout, file_path=None)
+_logger = get_logger("reusables", level=30, stream=_sys.stderr, file_path=None)
 
 # http://msdn.microsoft.com/en-us/library/aa365247%28v=vs.85%29.aspx
 
@@ -108,6 +110,8 @@ common_variables = {
 regex = Namespace(reg_exps)
 exts = Namespace(common_exts)
 variables = Namespace(common_variables)
+
+exts._protected_keys.extend(exts.keys())
 
 
 def os_tree(directory):
@@ -396,22 +400,34 @@ def count_all_files(directory=".", ext=None, name=None, match_case=False):
 
 
 def find_all_files_generator(directory=".", ext=None, name=None,
-                             match_case=False):
+                             match_case=False, disable_glob=False):
     """
     Walk through a file directory and return an iterator of files
-    that match requirements.
+    that match requirements. Will autodetect if name has glob as magic
+    characters.
 
     :param directory: Top location to recursively search for matching files
     :param ext: Extensions of the file you are looking for
     :param name: Part of the file name
     :param match_case: If name has to be a direct match or not
+    :param disable_glob: Do not look for globable names or use glob magic check
     :return: generator of all files in the specified directory
     """
+    if ext:
+        disable_glob = True
+    if not disable_glob:
+        disable_glob = not _glob.has_magic(name)
+        _logger.debug("No magic detected, disabling glob")
     if ext and isinstance(ext, str):
         ext = [ext]
     elif ext and not isinstance(ext, (list, tuple)):
         raise TypeError("extension must be either one extension or a list")
     for root, dirs, files in _os.walk(directory):
+        if not disable_glob:
+            glob_generator = _glob.iglob(_os.path.join(root, name))
+            for item in glob_generator:
+                yield item
+            continue
         for file_name in files:
             if ext:
                 for end in ext:
@@ -427,19 +443,23 @@ def find_all_files_generator(directory=".", ext=None, name=None,
             yield _os.path.join(root, file_name)
 
 
-def find_all_files(directory=".", ext=None, name=None, match_case=False):
+def find_all_files(directory=".", ext=None, name=None, match_case=False,
+                   disable_glob=False):
     """
     Returns a list of all files in a sub directory that match an extension
-    and or part of a filename.
+    and or part of a filename. Will autodetect if name has glob as magic
+    characters.
 
     :param directory: Top location to recursively search for matching files
     :param ext: Extensions of the file you are looking for
     :param name: Part of the file name
     :param match_case: If name has to be a direct match or not
+    :param disable_glob: Do not look for globable names or use glob magic check
     :return: list of all files in the specified directory
     """
     return list(find_all_files_generator(directory, ext=ext, name=name,
-                                         match_case=match_case))
+                                         match_case=match_case,
+                                         disable_glob=disable_glob))
 
 
 def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True):
@@ -790,3 +810,21 @@ def ls(params="", directory=".", printed=True):
     else:
         return response.stdout
 
+
+def find(name=None, ext=None, directory=".", match_case=False,
+         disable_glob=False):
+    """
+
+    :param name:
+    :param ext:
+    :param directory:
+    :param match_case:
+    :param disable_glob:
+    :return:
+    """
+    return find_all_files(directory=directory, ext=ext, name=name,
+                          match_case=match_case, disable_glob=disable_glob)
+
+
+def now(utc=True, tz=None):
+    return DateTime.utcnow() if utc else DateTime.now(tz=tz)
