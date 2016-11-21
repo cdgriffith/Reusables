@@ -390,5 +390,6 @@ improve existing code is warmly welcomed!
    namespace
    web
    multiprocess_helpers
+   cli
    wrappers
    changelog

@@ -110,7 +110,8 @@ def find(name=None, ext=None, directory=".", match_case=False,
                           match_case=match_case, disable_glob=disable_glob)
 
 
-def head(file_path, lines=None, encoding="utf-8", printed=True):
+def head(file_path, lines=None, encoding="utf-8", printed=True,
+         errors='strict'):
     """
     Read the first N lines of a file, defaults to 10
 
@@ -118,11 +119,45 @@ def head(file_path, lines=None, encoding="utf-8", printed=True):
     :param lines: Number of lines to read in
     :param encoding: defaults to utf-8 to decode as, will fail on binary
     :param printed: Automatically print the lines instead of returning it
+    :param errors: Decoding errors: 'strict', 'ignore' or 'replace'
     :return: if printed is false, the lines are returned as a list
     """
     with open(file_path, "rb") as f:
-        data = [next(f).decode(encoding) for _ in range(lines or 10)]
+        data = [next(f).decode(encoding, errors=errors)
+                for _ in range(lines or 10)]
     if printed:
         print("".join(data))
     else:
         return data
+
+
+def cat(file_path,  encoding="utf-8", errors='strict'):
+    """
+          ^-^
+         (-.-)
+          |.|
+         /  \\
+        |    |   _/
+        | || |  |
+        \_||_/_/
+
+    :param file_path: Path to file to read
+    :param encoding: defaults to utf-8 to decode as, will fail on binary
+    :param errors: Decoding errors: 'strict', 'ignore' or 'replace'
+    """
+
+    with open(file_path, "rb") as f:
+        print(f.read().decode(encoding, errors=errors))
+
+
+def tail(file_path, lines=None, encoding="utf-8",
+         printed=True, errors='strict'):
+    """
+
+    :param file_path:
+    :param lines:
+    :param encoding:
+    :param printed:
+    :param errors:
+    :return:
+    """
