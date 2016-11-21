@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
-import unittest
-import os
-import reusables
 import datetime
 
-test_root = os.path.abspath(os.path.dirname(__file__))
+import reusables
+
+from .common_test_data import *
 
 
-class TestReuseDatetime(unittest.TestCase):
+class BaseTestClass(unittest.TestCase):
 
     def test_datetime_from_iso(self):
         test = datetime.datetime.now()

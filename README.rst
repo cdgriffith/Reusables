@@ -105,9 +105,15 @@ Use the Python interpreter as much as a shell? Here's some handy helpers to
 fill the void. (Please don't do 'import \*' in production code, this is used
 as an easy to use example using the interpreter interactively.)
 
+> These are not imported by default with `import reusables`, as they are designed to be imported only in an interactive shell
+
+Some commands from other areas are also included where they are highly applicable in both
+instances, such as 'touch' and 'download'.
+
+
 .. code:: python
 
-        from reusables import *
+        from reusables.cli import *
 
         cd("~") # Automatic user expansion unlike os.chdir()
 

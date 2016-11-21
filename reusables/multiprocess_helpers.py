@@ -37,12 +37,13 @@ class Tasker(object):
     """
 
     def __init__(self, tasks=(), max_tasks=4, task_timeout=None,
-                 task_queue=None, result_queue=None):
+                 task_queue=None, result_queue=None, command_queue=None):
         self.task_queue = task_queue or _mp.Queue()
         if tasks:
             for task in tasks:
                 self.task_queue.put(task)
         self.result_queue = result_queue or _mp.Queue()
+        self.command_queue = command_queue or _mp.Queue()
         self.free_tasks = [str(_uuid.uuid4()) for _ in range(max_tasks)]
         self.current_tasks = {}
         for task_id in self.free_tasks:
@@ -178,6 +179,27 @@ class Tasker(object):
                 "busy_tasks": len(self.busy_tasks),
                 "free_tasks": len(self.free_tasks)}
 
+    def _check_command_queue(self):
+        try:
+            cmd = self.command_queue.get(block=False)
+        except _queue.Empty:
+            return
+
+        if "stop" in cmd.lower():
+            self.stop()
+        elif "pause" in cmd.lower():
+            self.pause()
+        elif "change task size" in cmd.lower():
+            try:
+                new_size = int(cmd.split(" ")[-1:])
+            except Exception as err:
+                _logger.warning("Received improperly formatted command tasking "
+                                "'{0}' - {1}".format(cmd, err))
+            else:
+                self.change_task_size(new_size)
+        else:
+            _logger.warning("Received an unknown command '{0}'".format(cmd))
+
     def main_loop(self, stop_at_empty=False):
         """Blocking function that can be run directly, if so would probably
         want to specify 'stop_at_empty' to true, or have a separate process
@@ -188,6 +210,7 @@ class Tasker(object):
             if self._pause.value:
                 _time.sleep(.5)
                 continue
+            self._check_command_queue()
             self._update_tasks()
             task_id = self._free_task()
             if task_id:

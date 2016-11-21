@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 0.7.0
+-------------
+
+- Adding head
+- Adding command queue to Tasking class, to give commands asynchronously and without directly referencing the instance
+- Changing test suite to have a common file it pulls imports and info from
+- Breaking change: Moving command line helpers to cli
+- Breaking change: Command line helpers are not imported by default, should now use: from reusables.cli import *
+
 Version 0.6.1
 -------------
 

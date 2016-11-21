@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-import unittest
-import os
 import random
-import reusables
 
-test_root = os.path.abspath(os.path.dirname(__file__))
-data_dr = os.path.join(test_root, "data")
+import reusables
+from reusables.cli import *
+
+from .common_test_data import *
 
 
 class TestWeb(unittest.TestCase):
@@ -25,7 +24,7 @@ class TestWeb(unittest.TestCase):
         port = random.randint(9000, 9999)
 
         test_data = "Test data of a fox jumping"
-        reusables.pushd(data_dr)
+        pushd(data_dr)
         with open("example_file", "w") as f:
             f.write(test_data)
 
@@ -54,7 +53,7 @@ class TestWeb(unittest.TestCase):
                 os.unlink("dlfile")
             except OSError:
                 pass
-            reusables.popd()
+            popd()
 
     def test_bad_url(self):
         try:

@@ -18,7 +18,6 @@ from .namespace import Namespace, ConfigNamespace
 from .log import get_logger
 from .dt import DateTime
 
-
 python_version = _sys.version_info[0:3]
 version_string = ".".join([str(x) for x in python_version])
 current_root = _os.path.abspath(".")
@@ -28,7 +27,7 @@ nix_based = _os.name == "posix"
 win_based = _os.name == "nt"
 temp_directory = _tempfile.gettempdir()
 home = _os.path.abspath(_os.path.expanduser("~"))
-_saved_paths = []
+
 
 _logger = get_logger("reusables", level=30, stream=_sys.stderr, file_path=None)
 
@@ -685,7 +684,7 @@ def touch(path):
 
 
 def run(command, input=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
-        timeout=None, **kwargs):
+        timeout=None, copy_local_env=False, **kwargs):
     """
     Cross platform compatible subprocess with CompletedProcess return.
 
@@ -694,12 +693,21 @@ def run(command, input=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
     :param stdout: PIPE or None
     :param stderr: PIPE or None
     :param timeout: max time to wait for command to complete
+    :param copy_local_env: Use all current ENV vars in the subprocess as well
     :param kwargs: additional arguments to pass to Popen
     :return: CompletedProcess class
     """
+    if copy_local_env:
+        # Copy local env first and overwrite with anything manually specified
+        env = _os.environ.copy()
+        env.update(kwargs.get('env', {}))
+    else:
+        env = kwargs.get('env')
+
     if _sys.version_info >= (3, 5):
         return _subprocess.run(command, input=input, stdout=stdout,
-                               stderr=stderr, timeout=timeout, **kwargs)
+                               stderr=stderr, timeout=timeout, env=env,
+                               **kwargs)
 
     class CompletedProcess(object):
         """A backwards compatible clone of subprocess.CompletedProcess"""
@@ -727,7 +735,8 @@ def run(command, input=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
                                                      self.args,
                                                      self.stdout)
 
-    proc = _subprocess.Popen(command, stdout=stdout, stderr=stderr, **kwargs)
+    proc = _subprocess.Popen(command, stdout=stdout, stderr=stderr,
+                             env=env, **kwargs)
     if PY3:
         out, err = proc.communicate(input=input, timeout=timeout)
     else:
@@ -737,94 +746,6 @@ def run(command, input=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
     return CompletedProcess(command, proc.returncode, out, err)
 
 
-def cmd(command, ignore_stderr=False, raise_on_return=False, timeout=None,
-        encoding="utf-8"):
-    """ Run a shell command and have it automatically decoded and printed
-
-    :param command: Command to run as str
-    :param ignore_stderr: To not print stderr
-    :param raise_on_return: Run CompletedProcess.check_returncode()
-    :param timeout: timeout to pass to communicate if python 3
-    :param encoding: How the output should be decoded
-    """
-    result = run(command, timeout=timeout, shell=True)
-    if raise_on_return:
-        result.check_returncode()
-    print(result.stdout.decode(encoding))
-    if not ignore_stderr and result.stderr:
-        print(result.stderr.decode(encoding))
-
-
-def pushd(directory):
-    """Change working directories in style and stay organized!
-
-    :param directory: Where do you want to go and remember?
-    :return: saved directory stack
-    """
-    directory = _os.path.expanduser(directory)
-    _saved_paths.insert(0, _os.path.abspath(_os.getcwd()))
-    _os.chdir(directory)
-    return [directory] + _saved_paths
-
-
-def popd():
-    """Go back to where you once were.
-
-    :return: saved directory stack
-    """
-    try:
-        directory = _saved_paths.pop(0)
-    except IndexError:
-        return [_os.getcwd()]
-    _os.chdir(directory)
-    return [directory] + _saved_paths
-
-
-def pwd():
-    """Get the current working directory"""
-    return _os.getcwd()
-
-
-def cd(directory):
-    """Change working directory, with built in user (~) expansion
-
-    :param directory: New place you wanted to go
-    """
-    _os.chdir(_os.path.expanduser(directory))
-
-
-def ls(params="", directory=".", printed=True):
-    """Know the best python implantation of ls? It's just to subprocess ls...
-
-    :param params: options to pass to ls
-    :param directory: if not this directory
-    :param printed: If you're using this, you probably wanted it just printed
-    :return: if not printed, you can parse it yourself
-    """
-    command = "{0} {1} {2}".format("ls" if not win_based else "dir",
-                                   params, directory)
-    response = run(command, shell=True)  # Shell required for windows
-    response.check_returncode()
-    if printed:
-        print(response.stdout.decode("utf-8"))
-    else:
-        return response.stdout
-
-
-def find(name=None, ext=None, directory=".", match_case=False,
-         disable_glob=False):
-    """
-
-    :param name:
-    :param ext:
-    :param directory:
-    :param match_case:
-    :param disable_glob:
-    :return:
-    """
-    return find_all_files(directory=directory, ext=ext, name=name,
-                          match_case=match_case, disable_glob=disable_glob)
-
-
 def now(utc=True, tz=None):
     return DateTime.utcnow() if utc else DateTime.now(tz=tz)
+

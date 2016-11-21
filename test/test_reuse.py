@@ -1,24 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import unittest
-import os
-import shutil
 import tarfile
 import tempfile
-import reusables
 import subprocess
 
-test_root = os.path.abspath(os.path.dirname(__file__))
-data_dr = os.path.join(test_root, "data")
+import reusables
+from reusables.cli import touch
 
-test_structure_tar = os.path.join(data_dr, "test_structure.tar.gz")
-test_structure_zip = os.path.join(data_dr, "test_structure.zip")
-test_structure_rar = os.path.join(data_dr, "test_structure.rar")
-test_structure = os.path.join(test_root, "test_structure")
+from .common_test_data import *
 
 
-class TestReuse(unittest.TestCase):
+class BaseTestClass(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -32,12 +25,6 @@ Key2 = Value2
             oc.write(config_file)
         if os.path.exists(test_structure):
             shutil.rmtree(test_structure)
-            shutil.rmtree(test_structure)
-
-    @classmethod
-    def tearDownClass(cls):
-        os.unlink(os.path.join(test_root, "test_config.cfg"))
-        if os.path.exists(test_structure):
             shutil.rmtree(test_structure)
 
     def test_get_config_dict(self):
@@ -298,7 +285,7 @@ Key2 = Value2
 
     def test_dup_empty(self):
         empty_file = reusables.join_paths(test_root, "empty")
-        reusables.touch(empty_file)
+        touch(empty_file)
         self._extract_structure()
         b = [x for x in reusables.dup_finder_generator(empty_file, test_root)]
         print(b)
@@ -354,37 +341,6 @@ Key2 = Value2
         else:
             assert False
 
-    def test_cmd(self):
-        import sys
-        save_file = os.path.join(data_dr, "stdout")
-        saved = sys.stdout
-        sys.stdout = open(save_file, "w")
-        reusables.cmd(">&2 echo 'hello'", raise_on_return=True)
-        sys.stdout.close()
-        sys.stdout = saved
-        try:
-            with open(save_file, "r") as f:
-                assert "hello" in f.read()
-        finally:
-            os.unlink(save_file)
-
-    def test_paths(self):
-        push = reusables.pushd(data_dr)
-        assert push[0] == data_dr
-        assert reusables.popd()[0] == os.getcwd()
-        assert reusables.popd()[0] == os.getcwd()
-        assert reusables.popd()[0] == os.getcwd()
-        assert reusables.pwd() == os.getcwd()
-        cur = os.getcwd()
-        reusables.cd(data_dr)
-        assert reusables.pwd() == data_dr
-        os.chdir(cur)
-
-    def test_ls(self):
-        reusables.pushd(data_dr)
-        test1 = reusables.ls(printed=False)
-        assert "test" in test1.decode("utf-8")
-        test2 = reusables.ls()
 
 
 if reusables.nix_based:
