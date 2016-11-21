@@ -111,6 +111,15 @@ def find(name=None, ext=None, directory=".", match_case=False,
 
 
 def head(file_path, lines=None, encoding="utf-8", printed=True):
+    """
+    Read the first N lines of a file, defaults to 10
+
+    :param file_path: Path to file to read
+    :param lines: Number of lines to read in
+    :param encoding: defaults to utf-8 to decode as, will fail on binary
+    :param printed: Automatically print the lines instead of returning it
+    :return: if printed is false, the lines are returned as a list
+    """
     with open(file_path, "rb") as f:
         data = [next(f).decode(encoding) for _ in range(lines or 10)]
     if printed:

@@ -747,5 +747,12 @@ def run(command, input=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
 
 
 def now(utc=True, tz=None):
+    """
+    Get a current DateTime object. By default is UTC, not local.
+
+    :param utc: bool, default True, UTC time not local
+    :param tz: TimeZone as specified by the datetime module
+    :return: reusables.DateTime
+    """
     return DateTime.utcnow() if utc else DateTime.now(tz=tz)
 
