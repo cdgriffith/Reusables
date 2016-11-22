@@ -4,7 +4,8 @@ Changelog
 Version 0.7.0
 -------------
 
-- Adding head
+- Adding head, tail, cat
+- Adding depth to find files
 - Adding command queue to Tasking class, to give commands asynchronously and without directly referencing the instance
 - Changing test suite to have a common file it pulls imports and info from
 - Breaking change: Moving command line helpers to cli

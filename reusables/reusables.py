@@ -399,7 +399,7 @@ def count_all_files(directory=".", ext=None, name=None, match_case=False):
 
 
 def find_all_files_generator(directory=".", ext=None, name=None,
-                             match_case=False, disable_glob=False):
+                             match_case=False, disable_glob=False, depth=None):
     """
     Walk through a file directory and return an iterator of files
     that match requirements. Will autodetect if name has glob as magic
@@ -410,23 +410,32 @@ def find_all_files_generator(directory=".", ext=None, name=None,
     :param name: Part of the file name
     :param match_case: If name has to be a direct match or not
     :param disable_glob: Do not look for globable names or use glob magic check
+    :param depth: How many directories down to search
     :return: generator of all files in the specified directory
     """
-    if ext:
+    if ext or not name:
         disable_glob = True
     if not disable_glob:
         disable_glob = not _glob.has_magic(name)
         _logger.debug("No magic detected, disabling glob")
+
     if ext and isinstance(ext, str):
         ext = [ext]
     elif ext and not isinstance(ext, (list, tuple)):
         raise TypeError("extension must be either one extension or a list")
+    directory = _os.path.abspath(directory)
+    starting_depth = directory.count(_os.sep)
+
     for root, dirs, files in _os.walk(directory):
+        if depth and root.count(_os.sep) - starting_depth >= depth:
+            continue
+
         if not disable_glob:
             glob_generator = _glob.iglob(_os.path.join(root, name))
             for item in glob_generator:
                 yield item
             continue
+
         for file_name in files:
             if ext:
                 for end in ext:
@@ -443,7 +452,7 @@ def find_all_files_generator(directory=".", ext=None, name=None,
 
 
 def find_all_files(directory=".", ext=None, name=None, match_case=False,
-                   disable_glob=False):
+                   disable_glob=False, depth=None):
     """
     Returns a list of all files in a sub directory that match an extension
     and or part of a filename. Will autodetect if name has glob as magic
@@ -454,11 +463,13 @@ def find_all_files(directory=".", ext=None, name=None, match_case=False,
     :param name: Part of the file name
     :param match_case: If name has to be a direct match or not
     :param disable_glob: Do not look for globable names or use glob magic check
+    :param depth: How many directories down to search
     :return: list of all files in the specified directory
     """
     return list(find_all_files_generator(directory, ext=ext, name=name,
                                          match_case=match_case,
-                                         disable_glob=disable_glob))
+                                         disable_glob=disable_glob,
+                                         depth=depth))
 
 
 def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True):

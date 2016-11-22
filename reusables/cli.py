@@ -95,7 +95,7 @@ def ls(params="", directory=".", printed=True):
 
 
 def find(name=None, ext=None, directory=".", match_case=False,
-         disable_glob=False):
+         disable_glob=False, depth=None):
     """ Designed for the interactive interpreter by making default order
     of find_all_files faster.
 
@@ -104,10 +104,12 @@ def find(name=None, ext=None, directory=".", match_case=False,
     :param directory: Top location to recursively search for matching files
     :param match_case: If name has to be a direct match or not
     :param disable_glob: Do not look for globable names or use glob magic check
+    :param depth: How many directories down to search
     :return: list of all files in the specified directory
     """
     return find_all_files(directory=directory, ext=ext, name=name,
-                          match_case=match_case, disable_glob=disable_glob)
+                          match_case=match_case, disable_glob=disable_glob,
+                          depth=depth)
 
 
 def head(file_path, lines=None, encoding="utf-8", printed=True,

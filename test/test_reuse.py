@@ -25,7 +25,6 @@ Key2 = Value2
             oc.write(config_file)
         if os.path.exists(test_structure):
             shutil.rmtree(test_structure)
-            shutil.rmtree(test_structure)
 
     def test_get_config_dict(self):
         resp = reusables.config_dict(os.path.join(test_root, 'test_config.cfg'))
@@ -127,6 +126,13 @@ Key2 = Value2
         resp = iter(reusables.find_all_files_generator(test_root,
                                                    ext={'test': '.txt'}))
         self.assertRaises(TypeError, next, resp)
+
+    def test_find_files_depth(self):
+        self._extract_structure()
+        resp = reusables.find_all_files(test_structure, depth=1)
+        assert not resp, resp
+        resp2 = reusables.find_all_files(test_structure, depth=2)
+        assert len(resp2) == 5, resp2
 
     def test_find_files_iterator(self):
         resp = reusables.find_all_files_generator(test_root, ext=".cfg")
