@@ -7,7 +7,7 @@ import reusables
 from .common_test_data import *
 
 
-class BaseTestClass(unittest.TestCase):
+class TestDateTime(BaseTestClass):
 
     def test_datetime_from_iso(self):
         test = datetime.datetime.now()

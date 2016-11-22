@@ -9,7 +9,7 @@ from reusables.cli import *
 from .common_test_data import *
 
 
-class TestWeb(unittest.TestCase):
+class TestWeb(BaseTestClass):
 
     def test_server_and_download(self):
         try:

@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
-import unittest
-import os
 import reusables
 
-test_root = os.path.abspath(os.path.dirname(__file__))
+from .common_test_data import *
 
 
-class TestReuseNamespace(unittest.TestCase):
+class TestReuseNamespace(BaseTestClass):
 
     def test_namespace(self):
         test_dict = {'key1': 'value1',

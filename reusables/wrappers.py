@@ -8,9 +8,14 @@ import time as _time
 from threading import Lock as _Lock
 from functools import wraps as _wraps
 import logging as _logging
+try:
+    import queue as _queue
+except ImportError:
+    import Queue as _queue
 
 _logger = _logging.getLogger("reusables.wrappers")
 _g_lock = _Lock()
+_g_queue = _queue.Queue()
 _unique_cache = dict()
 _reuse_cache = dict()  # Could use DefaultDict but eh, it's another import
 
@@ -147,4 +152,17 @@ def time_it(log=False, message="Function took a total of {0} seconds"):
         return wrapper
     return func_wrapper
 
+
+def queue_it(queue=_g_queue):
+    """
+
+    :param queue:
+    :return:
+    """
+    def func_wrapper(func):
+        @_wraps(func)
+        def wrapper(*args, **kwargs):
+            queue.put(func(*args, **kwargs))
+        return wrapper
+    return func_wrapper
 

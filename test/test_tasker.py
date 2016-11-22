@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-import unittest
 import time
 import reusables
 import logging
 import platform
+
+from .common_test_data import *
 
 reusables.change_logger_levels(logging.getLogger('reusables'), logging.INFO)
 
@@ -25,7 +26,7 @@ class ExampleAddTasker(reusables.Tasker):
         queue.put(task, task + task)
 
 
-class TestTasker(unittest.TestCase):
+class TestTasker(BaseTestClass):
 
     def test_example_add_tasker(self):
         if reusables.win_based and platform.python_implementation() == 'PyPy':

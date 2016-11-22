@@ -2,13 +2,12 @@
 # -*- coding: UTF-8 -*-
 
 
-import unittest
-import os
 import logging
 import reusables
 import sys
 
-test_root = os.path.abspath(os.path.dirname(__file__))
+from .common_test_data import *
+
 my_stream_path = os.path.join(test_root, "my_stream.log")
 
 if sys.version_info < (2, 7):
@@ -19,7 +18,7 @@ if sys.version_info < (2, 7):
     logging.NullHandler = NullHandler
 
 
-class TestReuseLogging(unittest.TestCase):
+class TestReuseLogging(BaseTestClass):
 
     def setUp(self):
         logging.getLogger(__name__).handlers = []

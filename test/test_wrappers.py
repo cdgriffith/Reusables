@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import time
-import unittest
+
+from .common_test_data import *
 
 from reusables import reuse, unique, lock_it
 
@@ -26,7 +27,7 @@ def unique_function_3():
     return int(time.time())
 
 
-class TestWrappers(unittest.TestCase):
+class TestWrappers(BaseTestClass):
 
     def setUp(self):
         gen_func(reuse_reset=True)

@@ -1,26 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import unittest
-import os
-import sys
 import time
 import datetime
-import shutil
 import sqlite3
 import reusables
 
-test_root = os.path.abspath(os.path.dirname(__file__))
+from .common_test_data import  *
+
 fox_db = os.path.join(test_root, "data", "firefox_cookies_copy.sqlite")
 chrome_db = os.path.join(test_root, "data", "chrome_cookies_copy.sqlite")
 
 
-class TestBrowser(reusables.CookieManager):
+class ExampleBrowser(reusables.CookieManager):
     def __init__(self):
         pass
 
 
-class TestReuse(unittest.TestCase):
+class TestBrowser(BaseTestClass):
 
     def setUp(self):
         try:
@@ -40,7 +37,7 @@ class TestReuse(unittest.TestCase):
         os.unlink(chrome_db)
 
     def test_current_time(self):
-        tb = TestBrowser()
+        tb = ExampleBrowser()
         t1 = tb._current_time(length=20)
         t2 = tb._current_time(length=5)
         assert len(str(t1)) == 20
@@ -49,7 +46,7 @@ class TestReuse(unittest.TestCase):
         assert time.time() - float(t3) <= 3
 
     def test_exp_time(self):
-        tb = TestBrowser()
+        tb = ExampleBrowser()
         t1 = tb._expire_time(length=20)
         t2 = tb._expire_time(length=5)
         print(t1)
@@ -59,7 +56,7 @@ class TestReuse(unittest.TestCase):
         assert (time.time() + 864000) - float(t3) <= 3
 
     def test_overrides(self):
-        tb = TestBrowser()
+        tb = ExampleBrowser()
         try:
             tb._insert_command(None, None, None, None, None, None, None, None)
         except NotImplementedError:

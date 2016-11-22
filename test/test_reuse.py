@@ -11,7 +11,7 @@ from reusables.cli import touch
 from .common_test_data import *
 
 
-class BaseTestClass(unittest.TestCase):
+class TestReuse(BaseTestClass):
 
     @classmethod
     def setUpClass(cls):
@@ -33,8 +33,8 @@ Key2 = Value2
         assert resp['Section 2'] == {}
 
     def test_get_config_dict_auto(self):
-        resp = reusables.config_dict(auto_find="test")
-        assert resp.get('Section1') == {'key 1': 'value 1', 'key2': 'Value2'}
+        resp = reusables.config_dict(auto_find=test_root)
+        assert resp.get('Section1') == {'key 1': 'value 1', 'key2': 'Value2'}, resp.get('Section1')
 
     def test_get_config_dict_no_verify(self):
         resp = reusables.config_dict('bad_loc.cfg', verify=False)

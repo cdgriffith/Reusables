@@ -4,7 +4,7 @@ from reusables.cli import *
 from .common_test_data import *
 
 
-class BaseTestClass(unittest.TestCase):
+class TestCLI(BaseTestClass):
 
     def test_cmd(self):
         import sys
