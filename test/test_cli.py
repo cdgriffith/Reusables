@@ -37,3 +37,12 @@ class TestCLI(BaseTestClass):
         test1 = ls(printed=False)
         assert "test" in test1.decode("utf-8")
         test2 = ls()
+
+    def test_head(self):
+        pass
+
+    def test_tail(self):
+        pass
+
+    def test_cat(self):
+        pass

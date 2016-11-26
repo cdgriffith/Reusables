@@ -78,8 +78,9 @@ def cd(directory):
 
 def ls(params="", directory=".", printed=True):
     """Know the best python implantation of ls? It's just to subprocess ls...
+    (uses dir on windows).
 
-    :param params: options to pass to ls
+    :param params: options to pass to ls or dir
     :param directory: if not this directory
     :param printed: If you're using this, you probably wanted it just printed
     :return: if not printed, you can parse it yourself
@@ -112,7 +113,7 @@ def find(name=None, ext=None, directory=".", match_case=False,
                           depth=depth)
 
 
-def head(file_path, lines=None, encoding="utf-8", printed=True,
+def head(file_path, lines=10, encoding="utf-8", printed=True,
          errors='strict'):
     """
     Read the first N lines of a file, defaults to 10
@@ -126,7 +127,7 @@ def head(file_path, lines=None, encoding="utf-8", printed=True,
     """
     with open(file_path, "rb") as f:
         data = [next(f).decode(encoding, errors=errors)
-                for _ in range(lines or 10)]
+                for _ in range(lines)]
     if printed:
         print("".join(data))
     else:
@@ -152,14 +153,27 @@ def cat(file_path,  encoding="utf-8", errors='strict'):
         print(f.read().decode(encoding, errors=errors))
 
 
-def tail(file_path, lines=None, encoding="utf-8",
+def tail(file_path, lines=10, encoding="utf-8",
          printed=True, errors='strict'):
     """
+    A really silly way to get the last N lines, defaults to 10.
 
-    :param file_path:
-    :param lines:
-    :param encoding:
-    :param printed:
-    :param errors:
-    :return:
+
+    :param file_path: Path to file to read
+    :param lines: Number of lines to read in
+    :param encoding: defaults to utf-8 to decode as, will fail on binary
+    :param printed: Automatically print the lines instead of returning it
+    :param errors: Decoding errors: 'strict', 'ignore' or 'replace'
+    :return: if printed is false, the lines are returned as a list
     """
+    data = []
+
+    with open(file_path, "rb") as f:
+        for line in f:
+            data.append(line.decode(encoding, errors=errors))
+            if len(data) > lines:
+                data.pop(0)
+    if printed:
+        print("".join(data))
+    else:
+        return data
