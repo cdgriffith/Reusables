@@ -699,6 +699,23 @@ def run(command, input=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
     """
     Cross platform compatible subprocess with CompletedProcess return.
 
+    No formatting or encoding is performed on the output of subprocess, so it's
+    output will appear the same on each version / interpreter as before.
+
+    .. code:: python
+
+        reusables.run('echo "hello world!', shell=True)
+        # CPython 3.6
+        # CompletedProcess(args='echo "hello world!', returncode=0,
+        #                  stdout=b'"hello world!\r\n', stderr=b'')
+
+        # PyPy 5.4 (Python 2.7.10)
+        # CompletedProcess(args='echo "hello world!', returncode=0L,
+        # stdout='"hello world!\r\n')
+
+    Timeout is only usable in Python 3.X, as it was not implimented before then,
+    a NotImplementedError will be raised if specified on 2.x version of Python.
+
     :param command: command to run, str if shell=True otherwise must be list
     :param input: send something `communicate`
     :param stdout: PIPE or None
@@ -720,6 +737,8 @@ def run(command, input=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
                                stderr=stderr, timeout=timeout, env=env,
                                **kwargs)
 
+    # Created here instead of root level as it should never need to be
+    # manually created or referenced
     class CompletedProcess(object):
         """A backwards compatible clone of subprocess.CompletedProcess"""
 
@@ -761,9 +780,66 @@ def now(utc=True, tz=None):
     """
     Get a current DateTime object. By default is UTC, not local.
 
+    .. code:: python
+
+        reusables.now()
+        # DateTime(2016, 12, 8, 22, 5, 2, 517000)
+
+        reusables.now().format("It's {24-hour}:{min}")
+        # "It's 22:05"
+
     :param utc: bool, default True, UTC time not local
     :param tz: TimeZone as specified by the datetime module
     :return: reusables.DateTime
     """
     return DateTime.utcnow() if utc else DateTime.now(tz=tz)
+
+
+def splice(string, characters=2, trailing="normal"):
+    """
+    Split a string into a list of N characters each.
+
+    .. code:: python
+
+        reusables.splice("abcdefghi")
+        # ['ab', 'cd', 'ef', 'gh', 'i']
+
+    trailing gives you the following options:
+
+    * normal: leaves remaining characters in their own last position
+    * remove: return the list without the remainder characters
+    * combine: add the remainder characters to the previous set
+    * error: raise an IndexError if there are remaining characters
+
+    .. code:: python
+
+        reusables.splice("abcdefghi", 2, "error")
+        # Traceback (most recent call last):
+        #     ...
+        # IndexError: String of length 9 not divisible by 2 to splice
+
+        reusables.splice("abcdefghi", 2, "remove")
+        # ['ab', 'cd', 'ef', 'gh']
+
+        reusables.splice("abcdefghi", 2, "combine")
+        # ['ab', 'cd', 'ef', 'ghi']
+
+    :param string: string to modify
+    :param characters: how many characters to split it into
+    :param trailing: "normal", "remove", "combine", or "error"
+    :return: list of the spliced string
+    """
+    split_str = [string[i:i + characters] for
+                 i in range(0, len(string), characters)]
+
+    if trailing != "normal" and len(split_str[-1]) != characters:
+        if trailing.lower() == "remove":
+            return split_str[:-1]
+        if trailing.lower() == "combine" and len(split_str) >= 2:
+            return split_str[:-2] + [split_str[-2] + split_str[-1]]
+        if trailing.lower() == "error":
+            raise IndexError("String of length {0} not divisible by {1} to"
+                             " splice".format(len(string), characters))
+    return split_str
+
 

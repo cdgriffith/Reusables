@@ -324,6 +324,8 @@ and not one of it's imports. Several variables are also hidden like this, as the
 should not have their objects modified by direct reference, but rather obtained through 'logging.getLogger('reusables')', as it helps sort out those who
 know what they are doing.
 
+I could use __all__ and just expose what I want, but I feel that people should be allowed to copy a single file or function out of here,
+and have a clear understanding what is designed to be exposed without being an interpreter.
 
 **Unrar not installed?**
 
@@ -332,6 +334,13 @@ A common error to see, especially on Windows based systems, is: "rarfile.RarCann
 This is probably because unrar is not downloaded or linked properly. Download UnRAR
 from http://www.rarlab.com/rar_add.htm and follow these instructions before
 trying again: http://rarfile.readthedocs.org/en/latest/faq.html?highlight=windows#how-can-i-get-it-work-on-windows
+
+**I can't figure out how upgrade SQLite on Windows to 3.8 or higher instead of 3.6**
+
+Me neither. ¯\\_(ツ)_/¯
+
+Using Python 3.6 magically fixed it for me. If you ever figure it out, please let me know.
+
 
 License
 -------
