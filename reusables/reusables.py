@@ -13,6 +13,10 @@ import csv as _csv
 import json as _json
 import subprocess as _subprocess
 import glob as _glob
+try:
+    import ConfigParser as _ConfigParser
+except ImportError:
+    import configparser as _ConfigParser
 
 from .namespace import Namespace, ConfigNamespace
 from .log import get_logger
@@ -66,7 +70,7 @@ reg_exps = {
     "pii": {
         "phone_number": {
             "us": _re.compile(r'((?:\(? ?\d{3} ?\)?[\. \-]?)?\d{3}'
-                             r'[\. \-]?\d{4})')
+                              r'[\. \-]?\d{4})')
         }
     },
 }
@@ -199,13 +203,8 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
     """
     if not config_file:
         config_file = []
-    try:
-        import ConfigParser
-    except ImportError:
-        import configparser as ConfigParser
 
-    cfg_parser = ConfigParser.ConfigParser(**cfg_options)
-
+    cfg_parser = _ConfigParser.ConfigParser(**cfg_options)
     cfg_files = []
 
     if config_file:
@@ -621,7 +620,7 @@ def dup_finder_generator(file_path, directory="."):
                         test_first_twenty = f.read(20)
                 except OSError:
                     _logger.warning("Could not open file to compare - "
-                                    "{}".format(test_file))
+                                    "{0}".format(test_file))
                 else:
                     if first_twenty == test_first_twenty:
                         if file_hash(test_file, "sha256") == file_sha256:
@@ -631,6 +630,24 @@ def dup_finder_generator(file_path, directory="."):
 def list_to_csv(my_list, csv_file):
     """
     Save a matrix (list of lists) to a file as a CSV
+
+    .. code:: python
+
+        my_list = [["Name", "Location"],
+                   ["Chris", "South Pole"],
+                   ["Harry", "Depth of Winter"],
+                   ["Bob", "Skull"]]
+
+        reusables.list_to_csv(c, "example.csv")
+
+    example.csv
+
+    .. code:: csv
+
+        "Name","Location"
+        "Chris","South Pole"
+        "Harry","Depth of Winter"
+        "Bob","Skull"
 
     :param my_list: list of lists to save to CSV
     :param csv_file: File to save data to
@@ -649,8 +666,15 @@ def list_to_csv(my_list, csv_file):
 
 def csv_to_list(csv_file):
     """
-    Open and transform a CSV file into a matrix (list of lists),
+    Open and transform a CSV file into a matrix (list of lists).
 
+    .. code:: python
+
+        reusables.csv_to_list("example.csv")
+        # [['Name', 'Location'],
+        #  ['Chris', 'South Pole'],
+        #  ['Harry', 'Depth of Winter'],
+        #  ['Bob', 'Skull']]
 
     :param csv_file: Path to CSV file as str
     :return: list
@@ -663,6 +687,11 @@ def load_json(json_file, **kwargs):
     """
     Open and load data from a JSON file
 
+    .. code:: python
+
+        reusables.load_json("example.json")
+        # {u'key_1': u'val_1', u'key_for_dict': {u'sub_dict_key': 8}}
+
     :param json_file: Path to JSON file as string
     :param kwargs: Additional arguments for the json.load command
     :return: Dictionary
@@ -674,6 +703,21 @@ def load_json(json_file, **kwargs):
 def save_json(data, json_file, indent=4, **kwargs):
     """
     Takes a dictionary and saves it to a file as JSON
+
+    .. code:: python
+
+        reusables.save_json({"key_1": "val_1",
+                             "key_for_dict": {"sub_dict_key": 8}},
+                            "example.json")
+    example.json
+
+    .. code:: json
+        {
+            "key_1": "val_1",
+            "key_for_dict": {
+                "sub_dict_key": 8
+            }
+        }
 
     :param data: dictionary to save as JSON
     :param json_file: Path to save file location as str
