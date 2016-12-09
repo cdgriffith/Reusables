@@ -99,7 +99,7 @@ Key2 = Value2
     def test_count_name(self):
         self._extract_structure()
         resp = reusables.count_all_files(test_root, name="file_")
-        assert resp == 4, resp
+        assert resp == 4, reusables.find_all_files(test_root, name="file_")
 
     def test_fail_count_files(self):
         self._extract_structure()

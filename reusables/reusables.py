@@ -121,6 +121,16 @@ def os_tree(directory):
     """
     Return a directories contents as a dictionary hierarchy.
 
+    .. code:: python
+
+        reusables.os_tree(".")
+        # {'doc': {'build': {'doctrees': {},
+        #                   'html': {'_sources': {}, '_static': {}}},
+        #         'source': {}},
+        #  'reusables': {'__pycache__': {}},
+        #  'test': {'__pycache__': {}, 'data': {}}}
+
+
     :param directory: path to directory to created the tree of.
     :return: dictionary of the directory
     """
@@ -177,8 +187,13 @@ def join_root(*paths, **kwargs):
     """
     Join any path or paths as a sub directory of the current file's directory.
 
+    .. code:: python
+
+        reusables.join_root("Makefile")
+        # 'C:\\Reusables\\Makefile'
+
     :param paths: paths to join together
-    :param kwargs: 'strict', make them into a safe path unless set True
+    :param kwargs: 'safe', make them into a safe path it True
     :return: path as string
     """
     path = _os.path.abspath(".")
@@ -186,7 +201,7 @@ def join_root(*paths, **kwargs):
         next_path = next_path.lstrip(_os.sep).strip() if not \
             kwargs.get('strict') else next_path
         path = _os.path.abspath(_os.path.join(path, next_path))
-    return path if kwargs.get('strict') else safe_path(path)
+    return path if not kwargs.get('safe') else safe_path(path)
 
 
 def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
@@ -194,6 +209,16 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
     Return configuration options as dictionary. Accepts either a single
     config file or a list of files. Auto find will search for all .cfg, .config
     and .ini in the execution directory and package root (unsafe but handy).
+
+    .. code:: python
+
+        reusables.config_dict("test//data//test_config.ini"))
+        # {'General': {'example': 'A regular string'},
+        #  'Section 2': {'anint': '234',
+        #                'examplelist': '234,123,234,543',
+        #                'floatly': '4.4',
+        #                'my_bool': 'yes'}}
+
 
     :param config_file: path or paths to the files location
     :param auto_find: look for a config type file at this location or below
@@ -236,6 +261,12 @@ def config_namespace(config_file=None, auto_find=False,
                      verify=True, **cfg_options):
     """
     Return configuration options as a Namespace.
+
+    .. code:: python
+
+        .config_namespace("test//data//test_config.ini"))
+        # <Namespace: {'General': {'example': 'A regul...>
+
 
     :param config_file: path or paths to the files location
     :param auto_find: look for a config type file at this location or below
@@ -342,6 +373,11 @@ def file_hash(path, hash_type="md5", block_size=65536):
 
     This function is designed to be non memory intensive.
 
+    .. code:: python
+
+        reusables.file_hash(test_structure.zip")
+        # '61e387de305201a2c915a4f4277d6663'
+
     :param path: location of the file to hash
     :param hash_type: string name of the hash to use
     :param block_size: amount of bytes to add to hasher at a time
@@ -363,38 +399,29 @@ def file_hash(path, hash_type="md5", block_size=65536):
     return hashed.hexdigest()
 
 
-def count_all_files(directory=".", ext=None, name=None, match_case=False):
+def count_all_files(directory=".", ext=None, name=None,
+                    match_case=False, disable_glob=False, depth=None):
     """
     Perform the same operation as 'find_all_files' but return an integer count
     instead of a list.
+
+    .. code:: python
+
+        reusables.count_all_files(name="ex", match_case=True))
+        # 2
 
     :param directory: Top location to recursively search for matching files
     :param ext: Extensions of the file you are looking for
     :param name: Part of the file name
     :param match_case: If name has to be a direct match or not
+    :param disable_glob: Do not look for globable names or use glob magic check
+    :param depth: How many directories down to search
     :return: count of files matching requirements as integer
     """
 
-    if ext and isinstance(ext, str):
-        ext = [ext]
-    elif ext and not isinstance(ext, (list, tuple)):
-        raise TypeError("extension must be either one extension or a list")
-    count = 0
-    for root, dirs, files in _os.walk(directory):
-        for file_name in files:
-            if ext:
-                for end in ext:
-                    if file_name.lower().endswith(end):
-                        break
-                else:
-                    continue
-            if name:
-                if match_case and name not in file_name:
-                    continue
-                elif name.lower() not in file_name.lower():
-                    continue
-            count += 1
-    return count
+    return sum(1 for _ in find_all_files_generator(directory, ext, name,
+                                                   match_case, disable_glob,
+                                                   depth))
 
 
 def find_all_files_generator(directory=".", ext=None, name=None,
@@ -403,6 +430,15 @@ def find_all_files_generator(directory=".", ext=None, name=None,
     Walk through a file directory and return an iterator of files
     that match requirements. Will autodetect if name has glob as magic
     characters.
+
+    .. code:: python
+
+        list(reusables.find_all_files_generator(name="ex", match_case=True))
+        # ['C:\\example.pdf',
+        #  'C:\\My_exam_score.txt']
+
+        list(reusables.find_all_files_generator(name="*free*"))
+        # ['C:\\my_stuff\\Freedom_fight.pdf']
 
     :param directory: Top location to recursively search for matching files
     :param ext: Extensions of the file you are looking for
@@ -430,6 +466,9 @@ def find_all_files_generator(directory=".", ext=None, name=None,
             continue
 
         if not disable_glob:
+            if match_case:
+                raise ValueError("Cannot use glob and match case, please "
+                                 "either disable glob or not set match_case")
             glob_generator = _glob.iglob(_os.path.join(root, name))
             for item in glob_generator:
                 yield item
@@ -456,6 +495,18 @@ def find_all_files(directory=".", ext=None, name=None, match_case=False,
     Returns a list of all files in a sub directory that match an extension
     and or part of a filename. Will autodetect if name has glob as magic
     characters.
+
+    .. code:: python
+
+        reusables.find_all_files(ext=".pdf")
+        # ['C:\\Example.pdf',
+        #  'C:\\how_to_program.pdf',
+        #  'C:\\Hunks_and_Chicks.pdf']
+
+        reusables.find_all_files(name="*chris*")
+        # ['C:\\Christmas_card.docx',
+        #  'C:\\chris_stuff.zip']
+
 
     :param directory: Top location to recursively search for matching files
     :param ext: Extensions of the file you are looking for
@@ -548,6 +599,19 @@ def extract_all(archive_file, path=".", delete_on_success=False,
     """
     Automatically detect archive type and extract all files to specified path.
 
+    .. code:: python
+
+        import os
+
+        os.listdir(".")
+        # ['test_structure.zip']
+
+        reusables.extract_all("test_structure.zip")
+
+        os.listdir(".")
+        # [ 'test_structure', 'test_structure.zip']
+
+
     :param archive_file: path to file to extract
     :param path: location to extract to
     :param delete_on_success: Will delete the original archive if set to True
@@ -599,32 +663,42 @@ def dup_finder_generator(file_path, directory="."):
     2. First twenty bytes
     3. Full SHA256 compare
 
+    .. code:: python
+
+        list(reusables.dup_finder_generator(
+             "test_structure\\files_2\\empty_file"))
+        # ['C:\\Reusables\\test\\data\\fake_dir',
+        #  'C:\\Reusables\\test\\data\\test_structure\\Files\\empty_file_1',
+        #  'C:\\Reusables\\test\\data\\test_structure\\Files\\empty_file_2',
+        #  'C:\\Reusables\\test\\data\\test_structure\\files_2\\empty_file']
+
     :param file_path: Path to file to check for duplicates of
     :param directory: Directory to dig recursively into to look for duplicates
     :return: generators
     """
     size = _os.path.getsize(file_path)
     if size == 0:
-        for x in remove_empty_files(directory, dry_run=True):
-            yield x
-    with open(file_path, 'rb') as f:
-        first_twenty = f.read(20)
-    file_sha256 = file_hash(file_path, "sha256")
+        for empty_file in remove_empty_files(directory, dry_run=True):
+            yield empty_file
+    else:
+        with open(file_path, 'rb') as f:
+            first_twenty = f.read(20)
+        file_sha256 = file_hash(file_path, "sha256")
 
-    for root, directories, files in _os.walk(directory):
-        for each_file in files:
-            test_file = _os.path.join(root, each_file)
-            if _os.path.getsize(test_file) == size:
-                try:
-                    with open(test_file, 'rb') as f:
-                        test_first_twenty = f.read(20)
-                except OSError:
-                    _logger.warning("Could not open file to compare - "
-                                    "{0}".format(test_file))
-                else:
-                    if first_twenty == test_first_twenty:
-                        if file_hash(test_file, "sha256") == file_sha256:
-                            yield test_file
+        for root, directories, files in _os.walk(directory):
+            for each_file in files:
+                test_file = _os.path.join(root, each_file)
+                if _os.path.getsize(test_file) == size:
+                    try:
+                        with open(test_file, 'rb') as f:
+                            test_first_twenty = f.read(20)
+                    except OSError:
+                        _logger.warning("Could not open file to compare - "
+                                        "{0}".format(test_file))
+                    else:
+                        if first_twenty == test_first_twenty:
+                            if file_hash(test_file, "sha256") == file_sha256:
+                                yield _os.path.abspath(test_file)
 
 
 def list_to_csv(my_list, csv_file):
@@ -638,7 +712,7 @@ def list_to_csv(my_list, csv_file):
                    ["Harry", "Depth of Winter"],
                    ["Bob", "Skull"]]
 
-        reusables.list_to_csv(c, "example.csv")
+        reusables.list_to_csv(my_list, "example.csv")
 
     example.csv
 
@@ -706,12 +780,15 @@ def save_json(data, json_file, indent=4, **kwargs):
 
     .. code:: python
 
-        reusables.save_json({"key_1": "val_1",
-                             "key_for_dict": {"sub_dict_key": 8}},
-                            "example.json")
+        my_dict = {"key_1": "val_1",
+                   "key_for_dict": {"sub_dict_key": 8}}
+
+        reusables.save_json(my_dict,"example.json")
+
     example.json
 
-    .. code:: json
+    .. code::
+
         {
             "key_1": "val_1",
             "key_for_dict": {
@@ -751,13 +828,13 @@ def run(command, input=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
         reusables.run('echo "hello world!', shell=True)
         # CPython 3.6
         # CompletedProcess(args='echo "hello world!', returncode=0,
-        #                  stdout=b'"hello world!\r\n', stderr=b'')
-
+        #                  stdout=b'"hello world!\\r\\n', stderr=b'')
+        #
         # PyPy 5.4 (Python 2.7.10)
         # CompletedProcess(args='echo "hello world!', returncode=0L,
-        # stdout='"hello world!\r\n')
+        # stdout='"hello world!\\r\\n')
 
-    Timeout is only usable in Python 3.X, as it was not implimented before then,
+    Timeout is only usable in Python 3.X, as it was not implemented before then,
     a NotImplementedError will be raised if specified on 2.x version of Python.
 
     :param command: command to run, str if shell=True otherwise must be list
