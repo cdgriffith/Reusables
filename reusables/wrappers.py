@@ -114,14 +114,13 @@ def time_it(log=False, message="Function took a total of {0} seconds"):
     If log is true, make sure to set the logging level of 'reusables' to INFO
     level or lower.
 
-    .. code::
+    .. code:: python
 
         import time
         import logging
         import reusables
 
-        reuse_logger = logging.getLogger('reusables')
-        reusables.change_logger_levels(reuse_logger, level=logging.DEBUG)
+        reusables.add_stream_handler('reusables')
 
         @reusables.time_it(log=True, message="{0:.2f} seconds")
         def test_time(length):
@@ -153,16 +152,16 @@ def time_it(log=False, message="Function took a total of {0} seconds"):
     return func_wrapper
 
 
-def queue_it(queue=_g_queue):
+def queue_it(queue=_g_queue, **put_args):
     """
+    Instead of returning the result of the function, add it to a queue.
 
-    :param queue:
-    :return:
+    :param queue: Queue to add result into
     """
     def func_wrapper(func):
         @_wraps(func)
         def wrapper(*args, **kwargs):
-            queue.put(func(*args, **kwargs))
+            queue.put(func(*args, **kwargs), **put_args)
         return wrapper
     return func_wrapper
 

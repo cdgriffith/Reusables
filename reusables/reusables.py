@@ -7,114 +7,22 @@
 
 import os as _os
 import sys as _sys
-import re as _re
-import tempfile as _tempfile
 import csv as _csv
 import json as _json
 import subprocess as _subprocess
 import glob as _glob
+import hashlib as _hashlib
 try:
     import ConfigParser as _ConfigParser
 except ImportError:
     import configparser as _ConfigParser
 
-from .namespace import Namespace, ConfigNamespace
+from .namespace import ConfigNamespace
 from .log import get_logger
 from .dt import DateTime
+from .shared_variables import *
 
-python_version = _sys.version_info[0:3]
-version_string = ".".join([str(x) for x in python_version])
-current_root = _os.path.abspath(".")
-python3x = PY3 = python_version >= (3, 0)
-python2x = PY2 = python_version < (3, 0)
-nix_based = _os.name == "posix"
-win_based = _os.name == "nt"
-temp_directory = _tempfile.gettempdir()
-home = _os.path.abspath(_os.path.expanduser("~"))
-
-
-_logger = get_logger("reusables", level=30, stream=_sys.stderr, file_path=None)
-
-# http://msdn.microsoft.com/en-us/library/aa365247%28v=vs.85%29.aspx
-
-reg_exps = {
-    "path": {
-        "windows": {
-            "valid": _re.compile(r'^(?:[a-zA-Z]:\\|\\\\?|\\\\\?\\|\\\\\.\\)?'
-                r'(?:(?!(CLOCK\$(\\|$)|(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]| )'
-                r'(?:\..*|(\\|$))|.*\.$))'
-                r'(?:(?:(?![><:/"\\\|\?\*])[\x20-\u10FFFF])+\\?))*$'),
-            "safe": _re.compile(r'^([a-zA-Z]:\\)?[\w\d _\-\\\(\)]+$'),
-            "filename": _re.compile(r'^((?![><:/"\\\|\?\*])[ -~])+$')
-        },
-        "linux": {
-            "valid": _re.compile(r'^/?([\x01-\xFF]+/?)*$'),
-            "safe": _re.compile(r'^[\w\d\. _\-/\(\)]+$'),
-            "filename": _re.compile(r'^((?![><:/"\\\|\?\*])[ -~])+$')
-        },
-        "mac": {
-            "valid": _re.compile(r'^/?([\x01-\xFF]+/?)*$'),
-            "safe": _re.compile(r'^[\w\d\. _\-/\(\)]+$'),
-            "filename": _re.compile(r'^((?![><:/"\\\|\?\*])[ -~])+$')
-        }
-    },
-    "python": {
-        "module": {
-            "attributes": _re.compile(r'__([a-z]+)__ *= *[\'"](.+)[\'"]'),
-            "imports": _re.compile(r'^ *\t*(?:import|from)[ ]+(?:(\w+)[, ]*)+'),
-            "functions": _re.compile(r'^ *\t*def +(\w+)\('),
-            "classes": _re.compile(r'^ *\t*class +(\w+)\('),
-            "docstrings": _re.compile(r'^ *\t*"""(.*)"""|\'\'\'(.*)\'\'\'')
-        }
-    },
-    "pii": {
-        "phone_number": {
-            "us": _re.compile(r'((?:\(? ?\d{3} ?\)?[\. \-]?)?\d{3}'
-                              r'[\. \-]?\d{4})')
-        }
-    },
-}
-
-common_exts = {
-    "pictures": (".jpeg", ".jpg", ".png", ".gif", ".bmp", ".tif", ".tiff",
-                 ".ico", ".mng", ".tga", ".psd", ".xcf", ".svg", ".icns"),
-    "video": (".mkv", ".avi", ".mp4", ".mov", ".flv", ".mpeg", ".mpg", ".3gp",
-              ".m4v", ".ogv", ".asf", ".m1v", ".m2v", ".mpe", ".ogv", ".wmv",
-              ".rm", ".qt", ".3g2", ".asf", ".vob"),
-    "music": (".mp3", ".ogg", ".wav", ".flac", ".aif", ".aiff", ".au", ".m4a",
-              ".wma", ".mp2", ".m4a", ".m4p", ".aac", ".ra", ".mid", ".midi",
-              ".mus", ".psf"),
-    "documents": (".doc", ".docx", ".pdf", ".xls", ".xlsx", ".ppt", ".pptx",
-                  ".csv", ".epub", ".gdoc", ".odt", ".rtf", ".txt", ".info",
-                  ".xps", ".gslides", ".gsheet", ".pages", ".msg", ".tex",
-                  ".wpd", ".wps", ".csv"),
-    "archives": (".zip", ".rar", ".7z", ".tar.gz", ".tgz", ".gz", ".bzip",
-                 ".bzip2", ".bz2", ".xz", ".lzma", ".bin", ".tar"),
-    "cd_images": (".iso", ".nrg", ".img", ".mds", ".mdf", ".cue", ".daa"),
-    "scripts": (".py", ".sh", ".bat"),
-    "binaries": (".msi", ".exe"),
-    "markup": (".html", ".htm", ".xml", ".yaml", ".json", ".raml", ".xhtml",
-               ".kml"),
-
-}
-
-common_variables = {
-    "hashes": {
-        "empty_file": {
-            "md5": "d41d8cd98f00b204e9800998ecf8427e",
-            "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
-            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b\
-7852b855"
-        },
-    },
-}
-
-# Some may ask why make everything into namespaces, I ask why not
-regex = Namespace(reg_exps)
-exts = Namespace(common_exts)
-variables = Namespace(common_variables)
-
-exts._protected_keys.extend(exts.keys())
+_logger = get_logger("reusables", level=10, stream=None, file_path=None)
 
 
 def os_tree(directory):
@@ -212,7 +120,7 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
 
     .. code:: python
 
-        reusables.config_dict("test//data//test_config.ini"))
+        reusables.config_dict(os.path.join("test", "data", "test_config.ini"))
         # {'General': {'example': 'A regular string'},
         #  'Section 2': {'anint': '234',
         #                'examplelist': '234,123,234,543',
@@ -264,7 +172,8 @@ def config_namespace(config_file=None, auto_find=False,
 
     .. code:: python
 
-        .config_namespace("test//data//test_config.ini"))
+        reusables.config_namespace(os.path.join("test", "data",
+                                                "test_config.ini"))
         # <Namespace: {'General': {'example': 'A regul...>
 
 
@@ -369,7 +278,9 @@ def safe_path(path, replacement="_"):
 
 def file_hash(path, hash_type="md5", block_size=65536):
     """
-    Hash a given file with sha256 and return the hex digest.
+    Hash a given file with md5, or any other and return the hex digest. You
+    can run `hashlib.algorithms_available` to see which are available on your
+    system unless you have an archaic python version, you poor soul).
 
     This function is designed to be non memory intensive.
 
@@ -383,14 +294,13 @@ def file_hash(path, hash_type="md5", block_size=65536):
     :param block_size: amount of bytes to add to hasher at a time
     :return: file's hash
     """
-    import hashlib
     if (python_version >= (2, 7) and
-            hash_type not in hashlib.algorithms_available):
+            hash_type not in _hashlib.algorithms_available):
         raise ValueError("Invalid hash type \"{0}\"".format(hash_type))
     elif hash_type not in ("md5", "sha1", "sha224",
                            "sha256", "sha384", "sha512"):
         raise ValueError("Invalid hash type \"{0}\"".format(hash_type))
-    hashed = hashlib.new(hash_type)
+    hashed = _hashlib.new(hash_type)
     with open(path, "rb") as infile:
         buf = infile.read(block_size)
         while len(buf) > 0:
