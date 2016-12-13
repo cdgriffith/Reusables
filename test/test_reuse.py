@@ -352,6 +352,7 @@ Key2 = Value2
         assert isinstance(now, reusables.DateTime)
 
     def test_dups(self):
+        self._extract_structure()
         empty = os.path.join(data_dr, "empty")
         something = os.path.join(data_dr, "full")
         reusables.touch(empty)
@@ -359,7 +360,7 @@ Key2 = Value2
             f.write("stuff in here")
         try:
             dups = list(reusables.dup_finder_generator(empty, data_dr))
-            assert len(dups) == 2, dups
+            assert len(dups) == 1, dups
             dups2 = list(reusables.dup_finder_generator(something, data_dr))
             assert len(dups2) == 1, dups
         finally:

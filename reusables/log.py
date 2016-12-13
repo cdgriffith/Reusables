@@ -118,27 +118,51 @@ def add_stream_handler(logger=None, stream=_sys.stderr, level=_logging.INFO,
 def add_rotating_file_handler(logger=None, file_path="out.log",
                               level=_logging.INFO,
                               log_format=log_formats.easy_read,
-                              maxBytes=10*sizes.mb, backupCount=5, **kwargs):
+                              maxBytes=10*sizes.mb, backupCount=5,
+                              **handler_kwargs):
+    """ Adds a rotating file handler to the specified logger.
+
+    :param logger: logging name or object to modify, defaults to root logger
+    :param file_path: path to file to log to
+    :param level: logging level to set handler at
+    :param log_format: log formatter
+    :param maxBytes: Max file size in bytes before rotating
+    :param backupCount: Number of backup files
+    :param handler_kwargs: options to pass to the handler
+    """
     if not isinstance(logger, _logging.Logger):
         logger = _logging.getLogger(logger)
 
     logger.addHandler(get_file_handler(file_path, level, log_format,
                                        handler=_RFT, maxBytes=maxBytes,
-                                       backupCount=backupCount, **kwargs))
+                                       backupCount=backupCount,
+                                       **handler_kwargs))
 
 
 def add_timed_rotating_file_handler(logger=None, file_path="out.log",
                                     level=_logging.INFO,
                                     log_format=log_formats.easy_read,
                                     when='w0', interval=1, backupCount=5,
-                                    **kwargs):
+                                    **handler_kwargs):
+    """ Adds a timed rotating file handler to the specified logger.
+
+    :param logger: logging name or object to modify, defaults to root logger
+    :param file_path: path to file to log to
+    :param level: logging level to set handler at
+    :param log_format: log formatter
+    :param when:
+    :param interval:
+    :param backupCount: Number of backup files
+    :param handler_kwargs: options to pass to the handler
+    """
     if not isinstance(logger, _logging.Logger):
         logger = _logging.getLogger(logger)
 
     logger.addHandler(get_file_handler(file_path, level, log_format,
                                        handler=_TRFH, when=when,
                                        interval=interval,
-                                       backupCount=backupCount, **kwargs))
+                                       backupCount=backupCount,
+                                       **handler_kwargs))
 
 
 def remove_stream_handlers(logger=None):
@@ -146,7 +170,6 @@ def remove_stream_handlers(logger=None):
     Remove only stream handlers from the specified logger
 
     :param logger: logging name or object to modify, defaults to root logger
-    :return: streamless logger
     """
     if not isinstance(logger, _logging.Logger):
         logger = _logging.getLogger(logger)
@@ -169,7 +192,6 @@ def remove_file_handlers(logger=None):
     and close each handler for safety.
 
     :param logger: logging name or object to modify, defaults to root logger
-    :return: fileless logger
     """
     if not isinstance(logger, _logging.Logger):
         logger = _logging.getLogger(logger)
@@ -188,7 +210,6 @@ def remove_all_handlers(logger=None):
     Safely remove all handlers from the logger
 
     :param logger: logging name or object to modify, defaults to root logger
-    :return: handle-less logger
     """
     if not isinstance(logger, _logging.Logger):
         logger = _logging.getLogger(logger)
@@ -204,7 +225,6 @@ def change_logger_levels(logger=None, level=_logging.DEBUG):
 
     :param logger: logging name or object to modify, defaults to root logger
     :param level: logging level to set at (10=Debug, 20=Info, 30=Warn, 40=Error)
-    :return:
     """
     if not isinstance(logger, _logging.Logger):
         logger = _logging.getLogger(logger)

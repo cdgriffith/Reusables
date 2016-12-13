@@ -58,7 +58,7 @@ class TestReuseLogging(BaseTestClass):
                                       stream=None,
                                       file_path=my_stream_path)
         logger.debug("Hello There, sexy")
-        reusables.change_logger_levels(logger, 10)
+        reusables.change_logger_levels(__name__, 10)
         logger.debug("This isn't a good idea")
         reusables.remove_file_handlers(logger)
         with open(my_stream_path) as f:
@@ -86,7 +86,7 @@ class TestReuseLogging(BaseTestClass):
         logger.addHandler(logging.NullHandler())
         for _ in range(10):
             logger.addHandler(reusables.get_stream_handler())
-        reusables.remove_stream_handlers(logger)
+        reusables.remove_stream_handlers("sample_stream_logger")
         assert len(logger.handlers) == 2, logger.handlers
         assert isinstance(logger.handlers[0], logging.FileHandler)
         reusables.remove_all_handlers(logger)
@@ -95,7 +95,7 @@ class TestReuseLogging(BaseTestClass):
         logger = reusables.get_logger("sample_file_logger", file_path=my_stream_path)
         logger.addHandler(logging.FileHandler("test_file"))
         logger.addHandler(logging.NullHandler())
-        reusables.remove_file_handlers(logger)
+        reusables.remove_file_handlers("sample_file_logger")
         assert len(logger.handlers) == 2
         assert isinstance(logger.handlers[0], logging.StreamHandler)
         try:
@@ -103,3 +103,24 @@ class TestReuseLogging(BaseTestClass):
         except Exception:
             pass
         reusables.remove_all_handlers(logger)
+
+    def test_add_rotate_file_handlers(self):
+        from logging.handlers import RotatingFileHandler,\
+            TimedRotatingFileHandler
+        logger = reusables.get_logger("add_file")
+        reusables.remove_all_handlers(logger)
+        reusables.add_rotating_file_handler("add_file")
+        assert isinstance(logger.handlers[0], RotatingFileHandler), logger.handlers
+        reusables.remove_all_handlers("add_file")
+        reusables.add_timed_rotating_file_handler("add_file")
+        assert isinstance(logger.handlers[0], TimedRotatingFileHandler)
+        reusables.remove_all_handlers("add_file")
+
+    def test_add_simple_handlers(self):
+        logger = reusables.get_logger("test1")
+        reusables.remove_all_handlers("test1")
+        reusables.add_stream_handler("test1")
+        assert isinstance(logger.handlers[0], logging.StreamHandler)
+        reusables.remove_all_handlers("test1")
+
+
