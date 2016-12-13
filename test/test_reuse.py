@@ -393,7 +393,15 @@ Key2 = Value2
         p1 = reusables.archive_all("data", archive_type="zip")
         assert p1.endswith("archive.zip")
         assert os.path.exists(p1)
-        os.unlink(p1)
+        try:
+            p1 = reusables.archive_all("data", archive_type="zip")
+        except OSError:
+            pass
+        else:
+            raise AssertionError("Should complain about overwrite")
+        finally:
+            os.unlink(p1)
+
         p2 = reusables.archive_all("__init__.py", archive_type="tar")
         assert p2.endswith("archive.tar")
         assert os.path.exists(p2)
@@ -406,6 +414,12 @@ Key2 = Value2
         assert p4.endswith("archive.bz2")
         assert os.path.exists(p4)
         os.unlink(p4)
+        try:
+            reusables.archive_all("__init__.py", archive_type="rar")
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("Should raise value error about archive_type")
 
 
 if reusables.nix_based:

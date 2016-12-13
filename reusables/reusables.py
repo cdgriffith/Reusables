@@ -633,7 +633,7 @@ def archive_all(files_to_archive, name="archive", archive_type="zip",
             raise Exception("Should not be here")
         write = archive.add
     else:
-        return ValueError("archive_type must be zip, tar.gz, tgz, or gz")
+        raise ValueError("archive_type must be zip, tar.gz, tgz, or gz")
 
     try:
         for file_path in files_to_archive:

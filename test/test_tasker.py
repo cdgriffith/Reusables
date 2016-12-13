@@ -71,6 +71,7 @@ class TestTasker(BaseTestClass):
         tasker.command_queue.put("pause")
         tasker.command_queue.put("unpause")
         tasker.command_queue.put("stop")
+        tasker.put(5)
         tasker.main_loop()
         r = tasker.get_state()
         assert r['stopped'], r
