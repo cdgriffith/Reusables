@@ -118,7 +118,7 @@ def add_stream_handler(logger=None, stream=_sys.stderr, level=_logging.INFO,
 def add_rotating_file_handler(logger=None, file_path="out.log",
                               level=_logging.INFO,
                               log_format=log_formats.easy_read,
-                              maxBytes=10*sizes.mb, backupCount=5,
+                              max_bytes=10*sizes.mb, backup_count=5,
                               **handler_kwargs):
     """ Adds a rotating file handler to the specified logger.
 
@@ -126,23 +126,23 @@ def add_rotating_file_handler(logger=None, file_path="out.log",
     :param file_path: path to file to log to
     :param level: logging level to set handler at
     :param log_format: log formatter
-    :param maxBytes: Max file size in bytes before rotating
-    :param backupCount: Number of backup files
+    :param max_bytes: Max file size in bytes before rotating
+    :param backup_count: Number of backup files
     :param handler_kwargs: options to pass to the handler
     """
     if not isinstance(logger, _logging.Logger):
         logger = _logging.getLogger(logger)
 
     logger.addHandler(get_file_handler(file_path, level, log_format,
-                                       handler=_RFT, maxBytes=maxBytes,
-                                       backupCount=backupCount,
+                                       handler=_RFT, maxBytes=max_bytes,
+                                       backupCount=backup_count,
                                        **handler_kwargs))
 
 
 def add_timed_rotating_file_handler(logger=None, file_path="out.log",
                                     level=_logging.INFO,
                                     log_format=log_formats.easy_read,
-                                    when='w0', interval=1, backupCount=5,
+                                    when='w0', interval=1, backup_count=5,
                                     **handler_kwargs):
     """ Adds a timed rotating file handler to the specified logger.
 
@@ -152,7 +152,7 @@ def add_timed_rotating_file_handler(logger=None, file_path="out.log",
     :param log_format: log formatter
     :param when:
     :param interval:
-    :param backupCount: Number of backup files
+    :param backup_count: Number of backup files
     :param handler_kwargs: options to pass to the handler
     """
     if not isinstance(logger, _logging.Logger):
@@ -161,7 +161,7 @@ def add_timed_rotating_file_handler(logger=None, file_path="out.log",
     logger.addHandler(get_file_handler(file_path, level, log_format,
                                        handler=_TRFH, when=when,
                                        interval=interval,
-                                       backupCount=backupCount,
+                                       backupCount=backup_count,
                                        **handler_kwargs))
 
 

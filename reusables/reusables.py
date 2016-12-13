@@ -589,7 +589,8 @@ def extract_all(archive_file, path=".", delete_on_success=False,
 
 
 def archive_all(files_to_archive, name="archive", archive_type="zip",
-                overwrite=False, store=False, depth=None):
+                overwrite=False, store=False, depth=None, err_non_exist=True,
+                allow_zip_64=True, **tarfile_kwargs):
     """ Archive a list of files (or files inside a folder), can chose between
 
         - zip
@@ -609,26 +610,33 @@ def archive_all(files_to_archive, name="archive", archive_type="zip",
     :param overwrite: overwrite if archive exists
     :param store: zipfile only, True will not compress files
     :param depth: specify max depth for folders
+    :param err_non_exist: raise error if provided file does not exist
+    :param allow_zip_64: must be enabled for zip files larger than 2GB
+    :param tarfile_kwargs: extra args to pass to tarfile.open
     :return: path to created archive
     """
     if not isinstance(files_to_archive, (list, tuple)):
         files_to_archive = [files_to_archive]
+
     archive_type = archive_type.lower()
     filename = "{0}.{1}".format(name, archive_type)
+
     if not overwrite and _os.path.exists(filename):
         raise OSError("File exists and overwrite not specified")
+
     if archive_type == "zip":
         archive = _zipfile.ZipFile(filename, 'w',
                                    _zipfile.ZIP_STORED if store else
-                                   _zipfile.ZIP_DEFLATED)
+                                   _zipfile.ZIP_DEFLATED,
+                                   allowZip64=allow_zip_64)
         write = archive.write
     elif archive_type in ("tar.gz", "tgz", "gz", "tar.bz2", "bz2", "tar"):
         if archive_type == "tar":
-            archive = _tarfile.open(filename, 'w:')
+            archive = _tarfile.open(filename, 'w:', **tarfile_kwargs)
         elif archive_type in ("tgz", "tar.gz", "gz"):
-            archive = _tarfile.open(filename, 'w:gz')
+            archive = _tarfile.open(filename, 'w:gz', **tarfile_kwargs)
         elif archive_type in ("tar.gz2", "bz2"):
-            archive = _tarfile.open(filename, 'w:bz2')
+            archive = _tarfile.open(filename, 'w:bz2', **tarfile_kwargs)
         else:
             raise Exception("Should not be here")
         write = archive.add
@@ -638,14 +646,18 @@ def archive_all(files_to_archive, name="archive", archive_type="zip",
     try:
         for file_path in files_to_archive:
             if _os.path.isfile(file_path):
+                if err_non_exist and not _os.path.exists(file_path):
+                    raise OSError("File {0} does not exist".format(file_path))
                 write(file_path)
             elif _os.path.isdir(file_path):
                 for nf in find_all_files_generator(file_path, abspath=False,
                                                    depth=depth):
                     write(nf)
-    except Exception as err:
-        archive.close()
-        _os.unlink(filename)
+    except (Exception, KeyboardInterrupt) as err:
+        try:
+            archive.close()
+        finally:
+            _os.unlink(filename)
         raise err
     else:
         archive.close()
