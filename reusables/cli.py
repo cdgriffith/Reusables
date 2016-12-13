@@ -130,7 +130,7 @@ def head(file_path, lines=10, encoding="utf-8", printed=True,
     with open(file_path, "rb") as f:
         for _ in range(lines):
             try:
-                if python_version > (2, 6):
+                if python_version >= (2, 7):
                     data.append(next(f).decode(encoding, errors=errors))
                 else:
                     data.append(next(f).decode(encoding))
@@ -158,7 +158,7 @@ def cat(file_path, encoding="utf-8", errors='strict'):
     """
 
     with open(file_path, "rb") as f:
-        if python_version > (2, 6):
+        if python_version >= (2, 7):
             print(f.read().decode(encoding, errors=errors))
         else:
             print(f.read().decode(encoding))
@@ -181,7 +181,7 @@ def tail(file_path, lines=10, encoding="utf-8",
 
     with open(file_path, "rb") as f:
         for line in f:
-            if python_version > (2, 6):
+            if python_version >= (2, 7):
                 data.append(line.decode(encoding, errors=errors))
             else:
                 data.append(line.decode(encoding))
