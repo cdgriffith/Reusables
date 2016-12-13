@@ -389,6 +389,24 @@ Key2 = Value2
         resp = reusables.find_all_files(test_root, name="*config*")
         assert len(resp) == 3, resp
 
+    def test_archive_all(self):
+        p1 = reusables.archive_all("data", archive_type="zip")
+        assert p1.endswith("archive.zip")
+        assert os.path.exists(p1)
+        os.unlink(p1)
+        p2 = reusables.archive_all("__init__.py", archive_type="tar")
+        assert p2.endswith("archive.tar")
+        assert os.path.exists(p2)
+        os.unlink(p2)
+        p3 = reusables.archive_all("__init__.py", archive_type="gz")
+        assert p3.endswith("archive.gz")
+        assert os.path.exists(p3)
+        os.unlink(p3)
+        p4 = reusables.archive_all("__init__.py", archive_type="bz2")
+        assert p4.endswith("archive.bz2")
+        assert os.path.exists(p4)
+        os.unlink(p4)
+
 
 if reusables.nix_based:
     class TestReuseLinux(unittest.TestCase):

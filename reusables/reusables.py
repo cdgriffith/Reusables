@@ -12,6 +12,8 @@ import json as _json
 import subprocess as _subprocess
 import glob as _glob
 import hashlib as _hashlib
+import zipfile as _zipfile
+import tarfile as _tarfile
 try:
     import ConfigParser as _ConfigParser
 except ImportError:
@@ -353,7 +355,8 @@ def count_all_files(directory=".", ext=None, name=None,
 
 
 def find_all_files_generator(directory=".", ext=None, name=None,
-                             match_case=False, disable_glob=False, depth=None):
+                             match_case=False, disable_glob=False, depth=None,
+                             abspath=False):
     """
     Walk through a file directory and return an iterator of files
     that match requirements. Will autodetect if name has glob as magic
@@ -374,6 +377,7 @@ def find_all_files_generator(directory=".", ext=None, name=None,
     :param match_case: If name has to be a direct match or not
     :param disable_glob: Do not look for globable names or use glob magic check
     :param depth: How many directories down to search
+    :param abspath: Return files with their absolute paths
     :return: generator of all files in the specified directory
     """
     if ext or not name:
@@ -386,7 +390,8 @@ def find_all_files_generator(directory=".", ext=None, name=None,
         ext = [ext]
     elif ext and not isinstance(ext, (list, tuple)):
         raise TypeError("extension must be either one extension or a list")
-    directory = _os.path.abspath(directory)
+    if abspath:
+        directory = _os.path.abspath(directory)
     starting_depth = directory.count(_os.sep)
 
     for root, dirs, files in _os.walk(directory):
@@ -418,7 +423,7 @@ def find_all_files_generator(directory=".", ext=None, name=None,
 
 
 def find_all_files(directory=".", ext=None, name=None, match_case=False,
-                   disable_glob=False, depth=None):
+                   disable_glob=False, depth=None, abspath=False):
     """
     Returns a list of all files in a sub directory that match an extension
     and or part of a filename. Will autodetect if name has glob as magic
@@ -442,12 +447,13 @@ def find_all_files(directory=".", ext=None, name=None, match_case=False,
     :param match_case: If name has to be a direct match or not
     :param disable_glob: Do not look for globable names or use glob magic check
     :param depth: How many directories down to search
+    :param abspath: Return files with their absolute paths
     :return: list of all files in the specified directory
     """
     return list(find_all_files_generator(directory, ext=ext, name=name,
                                          match_case=match_case,
                                          disable_glob=disable_glob,
-                                         depth=depth))
+                                         depth=depth, abspath=abspath))
 
 
 def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True):
@@ -544,21 +550,20 @@ def extract_all(archive_file, path=".", delete_on_success=False,
     :param path: location to extract to
     :param delete_on_success: Will delete the original archive if set to True
     :param enable_rar: include the rarfile import and extract
+    :return: path to extracted files
     """
-    import zipfile
-    import tarfile
 
     if not _os.path.exists(archive_file) or not _os.path.getsize(archive_file):
         _logger.error("File {0} unextractable".format(archive_file))
         raise OSError("File does not exist or has zero size")
 
     archive = None
-    if zipfile.is_zipfile(archive_file):
+    if _zipfile.is_zipfile(archive_file):
         _logger.debug("File {0} detected as a zip file".format(archive_file))
-        archive = zipfile.ZipFile(archive_file)
-    elif tarfile.is_tarfile(archive_file):
+        archive = _zipfile.ZipFile(archive_file)
+    elif _tarfile.is_tarfile(archive_file):
         _logger.debug("File {0} detected as a tar file".format(archive_file))
-        archive = tarfile.open(archive_file)
+        archive = _tarfile.open(archive_file)
     elif enable_rar:
         import rarfile
         if rarfile.is_rarfile(archive_file):
@@ -579,6 +584,73 @@ def extract_all(archive_file, path=".", delete_on_success=False,
     if delete_on_success:
         _logger.debug("Archive {0} will now be deleted".format(archive_file))
         _os.unlink(archive_file)
+
+    return _os.path.abspath(path)
+
+
+def archive_all(files_to_archive, name="archive", archive_type="zip",
+                overwrite=False, store=False, depth=None):
+    """ Archive a list of files (or files inside a folder), can chose between
+
+        - zip
+        - tar
+        - gz (tar.gz, tgz)
+        - bz2 (tar.bz2)
+
+    .. code:: python
+
+        reusables.archive_all(['reusables', '.travis.yml'],
+                              name="my_archive", archive_type="bz2")
+        # 'C:\\Users\\Me\\Reusables\\my_archive.bz2'
+
+    :param files_to_archive: list of files and folders to archive
+    :param name: path and name of archive file (no extension)
+    :param archive_type: supported archive, automatically appended to name
+    :param overwrite: overwrite if archive exists
+    :param store: zipfile only, True will not compress files
+    :param depth: specify max depth for folders
+    :return: path to created archive
+    """
+    if not isinstance(files_to_archive, (list, tuple)):
+        files_to_archive = [files_to_archive]
+    archive_type = archive_type.lower()
+    filename = "{0}.{1}".format(name, archive_type)
+    if not overwrite and _os.path.exists(filename):
+        raise OSError("File exists and overwrite not specified")
+    if archive_type == "zip":
+        archive = _zipfile.ZipFile(filename, 'w',
+                                   _zipfile.ZIP_STORED if store else
+                                   _zipfile.ZIP_DEFLATED)
+        write = archive.write
+    elif archive_type in ("tar.gz", "tgz", "gz", "tar.bz2", "bz2", "tar"):
+        if archive_type == "tar":
+            archive = _tarfile.open(filename, 'w:')
+        elif archive_type in ("tgz", "tar.gz", "gz"):
+            archive = _tarfile.open(filename, 'w:gz')
+        elif archive_type in ("tar.gz2", "bz2"):
+            archive = _tarfile.open(filename, 'w:bz2')
+        else:
+            raise Exception("Should not be here")
+        write = archive.add
+    else:
+        return ValueError("archive_type must be zip, tar.gz, tgz, or gz")
+
+    try:
+        for file_path in files_to_archive:
+            if _os.path.isfile(file_path):
+                write(file_path)
+            elif _os.path.isdir(file_path):
+                for nf in find_all_files_generator(file_path, abspath=False,
+                                                   depth=depth):
+                    write(nf)
+    except Exception as err:
+        archive.close()
+        _os.unlink(filename)
+        raise err
+    else:
+        archive.close()
+
+    return _os.path.abspath(filename)
 
 
 def dup_finder_generator(file_path, directory="."):

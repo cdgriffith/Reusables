@@ -13,6 +13,8 @@ import logging as _logging
 from functools import partial as _partial
 import datetime as _datetime
 
+from .shared_variables import win_based
+
 _logger = _logging.getLogger('reusables.tasker')
 
 
@@ -241,7 +243,10 @@ class Tasker(object):
             _logger.info("Ending main loop")
 
     def run(self):
-        """Start the main loop as a background process."""
+        """Start the main loop as a background process. *nix only"""
+        if win_based:
+            raise NotImplementedError("Please run main_loop, "
+                                      "backgrounding not supported on Windows")
         self.background_process = _mp.Process(target=self.main_loop)
         self.background_process.start()
 
