@@ -13,6 +13,7 @@ Designed to be used as a start import. `from reusables.cli import *`
 import os as _os
 
 # Keep touch and download import so it can be imported with other CLI commands
+from .shared_variables import *
 from .reusables import run, win_based, find_all_files, touch
 from .web import download
 
@@ -129,7 +130,10 @@ def head(file_path, lines=10, encoding="utf-8", printed=True,
     with open(file_path, "rb") as f:
         for _ in range(lines):
             try:
-                data.append(next(f).decode(encoding, errors=errors))
+                if python_version > (2, 6):
+                    data.append(next(f).decode(encoding, errors=errors))
+                else:
+                    data.append(next(f).decode(encoding))
             except StopIteration:
                 break
     if printed:
@@ -154,7 +158,10 @@ def cat(file_path, encoding="utf-8", errors='strict'):
     """
 
     with open(file_path, "rb") as f:
-        print(f.read().decode(encoding, errors=errors))
+        if python_version > (2, 6):
+            print(f.read().decode(encoding, errors=errors))
+        else:
+            print(f.read().decode(encoding))
 
 
 def tail(file_path, lines=10, encoding="utf-8",
@@ -174,7 +181,10 @@ def tail(file_path, lines=10, encoding="utf-8",
 
     with open(file_path, "rb") as f:
         for line in f:
-            data.append(line.decode(encoding, errors=errors))
+            if python_version > (2, 6):
+                data.append(line.decode(encoding, errors=errors))
+            else:
+                data.append(line.decode(encoding))
             if len(data) > lines:
                 data.pop(0)
     if printed:

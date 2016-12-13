@@ -55,13 +55,13 @@ class TestCLI(BaseTestClass):
     def test_head(self):
         lines = head(self.ex, printed=False)
         assert len(lines) == 5, len(lines)
-        assert lines[-1] == ' file! \r\n', lines
+        assert 'file!' in lines[-1], lines
         head(self.ex, printed=True)
 
     def test_tail(self):
         lines = tail(self.ex, lines=2, printed=False)
         assert len(lines) == 2, len(lines)
-        assert lines[-1] == ' file! \r\n', lines
+        assert 'file!' in lines[-1], lines
         tail(self.ex, printed=True)
 
     def test_cat(self):

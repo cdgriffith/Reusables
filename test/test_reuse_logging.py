@@ -85,7 +85,7 @@ class TestReuseLogging(BaseTestClass):
         logger = reusables.get_logger(file_path=my_stream_path)
         logger.addHandler(logging.NullHandler())
         reusables.remove_stream_handlers(logger)
-        assert len(logger.handlers) == 2, len(logger.handlers)
+        assert len(logger.handlers) == 2, logger.handlers
         assert isinstance(logger.handlers[0], logging.FileHandler)
         reusables.remove_file_handlers(logger)
 
