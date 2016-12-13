@@ -78,21 +78,21 @@ class TestReuseLogging(BaseTestClass):
         assert "Example 2nd error log" in lines[1]
 
     def test_add_null(self):
-        logger = reusables.get_logger(__name__, stream=None, suppress_warning=True)
+        logger = reusables.get_logger("add_null", stream=None, suppress_warning=True)
         assert isinstance(logger.handlers[0], logging.NullHandler)
 
     def test_remove_stream_handlers(self):
-        logger = reusables.get_logger(file_path=my_stream_path)
+        logger = reusables.get_logger("sample_stream_logger", file_path=my_stream_path)
         logger.addHandler(logging.NullHandler())
         for _ in range(10):
             logger.addHandler(reusables.get_stream_handler())
         reusables.remove_stream_handlers(logger)
-        assert len(logger.handlers) <= 3, logger.handlers
+        assert len(logger.handlers) == 2, logger.handlers
         assert isinstance(logger.handlers[0], logging.FileHandler)
-        reusables.remove_file_handlers(logger)
+        reusables.remove_all_handlers(logger)
 
     def test_remove_file_handlers(self):
-        logger = reusables.get_logger(__name__, file_path=my_stream_path)
+        logger = reusables.get_logger("sample_file_logger", file_path=my_stream_path)
         logger.addHandler(logging.FileHandler("test_file"))
         logger.addHandler(logging.NullHandler())
         reusables.remove_file_handlers(logger)
@@ -102,3 +102,4 @@ class TestReuseLogging(BaseTestClass):
             os.unlink("test_file")
         except Exception:
             pass
+        reusables.remove_all_handlers(logger)
