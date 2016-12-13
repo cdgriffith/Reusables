@@ -376,8 +376,8 @@ if reusables.nix_based:
             resp = reusables.join_paths('/test/', 'clean/', 'path/')
             assert resp == '/test/clean/path/', resp
 
-        def test_join_root(self):
-            resp = reusables.join_root('clean/')
+        def test_join_here(self):
+            resp = reusables.join_here('clean/')
             path = os.path.abspath(os.path.join(".", 'clean/'))
             assert resp == path, (resp, path)
 
@@ -394,8 +394,8 @@ if reusables.win_based:
             resp = reusables.join_paths('C:\\test\\', 'D:\\dirty', ' path.file ')
             assert resp == 'D:\\dirty\\path.file', resp
 
-        def test_win_join_root(self):
-            resp = reusables.join_root('clean\\')
+        def test_win_join_here(self):
+            resp = reusables.join_here('clean\\')
             path = os.path.abspath(os.path.join(".", 'clean\\'))
             assert resp == path, (resp, path)
 

@@ -107,7 +107,8 @@ def lock_it(lock=_g_lock):
     return func_wrapper
 
 
-def time_it(log=False, message="Function took a total of {0} seconds"):
+def time_it(log=False, message="Function took a total of {0} seconds",
+            append=None):
     """
     Time the amount of time it takes the execution of the function and print it
 
@@ -117,7 +118,6 @@ def time_it(log=False, message="Function took a total of {0} seconds"):
     .. code:: python
 
         import time
-        import logging
         import reusables
 
         reusables.add_stream_handler('reusables')
@@ -135,6 +135,7 @@ def time_it(log=False, message="Function took a total of {0} seconds"):
 
     :param log: log as INFO level instead of printing
     :param message: string to format with total time as the only input
+    :param append: list to append item too
     """
     def func_wrapper(func):
         @_wraps(func)
@@ -148,6 +149,8 @@ def time_it(log=False, message="Function took a total of {0} seconds"):
                     _logger.info(message.format(total_time))
                 else:
                     print(message.format(total_time))
+                if isinstance(append, list):
+                    append.append(total_time)
         return wrapper
     return func_wrapper
 

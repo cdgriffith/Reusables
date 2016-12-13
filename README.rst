@@ -39,6 +39,9 @@ CI tests run on:
 Examples are provided below, and the API documentation can always be found at
 readthedocs.org_.
 
+Please note this is currently in development. Any item in development
+prior to a major version (1.x, 2.x) may change. Once at a major version,
+no breaking changes will occur within it.
 
 What's in the box
 -----------------

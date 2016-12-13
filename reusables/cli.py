@@ -125,16 +125,20 @@ def head(file_path, lines=10, encoding="utf-8", printed=True,
     :param errors: Decoding errors: 'strict', 'ignore' or 'replace'
     :return: if printed is false, the lines are returned as a list
     """
+    data = []
     with open(file_path, "rb") as f:
-        data = [next(f).decode(encoding, errors=errors)
-                for _ in range(lines)]
+        for _ in range(lines):
+            try:
+                data.append(next(f).decode(encoding, errors=errors))
+            except StopIteration:
+                break
     if printed:
         print("".join(data))
     else:
         return data
 
 
-def cat(file_path,  encoding="utf-8", errors='strict'):
+def cat(file_path, encoding="utf-8", errors='strict'):
     """
           ^-^
          (-.-)

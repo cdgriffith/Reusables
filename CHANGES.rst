@@ -13,6 +13,7 @@ Version 0.7.0
 - Breaking change: Moving log formats from variables to Namespace log_formats
 - Breaking change: Moving command line helpers to cli
 - Breaking change: Command line helpers are not imported by default, should now use: from reusables.cli import *
+- Breaking change: join_root has been better named join_here
 
 Version 0.6.1
 -------------

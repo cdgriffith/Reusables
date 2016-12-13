@@ -93,12 +93,9 @@ sizes = Namespace.from_dict({
     "kb": 1024,
     "mb": 1024 * 1024,
     "gb": 1024 * 1024 * 1024,
-    "tb": 1024 * 1024 * 1024 * 1024
+    "tb": 1024 * 1024 * 1024 * 1024,
+    "pb": 1024 * 1024 * 1024 * 1024 * 1024
 })
-
-
-
-
 
 # Some may ask why make everything into namespaces, I ask why not
 regex = Namespace(reg_exps)

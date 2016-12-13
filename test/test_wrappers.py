@@ -4,7 +4,7 @@ import time
 
 from .common_test_data import *
 
-from reusables import reuse, unique, lock_it
+from reusables import reuse, unique, lock_it, time_it, queue_it
 
 
 @reuse
@@ -89,6 +89,39 @@ class TestWrappers(BaseTestClass):
         a.join()
         b.join()
         assert (time.time() - start) > 3
+
+    def test_time(self):
+        my_list = []
+
+        @time_it(append=my_list)
+        def func():
+            return 5 + 3
+
+        @time_it(log=True)
+        def func2():
+            return 7 + 3
+
+        func()
+        func2()
+
+        assert len(my_list) == 1
+        assert isinstance(my_list[0], float)
+
+    def test_queue(self):
+        try:
+            import queue
+        except ImportError:
+            import Queue as queue
+
+        q = queue.Queue()
+
+        @queue_it(q)
+        def func():
+            return 5 + 3
+
+        func()
+
+        assert q.get() == 8
 
 
 

@@ -6,6 +6,20 @@ from .common_test_data import *
 
 class TestCLI(BaseTestClass):
 
+    ex = os.path.join(data_dr, "ex.txt")
+
+    @classmethod
+    def tearDownClass(cls):
+        try:
+            os.unlink(cls.ex)
+        except OSError:
+            pass
+
+    @classmethod
+    def setUpClass(cls):
+        with open(cls.ex, "w") as f:
+            f.write("this\nis\r\nan\r\nfancy example\n file! \n")
+
     def test_cmd(self):
         import sys
         save_file = os.path.join(data_dr, "stdout")
@@ -39,10 +53,19 @@ class TestCLI(BaseTestClass):
         test2 = ls()
 
     def test_head(self):
-        pass
+        lines = head(self.ex, printed=False)
+        assert len(lines) == 5, len(lines)
+        assert lines[-1] == ' file! \r\n', lines
+        head(self.ex, printed=True)
 
     def test_tail(self):
-        pass
+        lines = tail(self.ex, lines=2, printed=False)
+        assert len(lines) == 2, len(lines)
+        assert lines[-1] == ' file! \r\n', lines
+        tail(self.ex, printed=True)
 
     def test_cat(self):
-        pass
+        cat(self.ex)
+
+    def test_find(self):
+        assert self.ex in find(directory=data_dr)

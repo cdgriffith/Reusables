@@ -74,39 +74,49 @@ def join_paths(*paths, **kwargs):
     """
     Join multiple paths together and return the absolute path of them. If 'safe'
     is specified, this function will 'clean' the path with the 'safe_path'
-    function.
+    function. This will clean root decelerations from the path
+    after the first item.
 
     Would like to do 'safe=False' instead of '**kwargs' but stupider versions
     of python *cough 2.6* don't like that after '*paths'.
 
+    .. code: python
+
+        reusables.join_paths("var", "\\log", "/test")
+        'C:\\Users\\Me\\var\\log\\test'
+
+        os.path.join("var", "\\log", "/test")
+        '/test'
+
     :param paths: paths to join together
     :param kwargs: 'safe', make them into a safe path it True
-    :return: path as string
+    :return: abspath as string
     """
     path = _os.path.abspath(paths[0])
 
     for next_path in paths[1:]:
-        path = _os.path.join(path, next_path.lstrip(_os.sep).strip())
+        path = _os.path.join(path, next_path.lstrip("\\").lstrip("/").strip())
     path.rstrip(_os.sep)
     return path if not kwargs.get('safe') else safe_path(path)
 
 
-def join_root(*paths, **kwargs):
+def join_here(*paths, **kwargs):
     """
     Join any path or paths as a sub directory of the current file's directory.
 
     .. code:: python
 
-        reusables.join_root("Makefile")
+        reusables.join_here("Makefile")
         # 'C:\\Reusables\\Makefile'
 
     :param paths: paths to join together
+    :param kwargs: 'strict', do not strip os.sep
     :param kwargs: 'safe', make them into a safe path it True
-    :return: path as string
+    :return: abspath as string
     """
     path = _os.path.abspath(".")
     for next_path in paths:
-        next_path = next_path.lstrip(_os.sep).strip() if not \
+        next_path = next_path.lstrip("\\").lstrip("/").strip() if not \
             kwargs.get('strict') else next_path
         path = _os.path.abspath(_os.path.join(path, next_path))
     return path if not kwargs.get('safe') else safe_path(path)
@@ -191,6 +201,14 @@ def sort_by(unordered_list, key, **sort_args):
     """
     Sort a list of dicts, tuples or lists by the provided dict key, or list/
     tuple position.
+
+    .. code:: python
+
+        my_list = [{"a": 5, "d": 2}, {"a": 1, "b": 2}]
+
+        reusables.sort_by(my_list, "a")
+        # [{'a': 1, 'b': 2}, {'a': 5, 'd': 2}]
+
 
     :param unordered_list: list to sort
     :param key: key to sort on from the list
