@@ -63,6 +63,19 @@ class TestTasker(BaseTestClass):
         assert not tasker.change_task_size('a')
         tasker._reset_and_pause()
 
+    def test_tasker_commands(self):
+        import datetime
+        reusables.add_stream_handler("reusables")
+        tasker = ExampleAddTasker(max_tasks=4, run_until=datetime.datetime.now() + datetime.timedelta(minutes=1))
+        tasker.command_queue.put("change task size 1")
+        tasker.command_queue.put("pause")
+        tasker.command_queue.put("unpause")
+        tasker.command_queue.put("stop")
+        tasker.main_loop()
+        r = tasker.get_state()
+        assert r['stopped'], r
+        assert tasker.max_tasks == 1, tasker.max_tasks
+
 
 class TestPool(unittest.TestCase):
 
