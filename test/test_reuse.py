@@ -316,7 +316,7 @@ Key2 = Value2
             assert False
 
     def test_run(self):
-        cl = reusables.run('echo test', shell=True, stderr=None)
+        cl = reusables.run('echo test', shell=True, stderr=None, copy_local_env=True)
         try:
             cl.check_returncode()
         except subprocess.CalledProcessError:
@@ -347,6 +347,46 @@ Key2 = Value2
         else:
             assert False
 
+    def test_now(self):
+        now = reusables.now()
+        assert isinstance(now, reusables.DateTime)
+
+    def test_dups(self):
+        empty = os.path.join(data_dr, "empty")
+        something = os.path.join(data_dr, "full")
+        reusables.touch(empty)
+        with open(something, "w") as f:
+            f.write("stuff in here")
+        try:
+            dups = list(reusables.dup_finder_generator(empty, data_dr))
+            assert len(dups) == 2, dups
+            dups2 = list(reusables.dup_finder_generator(something, data_dr))
+            assert len(dups2) == 1, dups
+        finally:
+            os.unlink(something)
+            os.unlink(empty)
+
+    def test_splice(self):
+
+        a = reusables.splice("abcdefghi")
+        assert a == ['ab', 'cd', 'ef', 'gh', 'i']
+
+        try:
+            reusables.splice("abcdefghi", 2, "error")
+        except IndexError:
+            pass
+        else:
+            raise AssertionError("splice failed")
+
+        b = reusables.splice("abcdefghi", 2, "remove")
+        assert b == ['ab', 'cd', 'ef', 'gh']
+
+        c = reusables.splice("abcdefghi", 2, "combine")
+        assert c == ['ab', 'cd', 'ef', 'ghi']
+
+    def test_find_glob(self):
+        resp = reusables.find_all_files(test_root, name="*config*")
+        assert len(resp) == 3, resp
 
 
 if reusables.nix_based:
