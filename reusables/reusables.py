@@ -384,7 +384,6 @@ def find_all_files_generator(directory=".", ext=None, name=None,
         disable_glob = True
     if not disable_glob:
         disable_glob = not _glob.has_magic(name)
-        _logger.debug("No magic detected, disabling glob")
 
     if ext and isinstance(ext, str):
         ext = [ext]
@@ -909,9 +908,9 @@ def run(command, input=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
     return CompletedProcess(command, proc.returncode, out, err)
 
 
-def now(utc=True, tz=None):
+def now(utc=False, tz=None):
     """
-    Get a current DateTime object. By default is UTC, not local.
+    Get a current DateTime object. By default is local.
 
     .. code:: python
 
@@ -921,7 +920,7 @@ def now(utc=True, tz=None):
         reusables.now().format("It's {24-hour}:{min}")
         # "It's 22:05"
 
-    :param utc: bool, default True, UTC time not local
+    :param utc: bool, default False, UTC time not local
     :param tz: TimeZone as specified by the datetime module
     :return: reusables.DateTime
     """

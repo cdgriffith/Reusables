@@ -11,12 +11,15 @@ Designed to be used as a start import. `from reusables.cli import *`
 
 """
 import os as _os
+import logging as _logging
+import shutil as _shutil
 
 # Keep touch and download import so it can be imported with other CLI commands
 from .shared_variables import *
 from .reusables import run, win_based, find_all_files, touch
 from .web import download
 
+_logger = _logging.getLogger("reusables.cli")
 
 _saved_paths = []
 
@@ -191,3 +194,33 @@ def tail(file_path, lines=10, encoding="utf-8",
         print("".join(data))
     else:
         return data
+
+
+def cp(src, dst, overwrite=False):
+    """
+    Copy files to a new location.
+
+    :param src: list (or string) of paths of files to copy
+    :param dst: file or folder to copy item(s) to
+    :param overwrite: IF the file already exists, should I overwrite it?
+    """
+
+    if not isinstance(src, list):
+        src = [src]
+
+    dst = _os.path.expanduser(dst)
+    dst_folder = _os.path.isdir(dst)
+
+    if len(src) > 1 and not dst_folder:
+        raise OSError("Cannot copy multiple item to same file")
+
+    for item in src:
+        source = _os.path.expanduser(item)
+        destination = (dst if not dst_folder else
+                       _os.path.join(dst, _os.path.basename(source)))
+        if not overwrite and _os.path.exists(destination):
+            _logger.warning("Not replacing {0} with {1}, overwrite not enabled"
+                            "".format(destination, source))
+            continue
+
+        _shutil.copy(source, destination)

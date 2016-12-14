@@ -69,3 +69,14 @@ class TestCLI(BaseTestClass):
 
     def test_find(self):
         assert self.ex in find(directory=data_dr)
+
+    def test_cp(self):
+        import reusables
+        reusables.add_stream_handler("reusables")
+        cp(self.ex, "test_file")
+        try:
+            cp([self.ex, "test_file"], "test_file2")
+        except OSError:
+            pass
+        else:
+            raise AssertionError("Should have raised OSError")
