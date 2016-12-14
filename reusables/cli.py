@@ -18,8 +18,10 @@ import shutil as _shutil
 from .shared_variables import *
 from .reusables import run, win_based, find_all_files, touch
 from .web import download
+from .log import add_stream_handler
 
 _logger = _logging.getLogger("reusables.cli")
+add_stream_handler("reusables.cli")
 
 _saved_paths = []
 

@@ -61,6 +61,8 @@ class TestTasker(BaseTestClass):
 
         assert not tasker.change_task_size(-1)
         assert not tasker.change_task_size('a')
+        assert tasker.change_task_size(2)
+        assert tasker.change_task_size(6)
         tasker._reset_and_pause()
 
     def test_tasker_commands(self):
