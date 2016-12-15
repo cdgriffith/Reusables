@@ -13,9 +13,9 @@ programmers may find themselves often recreating.
 
 It includes:
 
-- Archive extraction (zip, tar, rar)
+- Archiving and extraction for zip, tar, gz, bz2, and rar (extraction only)
 - Path (file and folders) management
-- Fast logging setup
+- Fast logging setup and tools
 - Namespace (dict to class modules with child recursion)
 - Friendly datetime formatting
 - Config to dict parsing
@@ -56,6 +56,9 @@ General Helpers and File Management
         reusables.find_all_files(".", ext=reusables.exts.pictures)
         # ['/home/user/background.jpg', '/home/user/private.png']
 
+        reusables.archive_all("reusables", name="reuse", archive_type="zip")
+        # 'C:\\Users\\Me\\Reusables\\reuse.zip'
+
         reusables.extract_all("test/test_structure.zip", "my_archive")
         # All files in the zip will be extracted into directory "my_archive"
 
@@ -73,6 +76,33 @@ General Helpers and File Management
 
         reusables.run("echo 'hello there!'", shell=True)
         # CompletedProcess(args="echo 'hello there!'", returncode=0, stdout='hello there!\n')
+
+
+One of the most reusables pieces of code is the find_all_files. It is always
+appearing on stackoverflow and forums of how to implement os.walk or glob;
+here's both.
+
+.. code:: python
+
+         reusables.find_all_files(".", name="*reuse*", depth=2)
+         # ['.\\test\\test_reuse.py', '.\\test\\test_reuse_datetime.py',
+         #  '.\\test\\test_reuse_logging.py', '.\\test\\test_reuse_namespace.py']
+
+         # match_case works for both ext and name
+         # depth of 1 means this working directory only, no further
+
+         reusables.find_all_files(ext=".PY", depth=1, match_case=True)
+         # []
+
+         reusables.find_all_files(ext=".py", depth=1, match_case=True)
+         # ['.\\setup.py']
+
+         reusables.find_all_files(name="setup", ext=".py", match_case=True)
+         # ['.\\setup.py']
+
+         reusables.find_all_files(name="Setup", ext=".py", match_case=True)
+         # []
+
 
 Namespace
 ~~~~~~~~~
@@ -101,6 +131,120 @@ that sub-dictionaries are recursively made into namespaces.
         # {'spam': <Namespace: {'eggs': {'sausage': {'bacon': '...>}
         # This is NOT the same as .to_dict() as it is not recursive
 
+Logging
+~~~~~~~
+
+.. code:: python
+
+        logger = reusables.get_logger(__name__)
+        # By default it adds a stream logger to sys.stderr
+
+        logger.info("Test")
+        # 2016-04-25 19:32:45,542 __main__     INFO     Test
+
+
+There are multiple log formatters provided, as well as additional helper functions.
+All helper functions will accept either the logger object or the name of the logger.
+
+.. code:: python
+
+        reusables.remove_stream_handlers(__name__)
+        # remove_file_handlers() and remove_all_handlers() also available
+
+        reusables.add_stream_handler(__name__, log_format=reusables.log_formats.detailed)
+        r.add_rotating_file_handler(__name__, "my.log", level=logging.INFO)
+
+        logger.info("Example log entry")
+        # 2016-12-14 20:56:55,446 : 315147 MainThread : reusables.log INFO Example log entry
+
+        open("my.log").read()
+        # 2016-12-14 20:56:55,446 - __builtin__   INFO     Example log entry
+
+
+**Provided log formats**
+
+Feel free to provide your own formats, aided by the docs_. However this includes
+some commonly used ones you may find useful. they are all stored in the Namespace
+"reusables.log_formats" (feel free to use it as a dict as stated above).
+
+Because ReStructuredText tables don't preserve whitespace (even with literals),
+ which is important to show distinction in these formatters, here's it in a code block instead.
+
+.. code:: python
+
+    reusables.log_formats.keys()
+    # ['common', 'level_first', 'threaded', 'easy_read', 'easy_thread', 'detailed']
+
+    logger = reusables.get_logger(__name__, log_format=reusables.log_formats.threaded)
+    reusables.add_timed_rotating_file_handler(logger, "timed.log", level=logging.ERROR, log_format=reusables.log_formats.detailed)
+
+
+.. code::
+
+    +--------------+--------------------------------------------------------------------------------------+
+    | Formatter    | Example Output                                                                       |
+    +==============+======================================================================================+
+    | easy_read    | 2016-04-26 21:17:51,225 - example_logger  INFO      example log message              |
+    |              | 2016-04-26 21:17:59,074 - example_logger  ERROR     Something broke                  |
+    +--------------+--------------------------------------------------------------------------------------+
+    | detailed     | 2016-04-26 21:17:51,225 :  7020 MainThread : example_logger INFO example log message |
+    |              | 2016-04-26 21:17:59,074 : 14868 MainThread : example_logger ERROR Something broke    |
+    +--------------+--------------------------------------------------------------------------------------+
+    | level_first  | INFO - example_logger - 2016-04-26 21:17:51,225 - example log message                |
+    |              | ERROR - example_logger - 2016-04-26 21:17:59,074 - Something broke                   |
+    +--------------+--------------------------------------------------------------------------------------+
+    | threaded     | 7020 MainThread : example log message                                                |
+    |              | 14868 MainThread : Something broke                                                   |
+    +--------------+--------------------------------------------------------------------------------------+
+    | easy_thread  |  7020 MainThread : example_logger  INFO      example log message                     |
+    |              | 14868 MainThread : example_logger  ERROR     Something broke                         |
+    +--------------+--------------------------------------------------------------------------------------+
+    | common       | 2016-04-26 21:17:51,225 - example_logger - INFO - example log message                |
+    |              | 2016-04-26 21:17:59,074 - example_logger - ERROR - Something broke                   |
+    +--------------+--------------------------------------------------------------------------------------+
+
+
+Extension Groups
+~~~~~~~~~~~~~~~~
+
+It's common to be looking for a specific type of file.
+
+.. code:: python
+
+        if file_path.endswith(reusables.exts.pictures):
+            print("{} is a picture file".format(file_path))
+
+That's right, str.endswith_ (as well as str.startswith_) accept a tuple to search.
+
+===================== ===================
+ File Type             Extensions
+===================== ===================
+ pictures              .jpeg .jpg .png .gif .bmp .tif .tiff .ico .mng .tga .psd .xcf .svg .icns
+ video                 .mkv .avi .mp4 .mov .flv .mpeg .mpg .3gp .m4v .ogv .asf .m1v .m2v .mpe .ogv .wmv .rm .qt .3g2 .asf .vob
+ music                 .mp3 .ogg .wav .flac .aif .aiff .au .m4a .wma .mp2 .m4a .m4p .aac .ra .mid .midi .mus .psf
+ documents             .doc .docx .pdf .xls .xlsx .ppt .pptx .csv .epub .gdoc .odt .rtf .txt .info .xps .gslides .gsheet .pages .msg .tex .wpd .wps .csv
+ archives              .zip .rar .7z .tar.gz .tgz .gz .bzip .bzip2 .bz2 .xz .lzma .bin .tar
+ cd_images             .iso .nrg .img .mds .mdf .cue .daa
+ scripts               .py .sh .bat
+ binaries              .msi .exe
+ markup                .html .htm .xml .yaml .json .raml .xhtml .kml
+===================== ===================
+
+
+Wrappers
+~~~~~~~~
+
+There are tons of wrappers for caching and saving inputs and outputs, this is a
+different take that requires the function returns a result not yet provided.
+
+.. code:: python
+
+    @reusables.unique(max_retries=100, error_text="All UIDs taken!")
+    def gen_small_uid():
+        import random
+        return random.randint(0, 100)
+
+
 Command line helpers
 --------------------
 
@@ -108,7 +252,7 @@ Use the Python interpreter as much as a shell? Here's some handy helpers to
 fill the void. (Please don't do 'import \*' in production code, this is used
 as an easy to use example using the interpreter interactively.)
 
-> These are not imported by default with `import reusables`, as they are designed to be imported only in an interactive shell
+> These are not imported by default with "import reusables", as they are designed to be imported only in an interactive shell
 
 Some commands from other areas are also included where they are highly applicable in both
 instances, such as 'touch' and 'download'.
@@ -195,100 +339,6 @@ Examples based on  Mon Mar 28 13:27:11 2016
 {periods}               %p                 PM
 {iso-format}            %Y-%m-%dT%H:%M:%S  2016-03-28T13:27:11
 ===================== =================== ===========================
-
-
-Logging
-~~~~~~~
-
-.. code:: python
-
-        logger = reusables.get_logger(__name__)
-        # By default it adds a stream logger to sys.stderr
-
-        logger.info("Test")
-        # 2016-04-25 19:32:45,542 __main__     INFO     Test
-
-
-There are multiple log formatters provided, as well as additional helper functions
-
-
-.. code:: python
-
-        reusables.remove_stream_handlers(logger)
-        # remove_file_handlers() and remove_all_handlers() also available
-
-        stream_handler = reusables.get_stream_handler(log_format=reusables.log_detailed_format)
-        logger.addHandler(stream_handler)
-        logger.info("Example log entry")
-        # 2016-04-25 19:42:52,633 : 315147 MainThread : reusables.log INFO Example log entry
-
-
-Because ReStructuredText tables don't preserve whitespace (even with literals), which is important to show distinction in these formatters, here's it in a code block instead.
-
-.. code::
-
-    +------------------------+--------------------------------------------------------------------------------------+
-    | Formatter              | Example Output                                                                       |
-    +========================+======================================================================================+
-    | log_easy_read_format   | 2016-04-26 21:17:51,225 - example_logger  INFO      example log message              |
-    |                        | 2016-04-26 21:17:59,074 - example_logger  ERROR     Something broke                  |
-    +------------------------+--------------------------------------------------------------------------------------+
-    | log_detailed_format    | 2016-04-26 21:17:51,225 :  7020 MainThread : example_logger INFO example log message |
-    |                        | 2016-04-26 21:17:59,074 : 14868 MainThread : example_logger ERROR Something broke    |
-    +------------------------+--------------------------------------------------------------------------------------+
-    | log_level_first_format | INFO - example_logger - 2016-04-26 21:17:51,225 - example log message                |
-    |                        | ERROR - example_logger - 2016-04-26 21:17:59,074 - Something broke                   |
-    +------------------------+--------------------------------------------------------------------------------------+
-    | log_threaded_format    | 7020 MainThread : example log message                                                |
-    |                        | 14868 MainThread : Something broke                                                   |
-    +------------------------+--------------------------------------------------------------------------------------+
-    | log_easy_thread_format |  7020 MainThread : example_logger  INFO      example log message                     |
-    |                        | 14868 MainThread : example_logger  ERROR     Something broke                         |
-    +------------------------+--------------------------------------------------------------------------------------+
-    | log_common_format      | 2016-04-26 21:17:51,225 - example_logger - INFO - example log message                |
-    |                        | 2016-04-26 21:17:59,074 - example_logger - ERROR - Something broke                   |
-    +------------------------+--------------------------------------------------------------------------------------+
-
-
-Extension Groups
-~~~~~~~~~~~~~~~~
-
-It's common to be looking for a specific type of file.
-
-.. code:: python
-
-        if file_path.endswith(reusables.exts.pictures):
-            print("{} is a picture file".format(file_path))
-
-That's right, str.endswith_ (as well as str.startswith_) accept a tuple to search.
-
-===================== ===================
- File Type             Extensions
-===================== ===================
- pictures              .jpeg .jpg .png .gif .bmp .tif .tiff .ico .mng .tga .psd .xcf .svg .icns
- video                 .mkv .avi .mp4 .mov .flv .mpeg .mpg .3gp .m4v .ogv .asf .m1v .m2v .mpe .ogv .wmv .rm .qt .3g2 .asf .vob
- music                 .mp3 .ogg .wav .flac .aif .aiff .au .m4a .wma .mp2 .m4a .m4p .aac .ra .mid .midi .mus .psf
- documents             .doc .docx .pdf .xls .xlsx .ppt .pptx .csv .epub .gdoc .odt .rtf .txt .info .xps .gslides .gsheet .pages .msg .tex .wpd .wps .csv
- archives              .zip .rar .7z .tar.gz .tgz .gz .bzip .bzip2 .bz2 .xz .lzma .bin .tar
- cd_images             .iso .nrg .img .mds .mdf .cue .daa
- scripts               .py .sh .bat
- binaries              .msi .exe
- markup                .html .htm .xml .yaml .json .raml .xhtml .kml
-===================== ===================
-
-
-Wrappers
-~~~~~~~~
-
-There are tons of wrappers for caching and saving inputs and outputs, this is a
-different take that requires the function returns a result not yet provided.
-
-.. code:: python
-
-    @reusables.unique(max_retries=100, error_text="All UIDs taken!")
-    def gen_small_uid():
-        import random
-        return random.randint(0, 100)
 
 
 Cookie Management
@@ -383,6 +433,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 .. _str.endswith: https://docs.python.org/2/library/stdtypes.html#str.endswith
 .. _str.startswith: https://docs.python.org/2/library/stdtypes.html#str.startswith
 .. _readthedocs.org: http://reusables.readthedocs.io/en/latest/
+.. _docs: https://docs.python.org/3/library/logging.html#logrecord-attributes
 
 Additional Info
 ---------------

@@ -20,6 +20,8 @@ _logger = _logging.getLogger('reusables.tasker')
 
 class Tasker(object):
     """
+    BETA BETA BETA BETA BETA BETA BETA BETA BETA (BETAiscally, don't use yet)
+
     An advanced multiprocessing pool, with ability to change number of
     workers or pause the service all together.
 

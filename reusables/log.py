@@ -145,6 +145,7 @@ def add_timed_rotating_file_handler(logger=None, file_path="out.log",
                                     when='w0', interval=1, backup_count=5,
                                     **handler_kwargs):
     """ Adds a timed rotating file handler to the specified logger.
+    Defaults to weekly rotation, with 5 backups.
 
     :param logger: logging name or object to modify, defaults to root logger
     :param file_path: path to file to log to

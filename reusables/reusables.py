@@ -374,7 +374,7 @@ def find_all_files_generator(directory=".", ext=None, name=None,
     :param directory: Top location to recursively search for matching files
     :param ext: Extensions of the file you are looking for
     :param name: Part of the file name
-    :param match_case: If name has to be a direct match or not
+    :param match_case: If name or ext has to be a direct match or not
     :param disable_glob: Do not look for globable names or use glob magic check
     :param depth: How many directories down to search
     :param abspath: Return files with their absolute paths
@@ -409,7 +409,8 @@ def find_all_files_generator(directory=".", ext=None, name=None,
         for file_name in files:
             if ext:
                 for end in ext:
-                    if file_name.lower().endswith(end):
+                    if file_name.lower().endswith(end.lower() if not
+                                                  match_case else end):
                         break
                 else:
                     continue
