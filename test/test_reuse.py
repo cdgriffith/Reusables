@@ -1,24 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import unittest
-import os
-import shutil
 import tarfile
 import tempfile
-import reusables
 import subprocess
 
-test_root = os.path.abspath(os.path.dirname(__file__))
-data_dr = os.path.join(test_root, "data")
+import reusables
+from reusables.cli import touch
 
-test_structure_tar = os.path.join(data_dr, "test_structure.tar.gz")
-test_structure_zip = os.path.join(data_dr, "test_structure.zip")
-test_structure_rar = os.path.join(data_dr, "test_structure.rar")
-test_structure = os.path.join(test_root, "test_structure")
+from .common_test_data import *
 
 
-class TestReuse(unittest.TestCase):
+class TestReuse(BaseTestClass):
 
     @classmethod
     def setUpClass(cls):
@@ -32,13 +25,6 @@ Key2 = Value2
             oc.write(config_file)
         if os.path.exists(test_structure):
             shutil.rmtree(test_structure)
-            shutil.rmtree(test_structure)
-
-    @classmethod
-    def tearDownClass(cls):
-        os.unlink(os.path.join(test_root, "test_config.cfg"))
-        if os.path.exists(test_structure):
-            shutil.rmtree(test_structure)
 
     def test_get_config_dict(self):
         resp = reusables.config_dict(os.path.join(test_root, 'test_config.cfg'))
@@ -46,8 +32,8 @@ Key2 = Value2
         assert resp['Section 2'] == {}
 
     def test_get_config_dict_auto(self):
-        resp = reusables.config_dict(auto_find="test")
-        assert resp.get('Section1') == {'key 1': 'value 1', 'key2': 'Value2'}
+        resp = reusables.config_dict(auto_find=test_root)
+        assert resp.get('Section1') == {'key 1': 'value 1', 'key2': 'Value2'}, resp.get('Section1')
 
     def test_get_config_dict_no_verify(self):
         resp = reusables.config_dict('bad_loc.cfg', verify=False)
@@ -113,7 +99,7 @@ Key2 = Value2
     def test_count_name(self):
         self._extract_structure()
         resp = reusables.count_all_files(test_root, name="file_")
-        assert resp == 4, resp
+        assert resp == 4, reusables.find_all_files(test_root, name="file_")
 
     def test_fail_count_files(self):
         self._extract_structure()
@@ -140,6 +126,13 @@ Key2 = Value2
         resp = iter(reusables.find_all_files_generator(test_root,
                                                    ext={'test': '.txt'}))
         self.assertRaises(TypeError, next, resp)
+
+    def test_find_files_depth(self):
+        self._extract_structure()
+        resp = reusables.find_all_files(test_structure, depth=1)
+        assert not resp, resp
+        resp2 = reusables.find_all_files(test_structure, depth=2)
+        assert len(resp2) == 5, resp2
 
     def test_find_files_iterator(self):
         resp = reusables.find_all_files_generator(test_root, ext=".cfg")
@@ -298,7 +291,7 @@ Key2 = Value2
 
     def test_dup_empty(self):
         empty_file = reusables.join_paths(test_root, "empty")
-        reusables.touch(empty_file)
+        touch(empty_file)
         self._extract_structure()
         b = [x for x in reusables.dup_finder_generator(empty_file, test_root)]
         print(b)
@@ -323,7 +316,7 @@ Key2 = Value2
             assert False
 
     def test_run(self):
-        cl = reusables.run('echo test', shell=True, stderr=None)
+        cl = reusables.run('echo test', shell=True, stderr=None, copy_local_env=True)
         try:
             cl.check_returncode()
         except subprocess.CalledProcessError:
@@ -354,37 +347,79 @@ Key2 = Value2
         else:
             assert False
 
-    def test_cmd(self):
-        import sys
-        save_file = os.path.join(data_dr, "stdout")
-        saved = sys.stdout
-        sys.stdout = open(save_file, "w")
-        reusables.cmd(">&2 echo 'hello'", raise_on_return=True)
-        sys.stdout.close()
-        sys.stdout = saved
+    def test_now(self):
+        now = reusables.now()
+        assert isinstance(now, reusables.DateTime)
+
+    def test_dups(self):
+        self._extract_structure()
+        empty = os.path.join(data_dr, "empty")
+        something = os.path.join(data_dr, "full")
+        reusables.touch(empty)
+        with open(something, "w") as f:
+            f.write("stuff in here")
         try:
-            with open(save_file, "r") as f:
-                assert "hello" in f.read()
+            dups = list(reusables.dup_finder_generator(empty, data_dr))
+            assert len(dups) == 1, dups
+            dups2 = list(reusables.dup_finder_generator(something, data_dr))
+            assert len(dups2) == 1, dups
         finally:
-            os.unlink(save_file)
+            os.unlink(something)
+            os.unlink(empty)
 
-    def test_paths(self):
-        push = reusables.pushd(data_dr)
-        assert push[0] == data_dr
-        assert reusables.popd()[0] == os.getcwd()
-        assert reusables.popd()[0] == os.getcwd()
-        assert reusables.popd()[0] == os.getcwd()
-        assert reusables.pwd() == os.getcwd()
-        cur = os.getcwd()
-        reusables.cd(data_dr)
-        assert reusables.pwd() == data_dr
-        os.chdir(cur)
+    def test_splice(self):
 
-    def test_ls(self):
-        reusables.pushd(data_dr)
-        test1 = reusables.ls(printed=False)
-        assert "test" in test1.decode("utf-8")
-        test2 = reusables.ls()
+        a = reusables.splice("abcdefghi")
+        assert a == ['ab', 'cd', 'ef', 'gh', 'i']
+
+        try:
+            reusables.splice("abcdefghi", 2, "error")
+        except IndexError:
+            pass
+        else:
+            raise AssertionError("splice failed")
+
+        b = reusables.splice("abcdefghi", 2, "remove")
+        assert b == ['ab', 'cd', 'ef', 'gh']
+
+        c = reusables.splice("abcdefghi", 2, "combine")
+        assert c == ['ab', 'cd', 'ef', 'ghi']
+
+    def test_find_glob(self):
+        resp = reusables.find_all_files(test_root, name="*config*")
+        assert len(resp) == 3, resp
+
+    def test_archive_all(self):
+        p1 = reusables.archive_all("data", archive_type="zip")
+        assert p1.endswith("archive.zip")
+        assert os.path.exists(p1)
+        try:
+            p1 = reusables.archive_all("data", archive_type="zip")
+        except OSError:
+            pass
+        else:
+            raise AssertionError("Should complain about overwrite")
+        finally:
+            os.unlink(p1)
+
+        p2 = reusables.archive_all("__init__.py", archive_type="tar")
+        assert p2.endswith("archive.tar")
+        assert os.path.exists(p2)
+        os.unlink(p2)
+        p3 = reusables.archive_all("__init__.py", archive_type="gz")
+        assert p3.endswith("archive.gz")
+        assert os.path.exists(p3)
+        os.unlink(p3)
+        p4 = reusables.archive_all("__init__.py", archive_type="bz2")
+        assert p4.endswith("archive.bz2")
+        assert os.path.exists(p4)
+        os.unlink(p4)
+        try:
+            reusables.archive_all("__init__.py", archive_type="rar")
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("Should raise value error about archive_type")
 
 
 if reusables.nix_based:
@@ -414,8 +449,8 @@ if reusables.nix_based:
             resp = reusables.join_paths('/test/', 'clean/', 'path/')
             assert resp == '/test/clean/path/', resp
 
-        def test_join_root(self):
-            resp = reusables.join_root('clean/')
+        def test_join_here(self):
+            resp = reusables.join_here('clean/')
             path = os.path.abspath(os.path.join(".", 'clean/'))
             assert resp == path, (resp, path)
 
@@ -432,8 +467,8 @@ if reusables.win_based:
             resp = reusables.join_paths('C:\\test\\', 'D:\\dirty', ' path.file ')
             assert resp == 'D:\\dirty\\path.file', resp
 
-        def test_win_join_root(self):
-            resp = reusables.join_root('clean\\')
+        def test_win_join_here(self):
+            resp = reusables.join_here('clean\\')
             path = os.path.abspath(os.path.join(".", 'clean\\'))
             assert resp == path, (resp, path)
 

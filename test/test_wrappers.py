@@ -1,9 +1,10 @@
 #!/usr/bin/env python
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import time
-import unittest
 
-from reusables import reuse, unique, lock_it
+from .common_test_data import *
+
+from reusables import reuse, unique, lock_it, time_it, queue_it
 
 
 @reuse
@@ -26,7 +27,7 @@ def unique_function_3():
     return int(time.time())
 
 
-class TestWrappers(unittest.TestCase):
+class TestWrappers(BaseTestClass):
 
     def setUp(self):
         gen_func(reuse_reset=True)
@@ -88,6 +89,39 @@ class TestWrappers(unittest.TestCase):
         a.join()
         b.join()
         assert (time.time() - start) > 3
+
+    def test_time(self):
+        my_list = []
+
+        @time_it(append=my_list)
+        def func():
+            return 5 + 3
+
+        @time_it(log=True)
+        def func2():
+            return 7 + 3
+
+        func()
+        func2()
+
+        assert len(my_list) == 1
+        assert isinstance(my_list[0], float)
+
+    def test_queue(self):
+        try:
+            import queue
+        except ImportError:
+            import Queue as queue
+
+        q = queue.Queue()
+
+        @queue_it(q)
+        def func():
+            return 5 + 3
+
+        func()
+
+        assert q.get() == 8
 
 
 

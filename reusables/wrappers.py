@@ -7,8 +7,15 @@
 import time as _time
 from threading import Lock as _Lock
 from functools import wraps as _wraps
+import logging as _logging
+try:
+    import queue as _queue
+except ImportError:
+    import Queue as _queue
 
+_logger = _logging.getLogger("reusables.wrappers")
 _g_lock = _Lock()
+_g_queue = _queue.Queue()
 _unique_cache = dict()
 _reuse_cache = dict()  # Could use DefaultDict but eh, it's another import
 
@@ -98,3 +105,66 @@ def lock_it(lock=_g_lock):
                 return func(*args, **kwargs)
         return wrapper
     return func_wrapper
+
+
+def time_it(log=False, message="Function took a total of {0} seconds",
+            append=None):
+    """
+    Time the amount of time it takes the execution of the function and print it
+
+    If log is true, make sure to set the logging level of 'reusables' to INFO
+    level or lower.
+
+    .. code:: python
+
+        import time
+        import reusables
+
+        reusables.add_stream_handler('reusables')
+
+        @reusables.time_it(log=True, message="{0:.2f} seconds")
+        def test_time(length):
+            time.sleep(length)
+            return "slept {0}".format(length)
+
+        result = test_time(5)
+        # 2016-11-09 16:59:39,935 - reusables.wrappers  INFO      5.01 seconds
+
+        print(result)
+        # slept 5
+
+    :param log: log as INFO level instead of printing
+    :param message: string to format with total time as the only input
+    :param append: list to append item too
+    """
+    def func_wrapper(func):
+        @_wraps(func)
+        def wrapper(*args, **kwargs):
+            start_time = _time.time()
+            try:
+                return func(*args, **kwargs)
+            finally:
+                total_time = _time.time() - start_time
+                if log:
+                    _logger.info(message.format(total_time))
+                else:
+                    print(message.format(total_time))
+                if isinstance(append, list):
+                    append.append(total_time)
+        return wrapper
+    return func_wrapper
+
+
+def queue_it(queue=_g_queue, **put_args):
+    """
+    Instead of returning the result of the function, add it to a queue.
+
+    :param queue: Queue to add result into
+    """
+    def func_wrapper(func):
+        @_wraps(func)
+        def wrapper(*args, **kwargs):
+            queue.put(func(*args, **kwargs), **put_args)
+        return wrapper
+    return func_wrapper
+

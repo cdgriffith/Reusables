@@ -1,6 +1,21 @@
 Changelog
 =========
 
+Version 0.7.0
+-------------
+
+- Adding archive_all and now methods
+- Adding logger helpers to add stream and file handlers
+- Adding depth and abspath to find files methods
+- Adding head, tail, cat bash equivalents
+- Adding command queue to Tasking class, to give commands asynchronously and without directly referencing the instance
+- Changing test suite to have a common file it pulls imports and info from
+- Changing logger helpers to accept string instead of logger
+- Breaking change: Moving log formats from variables to Namespace log_formats
+- Breaking change: Moving command line helpers to cli
+- Breaking change: Command line helpers are not imported by default, should now use: from reusables.cli import *
+- Breaking change: join_root has been better named join_here
+
 Version 0.6.1
 -------------
 

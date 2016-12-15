@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-import unittest
 import time
 import reusables
 import logging
 import platform
+
+from .common_test_data import *
 
 reusables.change_logger_levels(logging.getLogger('reusables'), logging.INFO)
 
@@ -25,7 +26,7 @@ class ExampleAddTasker(reusables.Tasker):
         queue.put(task, task + task)
 
 
-class TestTasker(unittest.TestCase):
+class TestTasker(BaseTestClass):
 
     def test_example_add_tasker(self):
         if reusables.win_based and platform.python_implementation() == 'PyPy':
@@ -60,7 +61,23 @@ class TestTasker(unittest.TestCase):
 
         assert not tasker.change_task_size(-1)
         assert not tasker.change_task_size('a')
+        assert tasker.change_task_size(2)
+        assert tasker.change_task_size(6)
         tasker._reset_and_pause()
+
+    def test_tasker_commands(self):
+        import datetime
+        reusables.add_stream_handler("reusables")
+        tasker = ExampleAddTasker(max_tasks=4, run_until=datetime.datetime.now() + datetime.timedelta(minutes=1))
+        tasker.command_queue.put("change task size 1")
+        tasker.command_queue.put("pause")
+        tasker.command_queue.put("unpause")
+        tasker.command_queue.put("stop")
+        tasker.put(5)
+        tasker.main_loop()
+        r = tasker.get_state()
+        assert r['stopped'], r
+        assert tasker.max_tasks == 1, tasker.max_tasks
 
 
 class TestPool(unittest.TestCase):

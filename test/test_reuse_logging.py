@@ -2,13 +2,12 @@
 # -*- coding: UTF-8 -*-
 
 
-import unittest
-import os
 import logging
 import reusables
 import sys
 
-test_root = os.path.abspath(os.path.dirname(__file__))
+from .common_test_data import *
+
 my_stream_path = os.path.join(test_root, "my_stream.log")
 
 if sys.version_info < (2, 7):
@@ -19,7 +18,7 @@ if sys.version_info < (2, 7):
     logging.NullHandler = NullHandler
 
 
-class TestReuseLogging(unittest.TestCase):
+class TestReuseLogging(BaseTestClass):
 
     def setUp(self):
         logging.getLogger(__name__).handlers = []
@@ -59,7 +58,7 @@ class TestReuseLogging(unittest.TestCase):
                                       stream=None,
                                       file_path=my_stream_path)
         logger.debug("Hello There, sexy")
-        reusables.change_logger_levels(logger, 10)
+        reusables.change_logger_levels(__name__, 10)
         logger.debug("This isn't a good idea")
         reusables.remove_file_handlers(logger)
         with open(my_stream_path) as f:
@@ -79,25 +78,49 @@ class TestReuseLogging(unittest.TestCase):
         assert "Example 2nd error log" in lines[1]
 
     def test_add_null(self):
-        logger = reusables.get_logger(__name__, stream=None, suppress_warning=True)
+        logger = reusables.get_logger("add_null", stream=None, suppress_warning=True)
         assert isinstance(logger.handlers[0], logging.NullHandler)
 
     def test_remove_stream_handlers(self):
-        logger = reusables.get_logger(file_path=my_stream_path)
+        logger = reusables.get_logger("sample_stream_logger", file_path=my_stream_path)
         logger.addHandler(logging.NullHandler())
-        reusables.remove_stream_handlers(logger)
-        assert len(logger.handlers) == 2
+        for _ in range(10):
+            logger.addHandler(reusables.get_stream_handler())
+        reusables.remove_stream_handlers("sample_stream_logger")
+        assert len(logger.handlers) == 2, logger.handlers
         assert isinstance(logger.handlers[0], logging.FileHandler)
-        reusables.remove_file_handlers(logger)
+        reusables.remove_all_handlers(logger)
 
     def test_remove_file_handlers(self):
-        logger = reusables.get_logger(__name__, file_path=my_stream_path)
+        logger = reusables.get_logger("sample_file_logger", file_path=my_stream_path)
         logger.addHandler(logging.FileHandler("test_file"))
         logger.addHandler(logging.NullHandler())
-        reusables.remove_file_handlers(logger)
+        reusables.remove_file_handlers("sample_file_logger")
         assert len(logger.handlers) == 2
         assert isinstance(logger.handlers[0], logging.StreamHandler)
         try:
             os.unlink("test_file")
         except Exception:
             pass
+        reusables.remove_all_handlers(logger)
+
+    def test_add_rotate_file_handlers(self):
+        from logging.handlers import RotatingFileHandler,\
+            TimedRotatingFileHandler
+        logger = reusables.get_logger("add_file")
+        reusables.remove_all_handlers(logger)
+        reusables.add_rotating_file_handler("add_file")
+        assert isinstance(logger.handlers[0], RotatingFileHandler), logger.handlers
+        reusables.remove_all_handlers("add_file")
+        reusables.add_timed_rotating_file_handler("add_file")
+        assert isinstance(logger.handlers[0], TimedRotatingFileHandler)
+        reusables.remove_all_handlers("add_file")
+
+    def test_add_simple_handlers(self):
+        logger = reusables.get_logger("test1")
+        reusables.remove_all_handlers("test1")
+        reusables.add_stream_handler("test1")
+        assert isinstance(logger.handlers[0], logging.StreamHandler)
+        reusables.remove_all_handlers("test1")
+
+
