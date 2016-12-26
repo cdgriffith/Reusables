@@ -146,7 +146,9 @@ def time_it(log=False, message="Function took a total of {0} seconds",
             finally:
                 total_time = _time.time() - start_time
                 if log:
-                    _logger.info(message.format(total_time))
+                    logger = _logging.getLogger(log) if isinstance(log, str)\
+                        else _logger
+                    logger.info(message.format(total_time))
                 else:
                     print(message.format(total_time))
                 if isinstance(append, list):
@@ -168,3 +170,44 @@ def queue_it(queue=_g_queue, **put_args):
         return wrapper
     return func_wrapper
 
+
+def log_exception(log="reusables", message="Exception in {func_name} - {err}",
+                  exception=None, exception_message="Error in {func_name}"):
+    """
+    Log the traceback to any exceptions raised. Possible to raise
+    custom exception.
+
+    .. code :: python
+
+        @reusables.log_exception()
+        def test():
+            raise Exception("Bad")
+
+        # 2016-12-26 12:38:01,381 - reusables   ERROR  Exception in test - Bad
+        # Traceback (most recent call last):
+        #     File "<input>", line 1, in <module>
+        #     File "reusables\wrappers.py", line 200, in wrapper
+        #     raise err
+        # Exception: Bad
+
+    :param log: log name to use
+    :param message: message to use in log
+    :param exception: custom exception to raise instead of what was raised
+    :param exception_message: message for the custom exception
+    """
+    def func_wrapper(func):
+        @_wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as err:
+                logger = (_logging.getLogger(log) if isinstance(log, str)
+                          else _logger)
+                logger.exception(message.format(func_name=func.__name__,
+                                                err=str(err)))
+                if exception:
+                    raise exception(exception_message.format(
+                        func_name=func.__name__, err=str(err)))
+                raise err
+        return wrapper
+    return func_wrapper
