@@ -22,7 +22,8 @@ _reuse_cache = dict()  # Could use DefaultDict but eh, it's another import
 
 def unique(max_retries=10, wait=0, alt_return="-no_alt_return-",
            exception=Exception, error_text="No result was unique"):
-    """Makes sure the function's return value has not been returned before
+    """
+    Wrapper. Makes sure the function's return value has not been returned before
     or else it run with the same inputs again.
 
     :param max_retries: int of number of retries to attempt before failing
@@ -52,6 +53,8 @@ def unique(max_retries=10, wait=0, alt_return="-no_alt_return-",
 
 def reuse(func):
     """
+    Wrapper.
+
     .. warning::
 
         Don't use this, just don't. If you need this you're probably coding
@@ -94,7 +97,7 @@ def reuse(func):
 
 def lock_it(lock=_g_lock):
     """
-    Simple wrapper to make sure a function is only run once at a time.
+    Wrapper. Simple wrapper to make sure a function is only run once at a time.
 
     :param lock: Which lock to use, uses unique default
     """
@@ -110,7 +113,8 @@ def lock_it(lock=_g_lock):
 def time_it(log=False, message="Function took a total of {0} seconds",
             append=None):
     """
-    Time the amount of time it takes the execution of the function and print it
+    Wrapper. Time the amount of time it takes the execution of the function
+    and print it.
 
     If log is true, make sure to set the logging level of 'reusables' to INFO
     level or lower.
@@ -159,7 +163,7 @@ def time_it(log=False, message="Function took a total of {0} seconds",
 
 def queue_it(queue=_g_queue, **put_args):
     """
-    Instead of returning the result of the function, add it to a queue.
+    Wrapper. Instead of returning the result of the function, add it to a queue.
 
     :param queue: Queue to add result into
     """
@@ -174,7 +178,7 @@ def queue_it(queue=_g_queue, **put_args):
 def log_exception(log="reusables", message="Exception in {func_name} - {err}",
                   exception=None, exception_message="Error in {func_name}"):
     """
-    Log the traceback to any exceptions raised. Possible to raise
+    Wrapper. Log the traceback to any exceptions raised. Possible to raise
     custom exception.
 
     .. code :: python

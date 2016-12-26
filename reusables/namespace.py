@@ -75,7 +75,7 @@ class Namespace(dict):
             object.__delattr__(self, item)
 
     def __repr__(self):
-        return "<Namespace: {0}...>".format(str(self.to_dict())[0:32])
+        return "<Namespace: {0}>".format(str(self.to_dict()))
 
     def __str__(self):
         return str(self.to_dict())
@@ -228,3 +228,32 @@ class ConfigNamespace(Namespace):
 
     def getfloat(self, item, default=None):
         return self.float(item, default)
+
+
+class ProtectedDict(dict):
+    """
+    A special dict class that prohibits the setting of attributes. It will
+    NOT protect objects stored in the dictionary, such as sub dicts.
+    """
+
+    def __setitem__(self, key, value):
+        raise AttributeError("This is a protected dict, cannot change anything")
+
+    def __setattr__(self, key, value):
+        raise AttributeError("This is a protected dict, cannot change anything")
+
+    def __copy__(self):
+        return dict(self)
+
+    def __repr__(self):
+        return "<ProtectedDict {0}>".format(str(dict(self)))
+
+    def __hash__(self):
+        """
+        If the dict has objects in it that are not hashable, such as sub dicts,
+        this will error.
+        """
+        hashed = 0
+        for key, value in self.items():
+            hashed ^= hash((key, value))
+        return hashed
