@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import time
+import os
 
 from .common_test_data import *
 
-from reusables import reuse, unique, lock_it, time_it, queue_it
+from reusables import reuse, unique, lock_it, time_it, queue_it, get_logger, \
+    log_exception
 
 
 @reuse
@@ -32,6 +34,13 @@ class TestWrappers(BaseTestClass):
     def setUp(self):
         gen_func(reuse_reset=True)
 
+    @classmethod
+    def tearDownClass(cls):
+        try:
+            os.unlink("out.log")
+        except OSError:
+            pass
+
     def test_reuse_basic(self):
         run1 = gen_func(1, 2, 3)
         assert run1 == (1, 2, 3)
@@ -41,7 +50,7 @@ class TestWrappers(BaseTestClass):
     def test_reuse_failure_state(self):
         run1 = gen_func(1, 2, 3)
         assert run1 == (1, 2, 3)
-        self.assertRaises(TypeError, gen_func, *[2,3,4,5,6,7])
+        self.assertRaises(TypeError, gen_func, *[2, 3, 4, 5, 6, 7])
         run2 = gen_func()
         assert run2 == (1, 2, 3)
 
@@ -123,7 +132,41 @@ class TestWrappers(BaseTestClass):
 
         assert q.get() == 8
 
+    def test_log_exception(self):
+        """
+        Validate the custom log exception is raised correctly.
+        """
+        @log_exception()
+        def unique_function_4():
+            raise Exception("Bad")
 
+        try:
+            unique_function_4()
+        except Exception as err:
+            assert "Bad" in str(err)
+
+    def test_log_exception_message(self):
+        """
+        Validate the message passed to the custom log exception is written
+        correctly in the logs.
+        """
+        get_logger("my_logger", file_path="out.log")
+        message = "I would like to take this moment to say something " \
+                  "interesting has happened. "
+
+        @log_exception("my_logger", message=message)
+        def unique_function_5():
+            raise Exception("Interesting")
+
+        try:
+            unique_function_5()
+        except Exception:
+            pass
+
+        with open(os.path.join("out.log"), "r") as f:
+            assert message in f.readlines()[0]
+
+        os.remove(os.path.join("out.log"))
 
 if __name__ == "__main__":
     unittest.main()
