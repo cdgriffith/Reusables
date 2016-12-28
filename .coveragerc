@@ -27,3 +27,10 @@ exclude_lines =
     self.current_tasks
     except KeyError
     if size < self.max_tasks
+    elif size > self.max_tasks
+    raise NotImplementedError
+    return self.result_queue
+    except (Exception, KeyboardInterrupt)
+    if _os.path.isfile
+    elif _os.path.isfile
+    raise InvalidSchema
