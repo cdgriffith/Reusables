@@ -5,13 +5,8 @@ import os
 
 from .common_test_data import *
 
-from reusables import reuse, unique, lock_it, time_it, queue_it, get_logger, \
-    log_exception
-
-
-@reuse
-def gen_func(a, b, c=None):
-    return a, b, c
+from reusables import unique, lock_it, time_it, queue_it, get_logger, \
+    log_exception, remove_file_handlers
 
 
 @unique(exception=OSError, error_text="WHY ME!")
@@ -31,8 +26,6 @@ def unique_function_3():
 
 class TestWrappers(BaseTestClass):
 
-    def setUp(self):
-        gen_func(reuse_reset=True)
 
     @classmethod
     def tearDownClass(cls):
@@ -40,29 +33,6 @@ class TestWrappers(BaseTestClass):
             os.unlink("out.log")
         except OSError:
             pass
-
-    def test_reuse_basic(self):
-        run1 = gen_func(1, 2, 3)
-        assert run1 == (1, 2, 3)
-        run2 = gen_func()
-        assert run2 == (1, 2, 3)
-
-    def test_reuse_failure_state(self):
-        run1 = gen_func(1, 2, 3)
-        assert run1 == (1, 2, 3)
-        self.assertRaises(TypeError, gen_func, *[2, 3, 4, 5, 6, 7])
-        run2 = gen_func()
-        assert run2 == (1, 2, 3)
-
-    def test_reuse_view_saved(self):
-        run1 = gen_func(1, 2, 3)
-        assert run1 == (1, 2, 3)
-        assert gen_func(reuse_view_cache=True)['args'] == (1, 2, 3)
-
-    def test_reuse_update_args(self):
-        run1 = gen_func(1, 2, 3)
-        assert run1 == (1, 2, 3)
-        assert gen_func(reuse_rep_args=[(1, 4)]) == (4, 2, 3)
 
     def test_unique(self):
         unique_function_1(1)
@@ -162,6 +132,8 @@ class TestWrappers(BaseTestClass):
             unique_function_5()
         except Exception:
             pass
+
+        remove_file_handlers("my_logger")
 
         with open(os.path.join("out.log"), "r") as f:
             assert message in f.readlines()[0]
