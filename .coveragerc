@@ -25,3 +25,5 @@ exclude_lines =
     self.free_tasks
     self.busy_tasks
     self.current_tasks
+    except KeyError
+    if size < self.max_tasks
