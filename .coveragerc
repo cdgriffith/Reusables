@@ -34,3 +34,4 @@ exclude_lines =
     if _os.path.isfile
     elif _os.path.isfile
     raise InvalidSchema
+    pass
