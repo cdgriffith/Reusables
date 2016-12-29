@@ -37,6 +37,42 @@ class TestNumbers(BaseTestClass):
             value = reusables.int_to_roman(int(line[0]))
             assert value == line[1], (line, value)
 
+    def test_bad_roman(self):
+        try:
+            reusables.int_to_roman("5")
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("Should only accept int")
+
+        try:
+            reusables.roman_to_int("IIIII")
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("Parsed malformed roman string")
+
+        try:
+            reusables.roman_to_int("XXXXC")
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("Parsed malformed roman string")
+
+        try:
+            reusables.roman_to_int("IVCD")
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("Parsed malformed roman string")
+
+        try:
+            reusables.roman_to_int("Hello")
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("Parsed malformed roman string")
+
     def test_roman_to_int(self):
         for line in roman_list:
             value = reusables.roman_to_int(line[1])

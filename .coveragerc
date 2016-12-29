@@ -35,3 +35,4 @@ exclude_lines =
     elif _os.path.isfile
     raise InvalidSchema
     pass
+    _logger
