@@ -107,6 +107,7 @@ class TestReuseNamespace(BaseTestClass):
         assert cns.list("Waaaa", [1]) == [1]
 
 
+# noinspection PyTypeChecker
 class TestProtectedDict(BaseTestClass):
 
     def test_create_protected_dict(self):
@@ -118,7 +119,8 @@ class TestProtectedDict(BaseTestClass):
         test_protected = reusables.ProtectedDict({"Test 1": 1,
                                                   "Test 2": 2,
                                                   "Test 3": 3})
-
+        str(test_protected)
+        repr(test_protected)
         for k, v in test_protected.items():
             assert k in test_dict.keys()
             assert test_dict[k] == v
@@ -131,7 +133,7 @@ class TestProtectedDict(BaseTestClass):
         test_protected = reusables.ProtectedDict(a=1, b=2, c=3)
         copy = test_protected.copy()
         assert test_protected == copy
-        assert type(copy) == dict
+        assert isinstance(copy, dict)
         assert not isinstance(copy, reusables.ProtectedDict)
 
     def test_add_key(self):
@@ -146,7 +148,7 @@ class TestProtectedDict(BaseTestClass):
         try:
             test_protected["Test 4"] = 4
         except AttributeError:
-            assert AttributeError
+            pass
         else:
             assert False
 
@@ -162,7 +164,7 @@ class TestProtectedDict(BaseTestClass):
         try:
             test_protected["Test 1"] = 10
         except AttributeError:
-            assert AttributeError
+            pass
         else:
             assert False
 
@@ -185,9 +187,9 @@ class TestProtectedDict(BaseTestClass):
         test_protected = reusables.ProtectedDict({"Test 1": {"a": 1, "b": 2},
                                                   "Test 2": 2, })
         try:
-            test_protected.__hash__()
+            hash(test_protected)
         except TypeError:
-            assert TypeError
+            pass
         else:
             assert False
 
@@ -208,8 +210,8 @@ class TestProtectedDict(BaseTestClass):
         test_dict_three = reusables.ProtectedDict({"Test 4": 4,
                                                    "Test 5": 5,
                                                    "Test 6": 6})
-        assert type(test_dict_one.__hash__()) == int
-        assert type(test_dict_two.__hash__()) == int
-        assert type(test_dict_three.__hash__()) == int
-        assert test_dict_two.__hash__() == test_dict_one.__hash__()
-        assert test_dict_three.__hash__() != test_dict_one.__hash__()
+        assert isinstance(hash(test_dict_one), int)
+        assert isinstance(hash(test_dict_two), int)
+        assert isinstance(hash(test_dict_three), int)
+        assert hash(test_dict_two) == hash(test_dict_one)
+        assert hash(test_dict_three) != hash(test_dict_one)

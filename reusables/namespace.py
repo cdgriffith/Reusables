@@ -232,8 +232,26 @@ class ConfigNamespace(Namespace):
 
 class ProtectedDict(dict):
     """
-    A special dict class that prohibits the setting of attributes. It will
-    NOT protect objects stored in the dictionary, such as sub dicts.
+    A special dict class that prohibits the setting of keys and attributes.
+    It will NOT protect objects stored in the dictionary, such as sub dicts.
+
+    .. code: python
+
+        import reusables
+
+        safe_dict = reusables.ProtectedDict(a=5, b="stuff")
+        # same as safe_dict = resuables.ProtectedDict({"a": 5, "b":"stuff"})
+        # <ProtectedDict {'a': 5, 'b': 'stuff'}>
+
+        safe_dict['a']
+        # 5
+        safe_dict['a'] = 4
+        # Traceback (most recent call last):
+        #  File "<input>", line 1, in <module>
+        #  File "reusables\namespace.py", line 249, in __setitem__
+        # AttributeError: This is a protected dict, cannot change anything
+
+
     """
 
     def __setitem__(self, key, value):

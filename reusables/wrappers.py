@@ -26,6 +26,21 @@ def unique(max_retries=10, wait=0, alt_return="-no_alt_return-",
     Wrapper. Makes sure the function's return value has not been returned before
     or else it run with the same inputs again.
 
+    .. code: python
+
+        import reusables
+        import random
+
+        @reusables.unique(max_retries=100)
+        def poor_uuid():
+            return random.randint(0, 10)
+
+        print([poor_uuid() for _ in range(10)])
+        # [8, 9, 6, 3, 0, 7, 2, 5, 4, 10]
+
+        print([poor_uuid() for _ in range(100)])
+        # Exception: No result was unique
+
     :param max_retries: int of number of retries to attempt before failing
     :param wait: float of seconds to wait between each try, defaults to 0
     :param exception: Exception type of raise
@@ -51,53 +66,36 @@ def unique(max_retries=10, wait=0, alt_return="-no_alt_return-",
     return func_wrap
 
 
-def reuse(func):
-    """
-    Wrapper.
-
-    .. warning::
-
-        Don't use this, just don't. If you need this you're probably coding
-        wrong. This is for fun only.
-
-    Save the variables entered into the function for reuse next time. Different
-    from partials for the fact that it saves it to the original function,
-    so that any module calling the default function will act as if it's a
-    partial, and then may unknowingly change what the partial becomes!
-    """
-
-    @_wraps(func)
-    def wrapper(*args, **kwargs):
-        global _reuse_cache
-        cache = _reuse_cache.get(func.__name__, dict(args=[], kwargs={}))
-        args = list(args)
-        local_kwargs = cache['kwargs'].copy()
-        if kwargs.get("reuse_view_cache"):
-            del kwargs["reuse_view_cache"]
-            return cache.copy()
-        if kwargs.get("reuse_reset"):
-            cache.update(dict(args=[], kwargs={}))
-            del kwargs["reuse_reset"]
-            return
-        if kwargs.get("reuse_rep_args"):
-            for old, new in kwargs["reuse_rep_args"]:
-                if old in cache['args']:
-                    tmp_args = list(cache['args'])
-                    tmp_args[tmp_args.index(old)] = new
-                    cache['args'] = tuple(tmp_args)
-            del kwargs["reuse_rep_args"]
-        args.extend(cache['args'][len(args):])
-        local_kwargs.update(kwargs)
-        result = func(*tuple(args), **local_kwargs)
-        _reuse_cache[func.__name__] = dict(args=tuple(args),
-                                           kwargs=local_kwargs)
-        return result
-    return wrapper
-
-
 def lock_it(lock=_g_lock):
     """
     Wrapper. Simple wrapper to make sure a function is only run once at a time.
+
+    .. code: python
+
+        import reusables
+        import time
+
+        def func_one(_):
+            time.sleep(5)
+
+        @reusables.lock_it()
+        def func_two(_):
+            time.sleep(5)
+
+        @reusables.time_it(message="test_1 took {0:.2f} seconds")
+        def test_1():
+            reusables.run_in_pool(func_one, (1, 2, 3), threaded=True)
+
+        @reusables.time_it(message="test_2 took {0:.2f} seconds")
+        def test_2():
+            reusables.run_in_pool(func_two, (1, 2, 3), threaded=True)
+
+        test_1()
+        test_2()
+
+        # test_1 took 5.04 seconds
+        # test_2 took 15.07 seconds
+
 
     :param lock: Which lock to use, uses unique default
     """
@@ -164,6 +162,23 @@ def time_it(log=False, message="Function took a total of {0} seconds",
 def queue_it(queue=_g_queue, **put_args):
     """
     Wrapper. Instead of returning the result of the function, add it to a queue.
+
+    .. code: python
+
+        import reusables
+        import queue
+
+        my_queue = queue.Queue()
+
+        @reusables.queue_it(my_queue)
+        def func(a):
+            return a
+
+        func(10)
+
+        print(my_queue.get())
+        # 10
+
 
     :param queue: Queue to add result into
     """

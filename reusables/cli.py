@@ -149,13 +149,16 @@ def head(file_path, lines=10, encoding="utf-8", printed=True,
 
 def cat(file_path, encoding="utf-8", errors='strict'):
     """
-          ^-^
-         (-.-)
-          |.|
-         /  \\
-        |    |   _/
-        | || |  |
-        \_||_/_/
+
+    .. code:
+
+              ^-^
+             (-.-)
+              |.|
+             /  \\
+            |    |   _/
+            | || |  |
+            \_||_/_/
 
     :param file_path: Path to file to read
     :param encoding: defaults to utf-8 to decode as, will fail on binary

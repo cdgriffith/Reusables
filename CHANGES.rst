@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 0.8.0
+-------------
+
+- Adding log_exception wrapper
+- Adding ProtectedDict
+- Adding hooks for Tasker main loop
+- Adding roman number functions
+- Breaking change: Removing reuse wrapper
+
 Version 0.7.0
 -------------
 
