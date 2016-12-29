@@ -8,6 +8,7 @@ from .wrappers import *
 from .multiprocess_helpers import *
 from .web import *
 from .shared_variables import *
+from .numbers import *
 
 __author__ = "Chris Griffith"
-__version__ = "0.7.0"
+__version__ = "0.8.0"
