@@ -29,6 +29,12 @@ roman_list = [(1, 'I'), (2, 'II'), (3, 'III'), (4, 'IV'), (5, 'V'), (6, 'VI'),
               (707, 'DCCVII'), (890, 'DCCCXC'), (900, 'CM'), (1500, 'MD'),
               (1800, 'MDCCC')]
 
+numbers_list = [(0, 'zero'),
+                ('1,000.00', 'one thousand'),
+                (1000.00, 'one thousand'),
+                (18005607, 'eighteen million, five thousand, six hundred seven'),
+                (13.13, 'thirteen and thirteen hundredths')]
+
 
 class TestNumbers(BaseTestClass):
 
@@ -77,3 +83,8 @@ class TestNumbers(BaseTestClass):
         for line in roman_list:
             value = reusables.roman_to_int(line[1])
             assert value == line[0], (line, value)
+
+    def test_int_to_words(self):
+        for pair in numbers_list:
+            assert reusables.int_to_words(pair[0]) == pair[1], \
+                "Couldn't translate {}".format(pair[0])
