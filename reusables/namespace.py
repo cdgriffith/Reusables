@@ -237,8 +237,6 @@ class ProtectedDict(dict):
 
     .. code: python
 
-        import reusables
-
         safe_dict = reusables.ProtectedDict(a=5, b="stuff")
         # same as safe_dict = resuables.ProtectedDict({"a": 5, "b":"stuff"})
         # <ProtectedDict {'a': 5, 'b': 'stuff'}>

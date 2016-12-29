@@ -36,3 +36,5 @@ exclude_lines =
     raise InvalidSchema
     pass
     _logger
+    t += 1
+    us = 0
