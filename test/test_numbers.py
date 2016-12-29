@@ -95,7 +95,7 @@ class TestNumbers(BaseTestClass):
     def test_int_to_words(self):
         for pair in numbers_list:
             assert reusables.int_to_words(pair[0]) == pair[1], \
-                "Couldn't translate {}".format(pair[0])
+                "Couldn't translate {0}".format(pair[0])
 
     def test_bad_ints_to_words(self):
         try:
@@ -122,4 +122,4 @@ class TestNumbers(BaseTestClass):
     def test_european_ints(self):
         for pair in european_numbers:
             assert reusables.int_to_words(pair[0], european=True) == pair[1], \
-                "Couldn't translate {}".format(pair[0])
+                "Couldn't translate {0}".format(pair[0])

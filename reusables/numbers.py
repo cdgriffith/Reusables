@@ -103,7 +103,7 @@ def int_to_words(number, european=False):
             return ""
 
     def tens(n):
-        teen = int("{}{}".format(n[0], n[1]))
+        teen = int("{0}{1}".format(n[0], n[1]))
 
         if n[0] == 0:
             return ones(n[1])
@@ -111,9 +111,9 @@ def int_to_words(number, european=False):
             if teen == k:
                 return v
         else:
-            ten = _numbers[int("{}0".format(n[0]))]
+            ten = _numbers[int("{0}0".format(n[0]))]
             one = _numbers[n[1]]
-            return "{}-{}".format(ten, one)
+            return "{0}-{1}".format(ten, one)
 
     def hundreds(n):
         if n[0] == 0:
@@ -121,9 +121,9 @@ def int_to_words(number, european=False):
         else:
             t = tens(n[1:])
             if t:
-                return "{} hundred {}".format(_numbers[n[0]], tens(n[1:]))
+                return "{0} hundred {1}".format(_numbers[n[0]], tens(n[1:]))
             else:
-                return "{} hundred".format(_numbers[n[0]])
+                return "{0} hundred".format(_numbers[n[0]])
 
     decimal = ''
     number = str(number)
@@ -158,7 +158,7 @@ def int_to_words(number, european=False):
     index = 0
     while group_set != 0:
         if groups[group_set]:
-            string.append("{} {}".format(hundreds(n[index:index+3]), groups[group_set]))
+            string.append("{0} {1}".format(hundreds(n[index:index+3]), groups[group_set]))
         else:
             value = hundreds(n[index:index+3])
             if value:
@@ -169,11 +169,11 @@ def int_to_words(number, european=False):
 
     if decimal and int(decimal) != 0:
         if len(d) == 1:
-            string.append("and {} tenths".format(ones(d[0])))
+            string.append("and {0} tenths".format(ones(d[0])))
         elif len(d) == 2:
-            string.append("and {} hundredths".format(tens(d)))
+            string.append("and {0} hundredths".format(tens(d)))
         elif len(d) == 3:
-            string.append("and {} thousandths".format(hundreds(d)))
+            string.append("and {0} thousandths".format(hundreds(d)))
         else:
             raise Exception("Can't do decimals that long!")
 
