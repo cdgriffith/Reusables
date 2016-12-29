@@ -724,7 +724,7 @@ def directory_duplicates(directory, hash_type='md5', **kwargs):
 
     .. code: python
 
-        dups = reusables.directory_duplicates(r"C:\Users\Me\Pictures")
+        dups = reusables.directory_duplicates('C:\\Users\\Me\\Pictures')
 
         print(len(dups))
         # 56
@@ -736,8 +736,7 @@ def directory_duplicates(directory, hash_type='md5', **kwargs):
     :param directory: Directory to search
     :param hash_type: Type of hash to perform
     :param kwargs: Arguments to pass to find_all_files to narrow file types
-    :return: list of lists of dups
-    """
+    :return: list of lists of dups"""
     size_map, hash_map = {}, {}
 
     for item in find_all_files_generator(directory, **kwargs):
