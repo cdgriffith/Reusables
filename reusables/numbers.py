@@ -154,7 +154,7 @@ def int_to_words(number, european=False):
 
     if decimal and int(decimal) != 0:
         if len(d) == 1:
-            string.append("and {} tenths".format(ones(d)))
+            string.append("and {} tenths".format(ones(d[0])))
         elif len(d) == 2:
             string.append("and {} hundredths".format(tens(d)))
         elif len(d) == 3:
