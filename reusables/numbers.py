@@ -13,9 +13,9 @@ _numbers = {0: "zero", 1: "one", 2: "two", 3: "three", 4: "four", 5: "five",
             50: "fifty", 60: "sixty", 70: "seventy", 80: "eighty",
             90: "ninety"}
 
-groups = {1: "", 2: "thousand", 3: "million", 4: "billion", 5: "trillion",
-          6: "quadrillion", 7: "quintillion", 8: "sextillion", 9: "septillion",
-          10: "octillion", 11: "nonillion", 12: "decillion"}
+_places = {1: "", 2: "thousand", 3: "million", 4: "billion", 5: "trillion",
+           6: "quadrillion", 7: "quintillion", 8: "sextillion",
+           9: "septillion", 10: "octillion", 11: "nonillion", 12: "decillion"}
 
 
 def int_to_roman(integer):
@@ -88,7 +88,15 @@ def int_to_words(number, european=False):
     """
     Converts an integer or float to words.
 
-    :param The string, integer, or float to convert to words. The decimal
+    .. code: python
+
+        reusables.int_to_number(445)
+        # 'four hundred forty-five'
+
+        reusables.int_to_number(1.45)
+        # 'one and forty-five hundredths'
+
+    :param number: String, integer, or float to convert to words. The decimal
         can only be up to three places long, and max number allowed is 999
         decillion.
     :param european: If the string uses the european style formatting, i.e.
@@ -97,10 +105,7 @@ def int_to_words(number, european=False):
     :return: The translated string
     """
     def ones(n):
-        if n != 0:
-            return _numbers[n]
-        else:
-            return ""
+        return "" if n == 0 else _numbers[n]
 
     def tens(n):
         teen = int("{0}{1}".format(n[0], n[1]))
@@ -125,63 +130,83 @@ def int_to_words(number, european=False):
             else:
                 return "{0} hundred".format(_numbers[n[0]])
 
-    decimal = ''
-    number = str(number)
-    
-    if european is False:
-        if "." in number:
-            decimal = number.split(".")[1]
-        number = number.split(".")[0].replace(",", "")
+    def comma_separated(list_of_strings):
+        if len(list_of_strings) > 1:
+            if len(list_of_strings) == 2:
+                return " ".join(list_of_strings)
+            else:
+                return ", ".join(list_of_strings)
 
-    else:
-        if "," in number:
-            decimal = number.split(",")[1]
-        number = number.split(",")[0].replace(".", "")
+        else:
+            return list_of_strings[0]
+
+    decimal = ''
+    number_list = []
+    number = str(number)
+    group_delimiter, point_delimiter = (",", ".") \
+        if not european else (".", ",")
+
+    if point_delimiter in number:
+        decimal = number.split(point_delimiter)[1]
+        number = number.split(point_delimiter)[0].replace(
+            group_delimiter, "")
+    elif group_delimiter in number:
+        number = number.replace(group_delimiter, "")
 
     if not number.isdigit():
         raise ValueError("Number is not numeric")
 
     if decimal and not decimal.isdigit():
-        raise ValueError("Number is not numeric")
+        raise ValueError("Decimal is not numeric")
 
     if int(number) == 0:
-        return "zero"
+        number_list.append("zero")
 
     r = len(number) % 3
-    number = number.replace(",", "").zfill(len(number) + 3 - r if r else 0)
-    string = []
+    d_r = len(decimal) % 3
+    number = number.zfill(len(number) + 3 - r if r else 0)
+    f_decimal = decimal.zfill(len(decimal) + 3 - d_r if d_r else 0)
 
-    d = [int(x) for x in decimal]
+    d = [int(x) for x in f_decimal]
     n = [int(x) for x in number]
 
     group_set = int(len(n) / 3)
     index = 0
     while group_set != 0:
-        if groups[group_set]:
-            string.append("{0} {1}".format(hundreds(n[index:index+3]), groups[group_set]))
-        else:
-            value = hundreds(n[index:index+3])
-            if value:
-                string.append(value)
+        value = hundreds(n[index:index + 3])
+        if value:
+            if _places[group_set]:
+                number_list.append("{0} {1}".format(value, _places[group_set]))
+            else:
+                number_list.append(value)
 
         group_set -= 1
         index += 3
 
     if decimal and int(decimal) != 0:
-        if len(d) == 1:
-            string.append("and {0} tenths".format(ones(d[0])))
-        elif len(d) == 2:
-            string.append("and {0} hundredths".format(tens(d)))
-        elif len(d) == 3:
-            string.append("and {0} thousandths".format(hundreds(d)))
-        else:
-            raise Exception("Can't do decimals that long!")
+        index = 0
+        group_set = int(len(d) / 3)
+        decimal_list = []
+        while index <= len(f_decimal) - 1:
+            value = hundreds(d[index:index+3])
+            if value:
+                if _places[group_set] and value:
+                    decimal_list.append("{0} {1}".format(value, _places[group_set]))
+                else:
+                    decimal_list.append(value)
+            index += 3
+            group_set -= 1
 
-    if len(string) > 1:
-        if len(string) == 2 and string[-1].startswith("and"):
-            return " ".join(string)
-        else:
-            return ", ".join(string)
+        if decimal_list:
+            name = ''
+            if len(decimal) % 3 == 1:
+                name = 'ten'
+            elif len(decimal) % 3 == 2:
+                name = 'hundred'
 
-    else:
-        return string[0]
+            place = int((str(len(decimal) / 3).split(".")[0]))
+            number_list.append("and {0} {1}{2}{3}ths".format(
+                comma_separated(decimal_list), name,
+                "-" if name and _places[place+1] else "", _places[place+1]))
+
+    return comma_separated(number_list)

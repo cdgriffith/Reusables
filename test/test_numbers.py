@@ -35,7 +35,11 @@ numbers_list = [(0, 'zero'), ('1,000.00', 'one thousand'),
                 (13.13, 'thirteen and thirteen hundredths'),
                 ('1', 'one'), ('1.0', 'one'),
                 (89.1, 'eighty-nine and one tenths'),
-                ('89.1', 'eighty-nine and one tenths')]
+                ('89.1', 'eighty-nine and one tenths'),
+                ('1.00012', 'one and twelve hundred-thousandths'),
+                (10.10, 'ten and one tenths'),
+                (0.11111, 'zero and eleven thousand one hundred eleven '
+                          'hundred-thousandths')]
 
 european_numbers = [('123.456.789',
                      'one hundred twenty-three million, four hundred '
@@ -104,13 +108,6 @@ class TestNumbers(BaseTestClass):
             pass
         else:
             raise AssertionError("Parsed alphabets")
-
-        try:
-            reusables.int_to_words(1.11111)
-        except Exception:
-            pass
-        else:
-            raise AssertionError("Parsed too many decimals!")
 
         try:
             reusables.int_to_words("1.ABC")
