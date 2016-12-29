@@ -99,18 +99,25 @@ class TestNumbers(BaseTestClass):
 
     def test_bad_ints_to_words(self):
         try:
-            reusables.roman_to_int("ABC")
+            reusables.int_to_words("ABC")
         except ValueError:
             pass
         else:
             raise AssertionError("Parsed alphabets")
 
         try:
-            reusables.roman_to_int(1.11111)
+            reusables.int_to_words(1.11111)
         except Exception:
             pass
         else:
             raise AssertionError("Parsed too many decimals!")
+
+        try:
+            reusables.int_to_words("1.ABC")
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("Parsed alphabets")
 
     def test_european_ints(self):
         for pair in european_numbers:

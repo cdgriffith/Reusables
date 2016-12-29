@@ -138,7 +138,10 @@ def int_to_words(number, european=False):
             decimal = number.split(",")[1]
         number = number.split(",")[0].replace(".", "")
 
-    if not number.isnumeric():
+    if not number.isdigit():
+        raise ValueError("Number is not numeric")
+
+    if decimal and not decimal.isdigit():
         raise ValueError("Number is not numeric")
 
     if int(number) == 0:
