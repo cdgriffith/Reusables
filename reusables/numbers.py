@@ -22,6 +22,12 @@ def int_to_roman(integer):
     """
     Convert an integer into a string of roman numbers.
 
+    .. code: python
+
+        reusables.int_to_roman(445)
+        # 'CDXLV'
+
+
     :param integer:
     :return: roman string
     """
@@ -40,6 +46,12 @@ def int_to_roman(integer):
 def roman_to_int(roman_string):
     """
     Converts a string of roman numbers into an integer.
+
+    .. code: python
+
+        reusables.roman_to_int("XXXVI")
+        # 36
+
 
     :param roman_string: XVI or similar
     :return: parsed integer

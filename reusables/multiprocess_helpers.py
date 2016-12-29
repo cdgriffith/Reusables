@@ -20,15 +20,17 @@ _logger = _logging.getLogger('reusables.tasker')
 
 class Tasker(object):
     """
-    BETA BETA BETA BETA BETA BETA BETA BETA BETA (BETAiscally, don't use yet)
-
-    An advanced multiprocessing pool, with ability to change number of
-    workers or pause the service all together.
+    An advanced multiprocessing pool, designed to run in the background,
+    with ability to change number of workers or pause the service all together.
 
     Simply subclass Tasker, overwrite `perform_task` and `run`!
 
     It has in and out queues (task_queue, result_queue) which can be provided
     or will automatically be created as `multiprocessing.Queue()`s.
+
+    .. warning::
+
+        Use multiprocessing.Queue not queue.Queue
 
     .. warning::
 
@@ -272,7 +274,16 @@ class Tasker(object):
 
 def run_in_pool(target, iterable, threaded=True, processes=4,
                 async=False, target_kwargs=None):
-    """ Run a set of iterables to a function in a Threaded or MP Pool
+    """ Run a set of iterables to a function in a Threaded or MP Pool.
+
+    .. code: python
+
+        def func(a):
+            return a + a
+
+        reusables.run_in_pool(func, [1,2,3,4,5])
+        # [1, 4, 9, 16, 25]
+
 
     :param target: function to run
     :param iterable: positional arg to pass to function
