@@ -421,6 +421,10 @@ Key2 = Value2
         else:
             raise AssertionError("Should raise value error about archive_type")
 
+    def test_duplicate_dir(self):
+        dups = reusables.directory_duplicates(test_root)
+        assert len(dups) == 1, len(dups)
+
 
 if reusables.nix_based:
     class TestReuseLinux(unittest.TestCase):

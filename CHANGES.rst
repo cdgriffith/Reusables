@@ -8,6 +8,7 @@ Version 0.8.0
 - Adding ProtectedDict
 - Adding hooks for Tasker main loop
 - Adding roman number functions
+- Adding directory_duplicates function
 - Breaking change: Removing reuse wrapper
 
 Version 0.7.0

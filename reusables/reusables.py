@@ -667,8 +667,12 @@ def archive_all(files_to_archive, name="archive", archive_type="zip",
 
 def dup_finder_generator(file_path, directory="."):
     """
-    Check a directory for duplicates of the specified file. It's designed to
-    be as fast as possible by doing lighter checks before progressing to
+    Check a directory for duplicates of the specified file. This is meant
+    for a single file only, for checking a directory for dups, use
+    directory_duplicates.
+
+    This is designed to be as fast as possible by doing lighter checks
+    before progressing to
     more extensive ones, in order they are:
 
     1. File size
@@ -711,6 +715,41 @@ def dup_finder_generator(file_path, directory="."):
                         if first_twenty == test_first_twenty:
                             if file_hash(test_file, "sha256") == file_sha256:
                                 yield _os.path.abspath(test_file)
+
+
+def directory_duplicates(directory, hash_type='md5', **kwargs):
+    """
+    Find all duplicates in a directory. Will return a list, in that list
+    are lists of duplicate files.
+
+    .. code: python
+
+        dups = reusables.directory_duplicates(r"C:\Users\Me\Pictures")
+
+        print(len(dups))
+        # 56
+        print(dups)
+        # [['C:\\Users\\Me\\Pictures\\IMG_20161127.jpg',
+        # 'C:\\Users\\Me\\Pictures\\Phone\\IMG_20161127.jpg'], ...
+
+
+    :param directory: Directory to search
+    :param hash_type: Type of hash to perform
+    :param kwargs: Arguments to pass to find_all_files to narrow file types
+    :return: list of lists of dups
+    """
+    size_map, hash_map = {}, {}
+
+    for item in find_all_files_generator(directory, **kwargs):
+        file_size = _os.path.getsize(item)
+        size_map.setdefault(file_size, []).append(item)
+
+    for possible_dups in [v for v in size_map.values() if len(v) > 1]:
+        for each_item in possible_dups:
+            item_hash = file_hash(each_item, hash_type=hash_type)
+            hash_map.setdefault(item_hash, []).append(each_item)
+
+    return [v for v in hash_map.values() if len(v) > 1]
 
 
 def list_to_csv(my_list, csv_file):
