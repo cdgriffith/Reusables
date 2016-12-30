@@ -112,9 +112,8 @@ def int_to_words(number, european=False):
 
         if n[0] == 0:
             return ones(n[1])
-        for k, v in _numbers.items():
-            if teen == k:
-                return v
+        if teen in _numbers:
+            return teen
         else:
             ten = _numbers[int("{0}0".format(n[0]))]
             one = _numbers[n[1]]
@@ -125,23 +124,29 @@ def int_to_words(number, european=False):
             return tens(n[1:])
         else:
             t = tens(n[1:])
-            if t:
-                return "{0} hundred {1}".format(_numbers[n[0]], tens(n[1:]))
-            else:
-                return "{0} hundred".format(_numbers[n[0]])
+            return "{0} hundred {1}".format(_numbers[n[0]], "" if not t else t)
 
     def comma_separated(list_of_strings):
         if len(list_of_strings) > 1:
-            if len(list_of_strings) == 2:
-                return " ".join(list_of_strings)
-            else:
-                return ", ".join(list_of_strings)
-
+            return "{} ".format("" if len(list_of_strings) == 2 else ",").join(list_of_strings)
         else:
             return list_of_strings[0]
 
-    decimal = ''
+    def while_loop(list_of_numbers, final_list):
+        index = 0
+        group_set = int(len(list_of_numbers) / 3)
+        while group_set != 0:
+            value = hundreds(list_of_numbers[index:index + 3])
+            if value:
+                final_list.append("{0} {1}".format(value, _places[group_set]) if _places[group_set] else value)
+            group_set -= 1
+            index += 3
+        return final_list
+
     number_list = []
+    decimal_list = []
+
+    decimal = ''
     number = str(number)
     group_delimiter, point_delimiter = (",", ".") \
         if not european else (".", ",")
@@ -170,32 +175,10 @@ def int_to_words(number, european=False):
     d = [int(x) for x in f_decimal]
     n = [int(x) for x in number]
 
-    group_set = int(len(n) / 3)
-    index = 0
-    while group_set != 0:
-        value = hundreds(n[index:index + 3])
-        if value:
-            if _places[group_set]:
-                number_list.append("{0} {1}".format(value, _places[group_set]))
-            else:
-                number_list.append(value)
-
-        group_set -= 1
-        index += 3
+    while_loop(n, number_list)
 
     if decimal and int(decimal) != 0:
-        index = 0
-        group_set = int(len(d) / 3)
-        decimal_list = []
-        while index <= len(f_decimal) - 1:
-            value = hundreds(d[index:index+3])
-            if value:
-                if _places[group_set] and value:
-                    decimal_list.append("{0} {1}".format(value, _places[group_set]))
-                else:
-                    decimal_list.append(value)
-            index += 3
-            group_set -= 1
+        while_loop(d, decimal_list)
 
         if decimal_list:
             name = ''
