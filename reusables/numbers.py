@@ -101,7 +101,7 @@ def int_to_words(number, european=False):
         decillion.
     :param european: If the string uses the european style formatting, i.e.
         decimal points instead of commas and commas instead of decimal points,
-        set this paramater to True
+        set this parameter to True
     :return: The translated string
     """
     def ones(n):
@@ -128,7 +128,8 @@ def int_to_words(number, european=False):
 
     def comma_separated(list_of_strings):
         if len(list_of_strings) > 1:
-            return "{0} ".format("" if len(list_of_strings) == 2 else ",").join(list_of_strings)
+            return "{0} ".format("" if len(list_of_strings) == 2
+                                 else ",").join(list_of_strings)
         else:
             return list_of_strings[0]
 

@@ -34,7 +34,7 @@ class Tasker(object):
 
     .. warning::
 
-        Do not use with PyPy on Windows at this time
+        Do not use on Windows at this time
 
     :param tasks: list of tasks to pre-populate the queue with
     :param max_tasks: the max number of parallel workers

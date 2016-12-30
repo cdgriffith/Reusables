@@ -10,6 +10,7 @@ Version 0.8.0
 - Adding roman number functions
 - Adding directory_duplicates function
 - Adding integer to words functions
+- Adding option to enable scandir package walk instead of os.walk
 - Breaking change: Removing reuse wrapper
 
 Version 0.7.0

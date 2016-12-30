@@ -27,7 +27,23 @@ from .shared_variables import *
 _logger = get_logger("reusables", level=10, stream=None, file_path=None)
 
 
-def os_tree(directory):
+def _walk(directory, enable_scandir=False, **kwargs):
+    """
+    Internal function to return walk generator either from os or scandir
+
+    :param directory: directory to traverse
+    :param enable_scandir: on python < 3.5 enable external scandir package
+    :param kwargs: arguments to pass to walk function
+    :return: walk generator
+    """
+    walk = _os.walk
+    if python_version < (3, 5) and enable_scandir:
+        import scandir as _scandir
+        walk = _scandir.walk
+    return walk(directory, **kwargs)
+
+
+def os_tree(directory, enable_scandir=False):
     """
     Return a directories contents as a dictionary hierarchy.
 
@@ -42,6 +58,7 @@ def os_tree(directory):
 
 
     :param directory: path to directory to created the tree of.
+    :param enable_scandir: on python < 3.5 enable external scandir package
     :return: dictionary of the directory
     """
     if not _os.path.exists(directory):
@@ -50,7 +67,7 @@ def os_tree(directory):
         raise OSError("Path is not a directory")
 
     full_list = []
-    for root, dirs, files in _os.walk(directory):
+    for root, dirs, files in _walk(directory, enable_scandir=enable_scandir):
         full_list.extend([_os.path.join(root, d).lstrip(directory) + _os.sep
                           for d in dirs])
     tree = {_os.path.basename(directory): {}}
@@ -314,7 +331,7 @@ def file_hash(path, hash_type="md5", block_size=65536):
     :param block_size: amount of bytes to add to hasher at a time
     :return: file's hash
     """
-    if (python_version >= (2, 7) and
+    if (python_version >= (2, 7, 9) and
             hash_type not in _hashlib.algorithms_available):
         raise ValueError("Invalid hash type \"{0}\"".format(hash_type))
     elif hash_type not in ("md5", "sha1", "sha224",
@@ -330,7 +347,8 @@ def file_hash(path, hash_type="md5", block_size=65536):
 
 
 def count_all_files(directory=".", ext=None, name=None,
-                    match_case=False, disable_glob=False, depth=None):
+                    match_case=False, disable_glob=False, depth=None,
+                    enable_scandir=False):
     """
     Perform the same operation as 'find_all_files' but return an integer count
     instead of a list.
@@ -346,17 +364,19 @@ def count_all_files(directory=".", ext=None, name=None,
     :param match_case: If name has to be a direct match or not
     :param disable_glob: Do not look for globable names or use glob magic check
     :param depth: How many directories down to search
+    :param enable_scandir: on python < 3.5 enable external scandir package
     :return: count of files matching requirements as integer
     """
 
-    return sum(1 for _ in find_all_files_generator(directory, ext, name,
-                                                   match_case, disable_glob,
-                                                   depth))
+    return sum(1 for _ in find_all_files_generator(directory=directory,
+               ext=ext, name=name, match_case=match_case,
+               disable_glob=disable_glob, depth=depth,
+               abspath=False, enable_scandir=enable_scandir))
 
 
 def find_all_files_generator(directory=".", ext=None, name=None,
                              match_case=False, disable_glob=False, depth=None,
-                             abspath=False):
+                             abspath=False, enable_scandir=False):
     """
     Walk through a file directory and return an iterator of files
     that match requirements. Will autodetect if name has glob as magic
@@ -378,6 +398,7 @@ def find_all_files_generator(directory=".", ext=None, name=None,
     :param disable_glob: Do not look for globable names or use glob magic check
     :param depth: How many directories down to search
     :param abspath: Return files with their absolute paths
+    :param enable_scandir: on python < 3.5 enable external scandir package
     :return: generator of all files in the specified directory
     """
     if ext or not name:
@@ -393,7 +414,7 @@ def find_all_files_generator(directory=".", ext=None, name=None,
         directory = _os.path.abspath(directory)
     starting_depth = directory.count(_os.sep)
 
-    for root, dirs, files in _os.walk(directory):
+    for root, dirs, files in _walk(directory, enable_scandir=enable_scandir):
         if depth and root.count(_os.sep) - starting_depth >= depth:
             continue
 
@@ -423,7 +444,8 @@ def find_all_files_generator(directory=".", ext=None, name=None,
 
 
 def find_all_files(directory=".", ext=None, name=None, match_case=False,
-                   disable_glob=False, depth=None, abspath=False):
+                   disable_glob=False, depth=None, abspath=False,
+                   enable_scandir=False):
     """
     Returns a list of all files in a sub directory that match an extension
     and or part of a filename. Will autodetect if name has glob as magic
@@ -448,25 +470,36 @@ def find_all_files(directory=".", ext=None, name=None, match_case=False,
     :param disable_glob: Do not look for globable names or use glob magic check
     :param depth: How many directories down to search
     :param abspath: Return files with their absolute paths
+    :param enable_scandir: On python  versions < 3.5, use scandir package
     :return: list of all files in the specified directory
     """
     return list(find_all_files_generator(directory, ext=ext, name=name,
-                                         match_case=match_case,
-                                         disable_glob=disable_glob,
-                                         depth=depth, abspath=abspath))
+                match_case=match_case, disable_glob=disable_glob,
+                depth=depth, abspath=abspath, enable_scandir=enable_scandir))
 
 
-def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True):
+def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True,
+                             enable_scandir=False):
     """
     Remove all empty folders from a path. Returns list of empty directories.
 
     :param root_directory: base directory to start at
     :param dry_run: just return a list of what would be removed
     :param ignore_errors: Permissions are a pain, just ignore if you blocked
+    :param enable_scandir: on python < 3.5 enable external scandir package
     :return: list of removed directories
     """
+    listdir = _os.listdir
+    if python_version < (3, 5) and enable_scandir:
+        import scandir as _scandir
+
+        def listdir(directory):
+            return list(_scandir.scandir(directory))
+
     directory_list = []
-    for root, directories, files in _os.walk(root_directory, topdown=False):
+    for root, directories, files in _walk(root_directory,
+                                          enable_scandir=enable_scandir,
+                                          topdown=False):
         if (not directories and not files and _os.path.exists(root) and
                 root != root_directory and _os.path.isdir(root)):
             directory_list.append(root)
@@ -482,7 +515,7 @@ def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True):
             for directory in directories:
                 directory = join_paths(root, directory, strict=True)
                 if (_os.path.exists(directory) and _os.path.isdir(directory) and
-                        not _os.listdir(directory)):
+                        not listdir(directory)):
                     directory_list.append(directory)
                     if not dry_run:
                         try:
@@ -496,17 +529,20 @@ def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True):
     return directory_list
 
 
-def remove_empty_files(root_directory, dry_run=False, ignore_errors=True):
+def remove_empty_files(root_directory, dry_run=False, ignore_errors=True,
+                       enable_scandir=False):
     """
     Remove all empty files from a path. Returns list of the empty files removed.
 
     :param root_directory: base directory to start at
     :param dry_run: just return a list of what would be removed
     :param ignore_errors: Permissions are a pain, just ignore if you blocked
+    :param enable_scandir: on python < 3.5 enable external scandir package
     :return: list of removed files
     """
     file_list = []
-    for root, directories, files in _os.walk(root_directory):
+    for root, directories, files in _walk(root_directory,
+                                          enable_scandir=enable_scandir):
         for file_name in files:
             file_path = join_paths(root, file_name, strict=True)
             if _os.path.isfile(file_path) and not _os.path.getsize(file_path):
@@ -665,7 +701,7 @@ def archive_all(files_to_archive, name="archive", archive_type="zip",
     return _os.path.abspath(filename)
 
 
-def dup_finder_generator(file_path, directory="."):
+def dup_finder_generator(file_path, directory=".", enable_scandir=False):
     """
     Check a directory for duplicates of the specified file. This is meant
     for a single file only, for checking a directory for dups, use
@@ -690,6 +726,7 @@ def dup_finder_generator(file_path, directory="."):
 
     :param file_path: Path to file to check for duplicates of
     :param directory: Directory to dig recursively into to look for duplicates
+    :param enable_scandir: on python < 3.5 enable external scandir package
     :return: generators
     """
     size = _os.path.getsize(file_path)
@@ -701,7 +738,8 @@ def dup_finder_generator(file_path, directory="."):
             first_twenty = f.read(20)
         file_sha256 = file_hash(file_path, "sha256")
 
-        for root, directories, files in _os.walk(directory):
+        for root, directories, files in _walk(directory,
+                                              enable_scandir=enable_scandir):
             for each_file in files:
                 test_file = _os.path.join(root, each_file)
                 if _os.path.getsize(test_file) == size:

@@ -27,7 +27,7 @@ setup(
     license='MIT',
     author=attrs['author'],
     tests_require=["nose >= 1.3", "coverage >= 3.6", "argparse", "rarfile"],
-    install_requires=["argparse"],
+    install_requires=[],
     author_email='chris@cdgriffith.com',
     description='Commonly Consumed Code Commodities',
     long_description=long_description,
