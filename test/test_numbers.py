@@ -29,6 +29,24 @@ roman_list = [(1, 'I'), (2, 'II'), (3, 'III'), (4, 'IV'), (5, 'V'), (6, 'VI'),
               (707, 'DCCVII'), (890, 'DCCCXC'), (900, 'CM'), (1500, 'MD'),
               (1800, 'MDCCC')]
 
+numbers_list = [(0, 'zero'), ('1,000.00', 'one thousand'),
+                (1000.00, 'one thousand'),
+                (18005607, 'eighteen million, five thousand, six hundred seven'),
+                (13.13, 'thirteen and thirteen hundredths'),
+                ('1', 'one'), ('1.0', 'one'),
+                (89.1, 'eighty-nine and one tenths'),
+                ('89.1', 'eighty-nine and one tenths'),
+                ('1.00012', 'one and twelve hundred-thousandths'),
+                (10.10, 'ten and one tenths'),
+                (0.11111, 'zero and eleven thousand one hundred eleven '
+                          'hundred-thousandths')]
+
+european_numbers = [('123.456.789',
+                     'one hundred twenty-three million, four hundred '
+                     'fifty-six thousand, seven hundred eighty-nine'),
+                    ('1,345', 'one and three hundred forty-five thousandths'),
+                    ('10.000,5', 'ten thousand and five tenths')]
+
 
 class TestNumbers(BaseTestClass):
 
@@ -77,3 +95,28 @@ class TestNumbers(BaseTestClass):
         for line in roman_list:
             value = reusables.roman_to_int(line[1])
             assert value == line[0], (line, value)
+
+    def test_int_to_words(self):
+        for pair in numbers_list:
+            assert reusables.int_to_words(pair[0]) == pair[1], \
+                "Couldn't translate {0}".format(pair[0])
+
+    def test_bad_ints_to_words(self):
+        try:
+            reusables.int_to_words("ABC")
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("Parsed alphabets")
+
+        try:
+            reusables.int_to_words("1.ABC")
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("Parsed alphabets")
+
+    def test_european_ints(self):
+        for pair in european_numbers:
+            assert reusables.int_to_words(pair[0], european=True) == pair[1], \
+                "Couldn't translate {0}".format(pair[0])
