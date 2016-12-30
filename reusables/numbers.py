@@ -113,7 +113,7 @@ def int_to_words(number, european=False):
         if n[0] == 0:
             return ones(n[1])
         if teen in _numbers:
-            return teen
+            return _numbers[teen]
         else:
             ten = _numbers[int("{0}0".format(n[0]))]
             one = _numbers[n[1]]
@@ -128,7 +128,7 @@ def int_to_words(number, european=False):
 
     def comma_separated(list_of_strings):
         if len(list_of_strings) > 1:
-            return "{} ".format("" if len(list_of_strings) == 2 else ",").join(list_of_strings)
+            return "{0} ".format("" if len(list_of_strings) == 2 else ",").join(list_of_strings)
         else:
             return list_of_strings[0]
 
@@ -138,7 +138,8 @@ def int_to_words(number, european=False):
         while group_set != 0:
             value = hundreds(list_of_numbers[index:index + 3])
             if value:
-                final_list.append("{0} {1}".format(value, _places[group_set]) if _places[group_set] else value)
+                final_list.append("{0} {1}".format(value, _places[group_set])
+                                  if _places[group_set] else value)
             group_set -= 1
             index += 3
         return final_list
