@@ -142,7 +142,6 @@ def int_to_words(number, european=False):
                                   if _places[group_set] else value)
             group_set -= 1
             index += 3
-        return final_list
 
     number_list = []
     decimal_list = []
