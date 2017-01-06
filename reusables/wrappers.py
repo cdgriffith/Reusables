@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# -*- coding: UTF-8 -*-
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2016  - Chris Griffith - MIT License
+# Copyright (c) 2014-2017 - Chris Griffith - MIT License
 import time as _time
 from threading import Lock as _Lock
 from functools import wraps as _wraps

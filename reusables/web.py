@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
-
+#
+# Part of the Reusables package.
+#
+# Copyright (c) 2014-2017 - Chris Griffith - MIT License
 import os as _os
 import logging as _logging
 import time as _time
@@ -133,6 +136,11 @@ def url_to_ips(url, port=None, ipv6=False, connect_type=_socket.SOCK_STREAM,
     """
     Provide a list of IP addresses, uses `socket.getaddrinfo`
 
+    .. code:: python
+
+        reusables.url_to_ips("example.com", ipv6=True)
+        # ['2606:2800:220:1:248:1893:25c8:1946']
+
     :param url: hostname to resolve to IP addresses
     :param port: port to send to getaddrinfo
     :param ipv6: Return IPv6 address if True, otherwise IPv4
@@ -143,11 +151,11 @@ def url_to_ips(url, port=None, ipv6=False, connect_type=_socket.SOCK_STREAM,
     """
     try:
         results = _socket.getaddrinfo(url, port,
-                                      family=(_socket.AF_INET if not ipv6
-                                              else _socket.AF_INET6),
-                                      type=connect_type,
-                                      proto=proto,
-                                      flags=flags)
+                                      (_socket.AF_INET if not ipv6
+                                       else _socket.AF_INET6),
+                                      connect_type,
+                                      proto,
+                                      flags)
     except _socket.gaierror:
         _logger.exception("Could not resolve hostname")
         return []
@@ -158,6 +166,11 @@ def url_to_ips(url, port=None, ipv6=False, connect_type=_socket.SOCK_STREAM,
 def url_to_ip(url):
     """
     Provide IP of host, does not support IPv6, uses `socket.gethostbyaddr`
+
+    .. code:: python
+
+        reusables.url_to_ip('example.com')
+        # '93.184.216.34'
 
     :param url: hostname to resolve to IP addresses
     :return: string of IP address or None
@@ -170,7 +183,20 @@ def url_to_ip(url):
 
 def ip_to_url(ip_addr):
     """
-    Resolve a hostname based off an IP address
+    Resolve a hostname based off an IP address.
+
+    This is very limited and will
+    probably not return any results if it is a shared IP address or an
+    address with improperly setup DNS records.
+
+    .. code:: python
+
+        reusables.ip_to_url('93.184.216.34') # example.com
+        # None
+
+        reusables.ip_to_url('8.8.8.8')
+        # 'google-public-dns-a.google.com'
+
 
     :param ip_addr: IP address to resolve to hostname
     :return: string of hostname or None

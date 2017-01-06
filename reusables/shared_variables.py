@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+#
+# Part of the Reusables package.
+#
+# Copyright (c) 2014-2017 - Chris Griffith - MIT License
 import re as _re
 import os as _os
 import sys as _sys
