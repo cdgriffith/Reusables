@@ -177,5 +177,5 @@ def ip_to_url(ip_addr):
     """
     try:
         return _socket.gethostbyaddr(ip_addr)[0]
-    except _socket.gaierror:
+    except (_socket.gaierror, _socket.herror):
         _logger.exception("Could not resolve hostname")
