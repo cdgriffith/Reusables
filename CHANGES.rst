@@ -11,7 +11,14 @@ Version 0.8.0
 - Adding directory_duplicates function
 - Adding integer to words functions
 - Adding option to enable scandir package walk instead of os.walk
+- Adding url_to_ip and ip_to_url functions
+- Changing functions to remove 'all' from them, extract_all, archive_all, find_all_files and find_all_files_generator
+- Depreciation Warning: extract_all is changing to extract
+- Depreciation Warning: archive_all is changing to archive
+- Depreciation Warning: find_all_files is changing to find_files
+- Depreciation Warning: find_all_files_generator is changing to find_files_generator
 - Breaking change: Removing reuse wrapper
+- Breaking change: archive_all now detects type based off name, should supply extension to name
 
 Version 0.7.0
 -------------

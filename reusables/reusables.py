@@ -26,6 +26,36 @@ from .shared_variables import *
 _logger = get_logger("reusables", level=10, stream=None, file_path=None)
 
 
+def archive_all(*args, **kwargs):
+    """Backwards compatible wrapper for 'archive'"""
+    print("archive_all is depreciated, please use 'archive' ")
+    _logger.warning("archive_all is depreciated, please use 'archive' ")
+    return archive(*args, **kwargs)
+
+
+def extract_all(*args, **kwargs):
+    """Backwards compatible wrapper for 'extract'"""
+    print("extract_all is depreciated, please use 'archive' ")
+    _logger.warning("extract_all is depreciated, please use 'archive' ")
+    return extract(*args, **kwargs)
+
+
+def find_all_files(*args, **kwargs):
+    """Backwards compatible wrapper for 'list(find_files())'"""
+    print("find_all_files is depreciated, please use 'list(find_files())' ")
+    _logger.warning("find_all_files is depreciated, "
+                    "please use 'list(find_files())' ")
+    return list(find_files(*args, **kwargs))
+
+
+def find_all_files_generator(*args, **kwargs):
+    """Backwards compatible wrapper for 'find_files'"""
+    print("find_all_files_generator is depreciated, please use 'find_files' ")
+    _logger.warning("find_all_files_generator is depreciated, "
+                    "please use 'find_files' ")
+    return find_files(*args, **kwargs)
+
+
 def _walk(directory, enable_scandir=False, **kwargs):
     """
     Internal function to return walk generator either from os or scandir
@@ -178,7 +208,7 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
             cfg_files.extend(config_file)
 
     if auto_find:
-        cfg_files.extend(find_all_files(
+        cfg_files.extend(find_files_list(
             current_root if isinstance(auto_find, bool) else auto_find,
             ext=(".cfg", ".config", ".ini")))
 
@@ -349,7 +379,7 @@ def count_all_files(directory=".", ext=None, name=None,
                     match_case=False, disable_glob=False, depth=None,
                     enable_scandir=False):
     """
-    Perform the same operation as 'find_all_files' but return an integer count
+    Perform the same operation as 'find_files' but return an integer count
     instead of a list.
 
     .. code:: python
@@ -367,15 +397,20 @@ def count_all_files(directory=".", ext=None, name=None,
     :return: count of files matching requirements as integer
     """
 
-    return sum(1 for _ in find_all_files_generator(directory=directory,
+    return sum(1 for _ in find_files(directory=directory,
                ext=ext, name=name, match_case=match_case,
                disable_glob=disable_glob, depth=depth,
                abspath=False, enable_scandir=enable_scandir))
 
 
-def find_all_files_generator(directory=".", ext=None, name=None,
-                             match_case=False, disable_glob=False, depth=None,
-                             abspath=False, enable_scandir=False):
+def find_files_list(*args, **kwargs):
+    """ Returns a list of find_files generator"""
+    return list(find_files(*args, **kwargs))
+
+
+def find_files(directory=".", ext=None, name=None,
+               match_case=False, disable_glob=False, depth=None,
+               abspath=False, enable_scandir=False):
     """
     Walk through a file directory and return an iterator of files
     that match requirements. Will autodetect if name has glob as magic
@@ -383,12 +418,21 @@ def find_all_files_generator(directory=".", ext=None, name=None,
 
     .. code:: python
 
-        list(reusables.find_all_files_generator(name="ex", match_case=True))
+        list(reusables.find_files(name="ex", match_case=True))
         # ['C:\\example.pdf',
         #  'C:\\My_exam_score.txt']
 
-        list(reusables.find_all_files_generator(name="*free*"))
+        list(reusables.find_files(name="*free*"))
         # ['C:\\my_stuff\\Freedom_fight.pdf']
+
+        reusables.find_files(ext=".pdf")
+        # ['C:\\Example.pdf',
+        #  'C:\\how_to_program.pdf',
+        #  'C:\\Hunks_and_Chicks.pdf']
+
+        reusables.find_files(name="*chris*")
+        # ['C:\\Christmas_card.docx',
+        #  'C:\\chris_stuff.zip']
 
     :param directory: Top location to recursively search for matching files
     :param ext: Extensions of the file you are looking for
@@ -440,41 +484,6 @@ def find_all_files_generator(directory=".", ext=None, name=None,
                 elif name.lower() not in file_name.lower():
                     continue
             yield _os.path.join(root, file_name)
-
-
-def find_all_files(directory=".", ext=None, name=None, match_case=False,
-                   disable_glob=False, depth=None, abspath=False,
-                   enable_scandir=False):
-    """
-    Returns a list of all files in a sub directory that match an extension
-    and or part of a filename. Will autodetect if name has glob as magic
-    characters.
-
-    .. code:: python
-
-        reusables.find_all_files(ext=".pdf")
-        # ['C:\\Example.pdf',
-        #  'C:\\how_to_program.pdf',
-        #  'C:\\Hunks_and_Chicks.pdf']
-
-        reusables.find_all_files(name="*chris*")
-        # ['C:\\Christmas_card.docx',
-        #  'C:\\chris_stuff.zip']
-
-
-    :param directory: Top location to recursively search for matching files
-    :param ext: Extensions of the file you are looking for
-    :param name: Part of the file name
-    :param match_case: If name has to be a direct match or not
-    :param disable_glob: Do not look for globable names or use glob magic check
-    :param depth: How many directories down to search
-    :param abspath: Return files with their absolute paths
-    :param enable_scandir: On python  versions < 3.5, use scandir package
-    :return: list of all files in the specified directory
-    """
-    return list(find_all_files_generator(directory, ext=ext, name=name,
-                match_case=match_case, disable_glob=disable_glob,
-                depth=depth, abspath=abspath, enable_scandir=enable_scandir))
 
 
 def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True,
@@ -563,8 +572,8 @@ def remove_empty_files(root_directory, dry_run=False, ignore_errors=True,
     return file_list
 
 
-def extract_all(archive_file, path=".", delete_on_success=False,
-                enable_rar=False):
+def extract(archive_file, path=".", delete_on_success=False,
+            enable_rar=False):
     """
     Automatically detect archive type and extract all files to specified path.
 
@@ -575,7 +584,7 @@ def extract_all(archive_file, path=".", delete_on_success=False,
         os.listdir(".")
         # ['test_structure.zip']
 
-        reusables.extract_all("test_structure.zip")
+        reusables.extract("test_structure.zip")
 
         os.listdir(".")
         # [ 'test_structure', 'test_structure.zip']
@@ -592,29 +601,29 @@ def extract_all(archive_file, path=".", delete_on_success=False,
         _logger.error("File {0} unextractable".format(archive_file))
         raise OSError("File does not exist or has zero size")
 
-    archive = None
+    arch = None
     if _zipfile.is_zipfile(archive_file):
         _logger.debug("File {0} detected as a zip file".format(archive_file))
-        archive = _zipfile.ZipFile(archive_file)
+        arch = _zipfile.ZipFile(archive_file)
     elif _tarfile.is_tarfile(archive_file):
         _logger.debug("File {0} detected as a tar file".format(archive_file))
-        archive = _tarfile.open(archive_file)
+        arch = _tarfile.open(archive_file)
     elif enable_rar:
         import rarfile
         if rarfile.is_rarfile(archive_file):
             _logger.debug("File {0} detected as "
                           "a rar file".format(archive_file))
-            archive = rarfile.RarFile(archive_file)
+            arch = rarfile.RarFile(archive_file)
 
-    if not archive:
+    if not arch:
         raise TypeError("File is not a known archive")
 
     _logger.debug("Extracting files to {0}".format(path))
 
     try:
-        archive.extractall(path=path)
+        arch.extractall(path=path)
     finally:
-        archive.close()
+        arch.close()
 
     if delete_on_success:
         _logger.debug("Archive {0} will now be deleted".format(archive_file))
@@ -623,9 +632,9 @@ def extract_all(archive_file, path=".", delete_on_success=False,
     return _os.path.abspath(path)
 
 
-def archive_all(files_to_archive, name="archive", archive_type="zip",
-                overwrite=False, store=False, depth=None, err_non_exist=True,
-                allow_zip_64=True, **tarfile_kwargs):
+def archive(files_to_archive, name="archive.zip", archive_type=None,
+            overwrite=False, store=False, depth=None, err_non_exist=True,
+            allow_zip_64=True, **tarfile_kwargs):
     """ Archive a list of files (or files inside a folder), can chose between
 
         - zip
@@ -635,13 +644,13 @@ def archive_all(files_to_archive, name="archive", archive_type="zip",
 
     .. code:: python
 
-        reusables.archive_all(['reusables', '.travis.yml'],
-                              name="my_archive", archive_type="bz2")
+        reusables.archive(['reusables', '.travis.yml'],
+                              name="my_archive.bz2")
         # 'C:\\Users\\Me\\Reusables\\my_archive.bz2'
 
     :param files_to_archive: list of files and folders to archive
-    :param name: path and name of archive file (no extension)
-    :param archive_type: supported archive, automatically appended to name
+    :param name: path and name of archive file
+    :param archive_type: auto-detects unless specified
     :param overwrite: overwrite if archive exists
     :param store: zipfile only, True will not compress files
     :param depth: specify max depth for folders
@@ -653,30 +662,42 @@ def archive_all(files_to_archive, name="archive", archive_type="zip",
     if not isinstance(files_to_archive, (list, tuple)):
         files_to_archive = [files_to_archive]
 
-    archive_type = archive_type.lower()
-    filename = "{0}.{1}".format(name, archive_type)
+    if not archive_type:
+        if name.lower().endswith("zip"):
+            archive_type = "zip"
+        elif name.lower().endswith("gz"):
+            archive_type = "gz"
+        elif name.lower().endswith("z2"):
+            archive_type = "bz2"
+        elif name.lower().endswith("tar"):
+            archive_type = "tar"
+        else:
+            raise ValueError("Could not determine archive type"
+                             " based off {0}".format(name))
+    elif archive_type not in ("tar", "gz", "bz2", "zip"):
+        raise ValueError("archive_type must be zip, gz, bz2, or gz")
 
-    if not overwrite and _os.path.exists(filename):
+    if not overwrite and _os.path.exists(name):
         raise OSError("File exists and overwrite not specified")
 
     if archive_type == "zip":
-        archive = _zipfile.ZipFile(filename, 'w',
-                                   _zipfile.ZIP_STORED if store else
-                                   _zipfile.ZIP_DEFLATED,
-                                   allowZip64=allow_zip_64)
-        write = archive.write
-    elif archive_type in ("tar.gz", "tgz", "gz", "tar.bz2", "bz2", "tar"):
+        arch = _zipfile.ZipFile(name, 'w',
+                                _zipfile.ZIP_STORED if store else
+                                _zipfile.ZIP_DEFLATED,
+                                allowZip64=allow_zip_64)
+        write = arch.write
+    elif archive_type in ("tar", "gz", "bz2"):
         if archive_type == "tar":
-            archive = _tarfile.open(filename, 'w:', **tarfile_kwargs)
-        elif archive_type in ("tgz", "tar.gz", "gz"):
-            archive = _tarfile.open(filename, 'w:gz', **tarfile_kwargs)
-        elif archive_type in ("tar.gz2", "bz2"):
-            archive = _tarfile.open(filename, 'w:bz2', **tarfile_kwargs)
+            arch = _tarfile.open(name, 'w:', **tarfile_kwargs)
+        elif archive_type == "gz":
+            arch = _tarfile.open(name, 'w:gz', **tarfile_kwargs)
+        elif archive_type == "bz2":
+            arch = _tarfile.open(name, 'w:bz2', **tarfile_kwargs)
         else:
             raise Exception("Should not be here")
-        write = archive.add
+        write = arch.add
     else:
-        raise ValueError("archive_type must be zip, tar.gz, tgz, or gz")
+        raise ValueError("archive_type must be zip, gz, bz2, or gz")
 
     try:
         for file_path in files_to_archive:
@@ -685,19 +706,19 @@ def archive_all(files_to_archive, name="archive", archive_type="zip",
                     raise OSError("File {0} does not exist".format(file_path))
                 write(file_path)
             elif _os.path.isdir(file_path):
-                for nf in find_all_files_generator(file_path, abspath=False,
+                for nf in find_files(file_path, abspath=False,
                                                    depth=depth):
                     write(nf)
     except (Exception, KeyboardInterrupt) as err:
         try:
-            archive.close()
+            arch.close()
         finally:
-            _os.unlink(filename)
+            _os.unlink(name)
         raise err
     else:
-        archive.close()
+        arch.close()
 
-    return _os.path.abspath(filename)
+    return _os.path.abspath(name)
 
 
 def dup_finder_generator(file_path, directory=".", enable_scandir=False):
@@ -772,11 +793,11 @@ def directory_duplicates(directory, hash_type='md5', **kwargs):
 
     :param directory: Directory to search
     :param hash_type: Type of hash to perform
-    :param kwargs: Arguments to pass to find_all_files to narrow file types
+    :param kwargs: Arguments to pass to find_files to narrow file types
     :return: list of lists of dups"""
     size_map, hash_map = {}, {}
 
-    for item in find_all_files_generator(directory, **kwargs):
+    for item in find_files(directory, **kwargs):
         file_size = _os.path.getsize(item)
         size_map.setdefault(file_size, []).append(item)
 

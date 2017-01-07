@@ -16,7 +16,7 @@ import shutil as _shutil
 
 # Keep touch and download import so it can be imported with other CLI commands
 from .shared_variables import *
-from .reusables import run, win_based, find_all_files, touch
+from .reusables import run, win_based, find_files_list, touch
 from .web import download
 from .log import add_stream_handler
 
@@ -104,7 +104,7 @@ def ls(params="", directory=".", printed=True):
 def find(name=None, ext=None, directory=".", match_case=False,
          disable_glob=False, depth=None):
     """ Designed for the interactive interpreter by making default order
-    of find_all_files faster.
+    of find_files faster.
 
     :param name: Part of the file name
     :param ext: Extensions of the file you are looking for
@@ -114,9 +114,9 @@ def find(name=None, ext=None, directory=".", match_case=False,
     :param depth: How many directories down to search
     :return: list of all files in the specified directory
     """
-    return find_all_files(directory=directory, ext=ext, name=name,
-                          match_case=match_case, disable_glob=disable_glob,
-                          depth=depth)
+    return find_files_list(directory=directory, ext=ext, name=name,
+                           match_case=match_case, disable_glob=disable_glob,
+                           depth=depth)
 
 
 def head(file_path, lines=10, encoding="utf-8", printed=True,

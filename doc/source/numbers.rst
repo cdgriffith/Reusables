@@ -1,4 +1,4 @@
-Logging
+Numbers
 =======
 
 .. automodule:: reusables.numbers
