@@ -11,6 +11,7 @@ import json as _json
 import subprocess as _subprocess
 import glob as _glob
 import hashlib as _hashlib
+import warnings as _warnings
 import zipfile as _zipfile
 import tarfile as _tarfile
 try:
@@ -28,31 +29,33 @@ _logger = get_logger("reusables", level=10, stream=None, file_path=None)
 
 def archive_all(*args, **kwargs):
     """Backwards compatible wrapper for 'archive'"""
-    print("archive_all is depreciated, please use 'archive' ")
-    _logger.warning("archive_all is depreciated, please use 'archive' ")
+    _warnings.warn("archive_all is changing name to archive",
+                   FutureWarning)
+    _logger.warning("archive_all is changing name to archive")
     return archive(*args, **kwargs)
 
 
 def extract_all(*args, **kwargs):
     """Backwards compatible wrapper for 'extract'"""
-    print("extract_all is depreciated, please use 'archive' ")
-    _logger.warning("extract_all is depreciated, please use 'archive' ")
+    _warnings.warn("extract_all is changing name to extract",
+                   FutureWarning)
+    _logger.warning("extract_all is changing name to extract")
     return extract(*args, **kwargs)
 
 
 def find_all_files(*args, **kwargs):
     """Backwards compatible wrapper for 'list(find_files())'"""
-    print("find_all_files is depreciated, please use 'list(find_files())' ")
-    _logger.warning("find_all_files is depreciated, "
-                    "please use 'list(find_files())' ")
+    _warnings.warn("find_all_files is changing to find_files_list",
+                   FutureWarning)
+    _logger.warning("find_all_files is changing to find_files_list")
     return list(find_files(*args, **kwargs))
 
 
 def find_all_files_generator(*args, **kwargs):
     """Backwards compatible wrapper for 'find_files'"""
-    print("find_all_files_generator is depreciated, please use 'find_files' ")
-    _logger.warning("find_all_files_generator is depreciated, "
-                    "please use 'find_files' ")
+    _warnings.warn("find_all_files_generator is changing to find_files",
+                   FutureWarning)
+    _logger.warning("find_all_files_generator is changing to find_files")
     return find_files(*args, **kwargs)
 
 
