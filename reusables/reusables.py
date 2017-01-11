@@ -59,6 +59,14 @@ def find_all_files_generator(*args, **kwargs):
     return find_files(*args, **kwargs)
 
 
+def count_all_files(*args, **kwargs):
+    """Backwards compatible, should be replaced with len or custom sum"""
+    _warnings.warn("count_all_files is being removed",
+                   FutureWarning)
+    _logger.warning("count_all_files is being removed")
+    return len(find_files_list(*args, **kwargs))
+
+
 def _walk(directory, enable_scandir=False, **kwargs):
     """
     Internal function to return walk generator either from os or scandir
@@ -345,7 +353,7 @@ def safe_path(path, replacement="_"):
     return sanitized_path
 
 
-def file_hash(path, hash_type="md5", block_size=65536):
+def file_hash(path, hash_type="md5", block_size=65536, hex_digest=True):
     """
     Hash a given file with md5, or any other and return the hex digest. You
     can run `hashlib.algorithms_available` to see which are available on your
@@ -361,49 +369,16 @@ def file_hash(path, hash_type="md5", block_size=65536):
     :param path: location of the file to hash
     :param hash_type: string name of the hash to use
     :param block_size: amount of bytes to add to hasher at a time
+    :param hex_digest: returned as hexdigest, false will return digest
     :return: file's hash
     """
-    if (python_version >= (2, 7, 9) and
-            hash_type not in _hashlib.algorithms_available):
-        raise ValueError("Invalid hash type \"{0}\"".format(hash_type))
-    elif hash_type not in ("md5", "sha1", "sha224",
-                           "sha256", "sha384", "sha512"):
-        raise ValueError("Invalid hash type \"{0}\"".format(hash_type))
     hashed = _hashlib.new(hash_type)
     with open(path, "rb") as infile:
         buf = infile.read(block_size)
         while len(buf) > 0:
             hashed.update(buf)
             buf = infile.read(block_size)
-    return hashed.hexdigest()
-
-
-def count_all_files(directory=".", ext=None, name=None,
-                    match_case=False, disable_glob=False, depth=None,
-                    enable_scandir=False):
-    """
-    Perform the same operation as 'find_files' but return an integer count
-    instead of a list.
-
-    .. code:: python
-
-        reusables.count_all_files(name="ex", match_case=True))
-        # 2
-
-    :param directory: Top location to recursively search for matching files
-    :param ext: Extensions of the file you are looking for
-    :param name: Part of the file name
-    :param match_case: If name has to be a direct match or not
-    :param disable_glob: Do not look for globable names or use glob magic check
-    :param depth: How many directories down to search
-    :param enable_scandir: on python < 3.5 enable external scandir package
-    :return: count of files matching requirements as integer
-    """
-
-    return sum(1 for _ in find_files(directory=directory,
-               ext=ext, name=name, match_case=match_case,
-               disable_glob=disable_glob, depth=depth,
-               abspath=False, enable_scandir=enable_scandir))
+    return hashed.hexdigest() if hex_digest else hashed.digest()
 
 
 def find_files_list(*args, **kwargs):
