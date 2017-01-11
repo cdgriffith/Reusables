@@ -19,7 +19,7 @@ Version 0.8.0
 - Depreciation Warning: archive_all is changing to archive
 - Depreciation Warning: find_all_files is changing to find_files
 - Depreciation Warning: find_all_files_generator is changing to find_files_generator
-- Depreciation Warning: count_all_files is being removed, either len(find_files_list) or custom sum
+- Depreciation Warning: count_all_files is changing to count_files
 - Breaking change: Removing reuse wrapper
 - Breaking change: archive_all now detects type based off name, should supply extension to name
 

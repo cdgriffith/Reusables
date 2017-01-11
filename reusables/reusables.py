@@ -60,11 +60,19 @@ def find_all_files_generator(*args, **kwargs):
 
 
 def count_all_files(*args, **kwargs):
-    """Backwards compatible, should be replaced with len or custom sum"""
-    _warnings.warn("count_all_files is being removed",
+    """Backwards compatible wrapper for count_files"""
+    _warnings.warn("count_all_files is changing to count_files",
                    FutureWarning)
-    _logger.warning("count_all_files is being removed")
+    _logger.warning("count_all_files is changing to count_files")
     return len(find_files_list(*args, **kwargs))
+
+
+def dup_finder_generator(*args, **kwargs):
+    """Backwards compatible wrapper for 'dup_finder'"""
+    _warnings.warn("dup_file_generator is changing to dup_finder",
+                   FutureWarning)
+    _logger.warning("dup_file_generator is changing to dup_finder")
+    return dup_finder(*args, **kwargs)
 
 
 def _walk(directory, enable_scandir=False, **kwargs):
@@ -386,6 +394,11 @@ def find_files_list(*args, **kwargs):
     return list(find_files(*args, **kwargs))
 
 
+def count_files(*args, **kwargs):
+    """ Returns an integer of all files found using find_files"""
+    return sum(1 for _ in find_files(*args, **kwargs))
+
+
 def find_files(directory=".", ext=None, name=None,
                match_case=False, disable_glob=False, depth=None,
                abspath=False, enable_scandir=False):
@@ -393,6 +406,9 @@ def find_files(directory=".", ext=None, name=None,
     Walk through a file directory and return an iterator of files
     that match requirements. Will autodetect if name has glob as magic
     characters.
+
+    Note: For the example below, you can use find_files_list to return as a
+    list, this is simply an easy way to show the output.
 
     .. code:: python
 
@@ -403,12 +419,12 @@ def find_files(directory=".", ext=None, name=None,
         list(reusables.find_files(name="*free*"))
         # ['C:\\my_stuff\\Freedom_fight.pdf']
 
-        reusables.find_files(ext=".pdf")
+        list(reusables.find_files(ext=".pdf"))
         # ['C:\\Example.pdf',
         #  'C:\\how_to_program.pdf',
         #  'C:\\Hunks_and_Chicks.pdf']
 
-        reusables.find_files(name="*chris*")
+        list(reusables.find_files(name="*chris*"))
         # ['C:\\Christmas_card.docx',
         #  'C:\\chris_stuff.zip']
 
@@ -642,21 +658,32 @@ def archive(files_to_archive, name="archive.zip", archive_type=None,
 
     if not archive_type:
         if name.lower().endswith("zip"):
+            _logger.debug("zip type detected for file {0}".format(name))
             archive_type = "zip"
         elif name.lower().endswith("gz"):
+            _logger.debug("gz file detected for file {0}".format(name))
             archive_type = "gz"
         elif name.lower().endswith("z2"):
+            _logger.debug("bz2 file detected for file {0}".format(name))
             archive_type = "bz2"
         elif name.lower().endswith("tar"):
+            _logger.debug("tar file detected for file {0}".format(name))
             archive_type = "tar"
         else:
-            raise ValueError("Could not determine archive type"
-                             " based off {0}".format(name))
+            err_msg = ("Could not determine archive "
+                       "type based off {0}".format(name))
+            _logger.error(err_msg)
+            raise ValueError(err_msg)
     elif archive_type not in ("tar", "gz", "bz2", "zip"):
-        raise ValueError("archive_type must be zip, gz, bz2, or gz")
+        err_msg = ("archive_type must be zip, gz, bz2,"
+                   " or gz, was {0}".format(archive_type))
+        _logger.error(err_msg)
+        raise ValueError(err_msg)
 
     if not overwrite and _os.path.exists(name):
-        raise OSError("File exists and overwrite not specified")
+        err_msg = "File {0} exists and overwrite not specified".format(name)
+        _logger.error(err_msg)
+        raise OSError(err_msg)
 
     if archive_type == "zip":
         arch = _zipfile.ZipFile(name, 'w',
@@ -699,7 +726,7 @@ def archive(files_to_archive, name="archive.zip", archive_type=None,
     return _os.path.abspath(name)
 
 
-def dup_finder_generator(file_path, directory=".", enable_scandir=False):
+def dup_finder(file_path, directory=".", enable_scandir=False):
     """
     Check a directory for duplicates of the specified file. This is meant
     for a single file only, for checking a directory for dups, use
@@ -715,7 +742,7 @@ def dup_finder_generator(file_path, directory=".", enable_scandir=False):
 
     .. code:: python
 
-        list(reusables.dup_finder_generator(
+        list(reusables.dup_finder(
              "test_structure\\files_2\\empty_file"))
         # ['C:\\Reusables\\test\\data\\fake_dir',
         #  'C:\\Reusables\\test\\data\\test_structure\\Files\\empty_file_1',
@@ -779,7 +806,7 @@ def directory_duplicates(directory, hash_type='md5', **kwargs):
         file_size = _os.path.getsize(item)
         size_map.setdefault(file_size, []).append(item)
 
-    for possible_dups in [v for v in size_map.values() if len(v) > 1]:
+    for possible_dups in (v for v in size_map.values() if len(v) > 1):
         for each_item in possible_dups:
             item_hash = file_hash(each_item, hash_type=hash_type)
             hash_map.setdefault(item_hash, []).append(each_item)
