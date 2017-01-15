@@ -1025,13 +1025,13 @@ def now(utc=False, tz=None):
     return DateTime.utcnow() if utc else DateTime.now(tz=tz)
 
 
-def splice(string, characters=2, trailing="normal"):
+def cut(string, characters=2, trailing="normal"):
     """
     Split a string into a list of N characters each.
 
     .. code:: python
 
-        reusables.splice("abcdefghi")
+        reusables.cut("abcdefghi")
         # ['ab', 'cd', 'ef', 'gh', 'i']
 
     trailing gives you the following options:
@@ -1043,15 +1043,15 @@ def splice(string, characters=2, trailing="normal"):
 
     .. code:: python
 
-        reusables.splice("abcdefghi", 2, "error")
+        reusables.cut("abcdefghi", 2, "error")
         # Traceback (most recent call last):
         #     ...
         # IndexError: String of length 9 not divisible by 2 to splice
 
-        reusables.splice("abcdefghi", 2, "remove")
+        reusables.cut("abcdefghi", 2, "remove")
         # ['ab', 'cd', 'ef', 'gh']
 
-        reusables.splice("abcdefghi", 2, "combine")
+        reusables.cut("abcdefghi", 2, "combine")
         # ['ab', 'cd', 'ef', 'ghi']
 
     :param string: string to modify

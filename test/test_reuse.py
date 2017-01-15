@@ -368,22 +368,22 @@ Key2 = Value2
             os.unlink(something)
             os.unlink(empty)
 
-    def test_splice(self):
+    def test_cut(self):
 
-        a = reusables.splice("abcdefghi")
+        a = reusables.cut("abcdefghi")
         assert a == ['ab', 'cd', 'ef', 'gh', 'i']
 
         try:
-            reusables.splice("abcdefghi", 2, "error")
+            reusables.cut("abcdefghi", 2, "error")
         except IndexError:
             pass
         else:
-            raise AssertionError("splice failed")
+            raise AssertionError("cut failed")
 
-        b = reusables.splice("abcdefghi", 2, "remove")
+        b = reusables.cut("abcdefghi", 2, "remove")
         assert b == ['ab', 'cd', 'ef', 'gh']
 
-        c = reusables.splice("abcdefghi", 2, "combine")
+        c = reusables.cut("abcdefghi", 2, "combine")
         assert c == ['ab', 'cd', 'ef', 'ghi']
 
     def test_find_glob(self):

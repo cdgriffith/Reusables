@@ -53,19 +53,19 @@ General Helpers and File Management
 
         import reusables
 
-        reusables.find_all_files(".", ext=reusables.exts.pictures)
+        reusables.find_files_list(".", ext=reusables.exts.pictures)
         # ['/home/user/background.jpg', '/home/user/private.png']
 
-        reusables.archive_all("reusables", name="reuse", archive_type="zip")
+        reusables.archive("reusables", name="reuse", archive_type="zip")
         # 'C:\\Users\\Me\\Reusables\\reuse.zip'
 
-        reusables.extract_all("test/test_structure.zip", "my_archive")
+        reusables.extract("test/test_structure.zip", "my_archive")
         # All files in the zip will be extracted into directory "my_archive"
 
         reusables.config_dict('my_config.cfg')
         # {'Section 1': {'key 1': 'value 1', 'key2': 'Value2'}, 'Section 2': {}}
 
-        reusables.count_all_files(".")
+        reusables.count_files(".")
         # 405
 
         reusables.file_hash("test_structure.zip", hash_type="sha256")
@@ -77,30 +77,33 @@ General Helpers and File Management
         reusables.run("echo 'hello there!'", shell=True)
         # CompletedProcess(args="echo 'hello there!'", returncode=0, stdout='hello there!\n')
 
+        reusables.cut("abcdefghi")
+        # ['ab', 'cd', 'ef', 'gh', 'i']
 
-One of the most reusables pieces of code is the find_all_files. It is always
+
+One of the most reusables pieces of code is the find_files. It is always
 appearing on stackoverflow and forums of how to implement os.walk or glob;
 here's both.
 
 .. code:: python
 
-         reusables.find_all_files(".", name="*reuse*", depth=2)
+         reusables.find_files_list(".", name="*reuse*", depth=2)
          # ['.\\test\\test_reuse.py', '.\\test\\test_reuse_datetime.py',
          #  '.\\test\\test_reuse_logging.py', '.\\test\\test_reuse_namespace.py']
 
          # match_case works for both ext and name
          # depth of 1 means this working directory only, no further
 
-         reusables.find_all_files(ext=".PY", depth=1, match_case=True)
+         reusables.find_files_list(ext=".PY", depth=1, match_case=True)
          # []
 
-         reusables.find_all_files(ext=".py", depth=1, match_case=True)
+         reusables.find_files_list(ext=".py", depth=1, match_case=True)
          # ['.\\setup.py']
 
-         reusables.find_all_files(name="setup", ext=".py", match_case=True)
+         reusables.find_files_list(name="setup", ext=".py", match_case=True)
          # ['.\\setup.py']
 
-         reusables.find_all_files(name="Setup", ext=".py", match_case=True)
+         reusables.find_files_list(name="Setup", ext=".py", match_case=True)
          # []
 
 
