@@ -5,6 +5,8 @@ omit =
     */test/*
     */pypy/*
     */nose/*
+    */.*/*
+    */*.egg-info/*
 exclude_lines =
     pragma: no cover
     except Exception

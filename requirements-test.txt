@@ -1,4 +1,6 @@
-nose >= 1.3
+pytest
 coverage >= 3.6
 rarfile
 scandir
+tox
+pytest-cov

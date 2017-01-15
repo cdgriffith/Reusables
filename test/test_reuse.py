@@ -187,7 +187,7 @@ Key2 = Value2
     def test_extract_rar(self):
         if reusables.win_based:
             import rarfile
-            rarfile.UNRAR_TOOL = "UnRAR.exe"
+            rarfile.UNRAR_TOOL = os.path.abspath(os.path.join(test_root, "UnRAR.exe"))
         assert os.path.exists(test_structure_rar)
         reusables.extract(test_structure_rar, path=test_root, delete_on_success=False, enable_rar=True)
         assert os.path.exists(test_structure)
