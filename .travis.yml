@@ -10,7 +10,6 @@ python:
     - "3.6"
     - "3.7-dev"
     - "pypy"
-    - "pypy3"
 before_install:
     - sudo apt-get -qq update
     - sudo apt-get install -y unrar sqlite3
