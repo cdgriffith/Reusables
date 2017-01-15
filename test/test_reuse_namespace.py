@@ -105,6 +105,7 @@ class TestReuseNamespace(BaseTestClass):
         assert cns.getfloat("Wooo", 4.4) == 4.4
         assert cns.getboolean("huh", True) is True
         assert cns.list("Waaaa", [1]) == [1]
+        repr(cns)
 
 
 # noinspection PyTypeChecker

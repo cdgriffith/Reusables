@@ -229,6 +229,9 @@ class ConfigNamespace(Namespace):
     def getfloat(self, item, default=None):
         return self.float(item, default)
 
+    def __repr__(self):
+        return "<ConfigNamespace: {0}>".format(str(self.to_dict()))
+
 
 class ProtectedDict(dict):
     """

@@ -1057,7 +1057,7 @@ def cut(string, characters=2, trailing="normal"):
     :param string: string to modify
     :param characters: how many characters to split it into
     :param trailing: "normal", "remove", "combine", or "error"
-    :return: list of the spliced string
+    :return: list of the cut string
     """
     split_str = [string[i:i + characters] for
                  i in range(0, len(string), characters)]
@@ -1069,7 +1069,7 @@ def cut(string, characters=2, trailing="normal"):
             return split_str[:-2] + [split_str[-2] + split_str[-1]]
         if trailing.lower() == "error":
             raise IndexError("String of length {0} not divisible by {1} to"
-                             " splice".format(len(string), characters))
+                             " cut".format(len(string), characters))
     return split_str
 
 
