@@ -13,6 +13,8 @@ try:
 except ImportError:
     import Queue as _queue
 
+from .shared_variables import python_version
+
 _logger = _logging.getLogger("reusables.wrappers")
 _g_lock = _Lock()
 _g_queue = _queue.Queue()
@@ -108,7 +110,8 @@ def lock_it(lock=_g_lock):
     return func_wrapper
 
 
-def time_it(log=False, message="Function took a total of {0} seconds",
+def time_it(log=None, message="Function took a total of {seconds} seconds "
+                              "with args: {args} - kwargs: {kwargs}",
             append=None):
     """
     Wrapper. Time the amount of time it takes the execution of the function
@@ -124,7 +127,7 @@ def time_it(log=False, message="Function took a total of {0} seconds",
 
         reusables.add_stream_handler('reusables')
 
-        @reusables.time_it(log=True, message="{0:.2f} seconds")
+        @reusables.time_it(log=True, message="{seconds:.2f} seconds")
         def test_time(length):
             time.sleep(length)
             return "slept {0}".format(length)
@@ -142,17 +145,21 @@ def time_it(log=False, message="Function took a total of {0} seconds",
     def func_wrapper(func):
         @_wraps(func)
         def wrapper(*args, **kwargs):
-            start_time = _time.time()
+            time_func = (_time.perf_counter if python_version >= (3, 3)
+                         else _time.clock())
+            start_time = time_func()
             try:
                 return func(*args, **kwargs)
             finally:
-                total_time = _time.time() - start_time
+                total_time = time_func() - start_time
+                time_string = message.format(seconds=total_time,
+                                             args=args, kwargs=kwargs)
                 if log:
                     logger = _logging.getLogger(log) if isinstance(log, str)\
                         else _logger
-                    logger.info(message.format(total_time))
+                    logger.info(time_string)
                 else:
-                    print(message.format(total_time))
+                    print(time_string)
                 if isinstance(append, list):
                     append.append(total_time)
         return wrapper
@@ -190,7 +197,8 @@ def queue_it(queue=_g_queue, **put_args):
     return func_wrapper
 
 
-def log_exception(log="reusables", message="Exception in {func_name} - {err}",
+def log_exception(log="reusables", message="Exception in {func_name} with args:"
+                                           " {args} - kwargs: {kwargs} - {err}",
                   exception=None, exception_message="Error in {func_name}"):
     """
     Wrapper. Log the traceback to any exceptions raised. Possible to raise
@@ -223,7 +231,9 @@ def log_exception(log="reusables", message="Exception in {func_name} - {err}",
                 logger = (_logging.getLogger(log) if isinstance(log, str)
                           else _logger)
                 logger.exception(message.format(func_name=func.__name__,
-                                                err=str(err)))
+                                                err=str(err),
+                                                args=args,
+                                                kwargs=kwargs))
                 if exception:
                     raise exception(exception_message.format(
                         func_name=func.__name__, err=str(err)))
