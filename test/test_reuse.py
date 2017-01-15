@@ -436,6 +436,19 @@ Key2 = Value2
         assert not [x for x in delete if "empty" not in x.lower()]
         self._remove_structure()
 
+    def test_deprecation(self):
+        reusables.find_all_files_generator(test_root)
+        reusables.find_all_files(test_root)
+        reusables.count_all_files(test_root)
+        reusables.archive_all("data", name="tested.zip")
+        reusables.extract_all("tested.zip", "new_dir")
+        try:
+            os.unlink("tested.zip")
+            shutil.rmtree("new_dir", True)
+        except OSError:
+            pass
+        reusables.dup_finder_generator(test_root)
+
 
 if reusables.nix_based:
     class TestReuseLinux(unittest.TestCase):

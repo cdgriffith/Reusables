@@ -146,7 +146,7 @@ def time_it(log=None, message="Function took a total of {seconds} seconds "
         @_wraps(func)
         def wrapper(*args, **kwargs):
             time_func = (_time.perf_counter if python_version >= (3, 3)
-                         else _time.clock())
+                         else _time.clock)
             start_time = time_func()
             try:
                 return func(*args, **kwargs)
