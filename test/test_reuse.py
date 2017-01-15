@@ -93,18 +93,19 @@ Key2 = Value2
 
     def test_count_files(self):
         self._extract_structure()
-        resp = reusables.count_all_files(test_root, ext=".cfg")
+        resp = reusables.count_files(test_root, ext=".cfg")
         assert resp == 1, resp
 
     def test_count_name(self):
         self._extract_structure()
-        resp = reusables.count_all_files(test_root, name="file_")
-        assert resp == 4, reusables.find_files_list(test_root, name="file_")
+        resp = reusables.count_files(test_root, name="file_")
+        assert resp == 4, reusables.find_files_list(test_root, name="file_",
+                                                    abspath=True)
 
     def test_fail_count_files(self):
         self._extract_structure()
         try:
-            reusables.count_all_files(test_root, ext={"ext": ".cfg"})
+            reusables.count_files(test_root, ext={"ext": ".cfg"})
         except TypeError:
             pass
         else:
@@ -441,7 +442,10 @@ Key2 = Value2
         reusables.find_all_files(test_root)
         reusables.count_all_files(test_root)
         reusables.archive_all("data", name="tested.zip")
-        reusables.extract_all("tested.zip", "new_dir")
+        try:
+            reusables.extract_all("tested.zip", "new_dir")
+        except Exception:
+            pass
         try:
             os.unlink("tested.zip")
             shutil.rmtree("new_dir", True)

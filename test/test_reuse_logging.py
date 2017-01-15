@@ -9,6 +9,7 @@ import sys
 from .common_test_data import *
 
 my_stream_path = os.path.join(test_root, "my_stream.log")
+my_fiie_path = os.path.join(test_root, "my_file.log")
 
 if sys.version_info < (2, 7):
     class NullHandler(logging.Handler):
@@ -47,6 +48,18 @@ class TestReuseLogging(BaseTestClass):
         my_stream.close()
         reusables.remove_all_handlers(logger)
         with open(my_stream_path) as f:
+            lines = f.readlines()
+        assert "INFO" in lines[0]
+        assert "ERROR" in lines[1]
+        assert "Example error log" in lines[1]
+
+    def test_add_file_logger(self):
+        logger = reusables.get_logger(__name__)
+        reusables.add_file_handler(logger, my_fiie_path)
+        logger.info("Test log")
+        logger.error("Example error log")
+        reusables.remove_all_handlers(logger)
+        with open(my_fiie_path) as f:
             lines = f.readlines()
         assert "INFO" in lines[0]
         assert "ERROR" in lines[1]

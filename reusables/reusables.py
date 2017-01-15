@@ -119,8 +119,6 @@ def os_tree(directory, enable_scandir=False):
         full_list.extend([_os.path.join(root, d).lstrip(directory) + _os.sep
                           for d in dirs])
     tree = {_os.path.basename(directory): {}}
-    if not full_list:
-        return {}
     for item in full_list:
         separated = item.split(_os.sep)
         is_dir = separated[-1:] == ['']
@@ -658,22 +656,19 @@ def archive(files_to_archive, name="archive.zip", archive_type=None,
 
     if not archive_type:
         if name.lower().endswith("zip"):
-            _logger.debug("zip type detected for file {0}".format(name))
             archive_type = "zip"
         elif name.lower().endswith("gz"):
-            _logger.debug("gz file detected for file {0}".format(name))
             archive_type = "gz"
         elif name.lower().endswith("z2"):
-            _logger.debug("bz2 file detected for file {0}".format(name))
             archive_type = "bz2"
         elif name.lower().endswith("tar"):
-            _logger.debug("tar file detected for file {0}".format(name))
             archive_type = "tar"
         else:
             err_msg = ("Could not determine archive "
                        "type based off {0}".format(name))
             _logger.error(err_msg)
             raise ValueError(err_msg)
+        _logger.debug("{0} file detected for {1}".format(archive_type, name))
     elif archive_type not in ("tar", "gz", "bz2", "zip"):
         err_msg = ("archive_type must be zip, gz, bz2,"
                    " or gz, was {0}".format(archive_type))
@@ -685,6 +680,7 @@ def archive(files_to_archive, name="archive.zip", archive_type=None,
         _logger.error(err_msg)
         raise OSError(err_msg)
 
+    arch, write = None, None
     if archive_type == "zip":
         arch = _zipfile.ZipFile(name, 'w',
                                 _zipfile.ZIP_STORED if store else
@@ -698,11 +694,11 @@ def archive(files_to_archive, name="archive.zip", archive_type=None,
             arch = _tarfile.open(name, 'w:gz', **tarfile_kwargs)
         elif archive_type == "bz2":
             arch = _tarfile.open(name, 'w:bz2', **tarfile_kwargs)
-        else:
-            raise Exception("Should not be here")
         write = arch.add
-    else:
-        raise ValueError("archive_type must be zip, gz, bz2, or gz")
+
+    if not (arch and write):
+        raise Exception("Internal error, could not determine how to compress,"
+                        "please report with parameters used")
 
     try:
         for file_path in files_to_archive:
@@ -711,10 +707,10 @@ def archive(files_to_archive, name="archive.zip", archive_type=None,
                     raise OSError("File {0} does not exist".format(file_path))
                 write(file_path)
             elif _os.path.isdir(file_path):
-                for nf in find_files(file_path, abspath=False,
-                                                   depth=depth):
+                for nf in find_files(file_path, abspath=False, depth=depth):
                     write(nf)
     except (Exception, KeyboardInterrupt) as err:
+        _logger.exception("Could not archive {0}".format(files_to_archive))
         try:
             arch.close()
         finally:

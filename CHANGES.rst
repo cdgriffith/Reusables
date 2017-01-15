@@ -25,7 +25,7 @@ Version 0.8.0
 - Breaking change: Removing reuse wrapper
 - Breaking change: archive_all now detects type based off name, should supply extension to name
 - Breaking change: time_it message now takes args seconds, args, kwargs and does not allow positionals
-
+- Breaking change: os_tree will no longer return an empty dictionary on failure, but include the base directory supplied
 
 Version 0.7.0
 -------------
