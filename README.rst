@@ -41,7 +41,7 @@ readthedocs.org_.
 
 Please note this is currently in development. Any item in development
 prior to a major version (1.x, 2.x) may change. Once at a major version,
-no breaking changes will occur within it.
+no breaking changes are planned to occur within that version.
 
 What's in the box
 -----------------
