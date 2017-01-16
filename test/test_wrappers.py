@@ -1,15 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import time
+import os
 
 from .common_test_data import *
 
-from reusables import reuse, unique, lock_it, time_it, queue_it
-
-
-@reuse
-def gen_func(a, b, c=None):
-    return a, b, c
+from reusables import unique, lock_it, time_it, queue_it, get_logger, \
+    log_exception, remove_file_handlers
 
 
 @unique(exception=OSError, error_text="WHY ME!")
@@ -29,31 +26,13 @@ def unique_function_3():
 
 class TestWrappers(BaseTestClass):
 
-    def setUp(self):
-        gen_func(reuse_reset=True)
 
-    def test_reuse_basic(self):
-        run1 = gen_func(1, 2, 3)
-        assert run1 == (1, 2, 3)
-        run2 = gen_func()
-        assert run2 == (1, 2, 3)
-
-    def test_reuse_failure_state(self):
-        run1 = gen_func(1, 2, 3)
-        assert run1 == (1, 2, 3)
-        self.assertRaises(TypeError, gen_func, *[2,3,4,5,6,7])
-        run2 = gen_func()
-        assert run2 == (1, 2, 3)
-
-    def test_reuse_view_saved(self):
-        run1 = gen_func(1, 2, 3)
-        assert run1 == (1, 2, 3)
-        assert gen_func(reuse_view_cache=True)['args'] == (1, 2, 3)
-
-    def test_reuse_update_args(self):
-        run1 = gen_func(1, 2, 3)
-        assert run1 == (1, 2, 3)
-        assert gen_func(reuse_rep_args=[(1, 4)]) == (4, 2, 3)
+    @classmethod
+    def tearDownClass(cls):
+        try:
+            os.unlink("out.log")
+        except OSError:
+            pass
 
     def test_unique(self):
         unique_function_1(1)
@@ -123,7 +102,43 @@ class TestWrappers(BaseTestClass):
 
         assert q.get() == 8
 
+    def test_log_exception(self):
+        """
+        Validate the custom log exception is raised correctly.
+        """
+        @log_exception()
+        def unique_function_4():
+            raise Exception("Bad")
 
+        try:
+            unique_function_4()
+        except Exception as err:
+            assert "Bad" in str(err)
+
+    def test_log_exception_message(self):
+        """
+        Validate the message passed to the custom log exception is written
+        correctly in the logs.
+        """
+        get_logger("my_logger", file_path="out.log")
+        message = "I would like to take this moment to say something " \
+                  "interesting has happened. "
+
+        @log_exception("my_logger", message=message)
+        def unique_function_5():
+            raise Exception("Interesting")
+
+        try:
+            unique_function_5()
+        except Exception:
+            pass
+
+        remove_file_handlers("my_logger")
+
+        with open(os.path.join("out.log"), "r") as f:
+            assert message in f.readlines()[0]
+
+        os.remove(os.path.join("out.log"))
 
 if __name__ == "__main__":
     unittest.main()

@@ -3,7 +3,7 @@
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2016 - Chris Griffith - MIT License
+# Copyright (c) 2014-2017 - Chris Griffith - MIT License
 """
 Logging helper functions and common log formats.
 """
@@ -113,6 +113,22 @@ def add_stream_handler(logger=None, stream=_sys.stderr, level=_logging.INFO,
         logger = _logging.getLogger(logger)
 
     logger.addHandler(get_stream_handler(stream, level, log_format))
+
+
+def add_file_handler(logger=None, file_path="out.log", level=_logging.INFO,
+                     log_format=log_formats.easy_read):
+    """
+    Addes a newly created file handler to the specified logger
+
+    :param logger: logging name or object to modify, defaults to root logger
+    :param file_path: path to file to log to
+    :param level: logging level to set handler at
+    :param log_format: formatter to use
+    """
+    if not isinstance(logger, _logging.Logger):
+        logger = _logging.getLogger(logger)
+
+    logger.addHandler(get_file_handler(file_path, level, log_format))
 
 
 def add_rotating_file_handler(logger=None, file_path="out.log",
@@ -233,3 +249,18 @@ def change_logger_levels(logger=None, level=_logging.DEBUG):
     logger.setLevel(level)
     for handler in logger.handlers:
         handler.level = level
+
+
+def get_registered_loggers(hide_children=False, hide_reusables=False):
+    """
+    Find the names of all loggers currently registered
+
+    :param hide_children: only return top level logger names
+    :param hide_reusables: hide the reusables loggers
+    :return: list of logger names
+    """
+
+    return [logger for logger in _logging.Logger.manager.loggerDict.keys()
+            if not (hide_reusables and "reusables" in logger)
+            and not (hide_children and "." in logger)]
+

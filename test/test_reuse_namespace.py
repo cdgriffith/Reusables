@@ -105,3 +105,114 @@ class TestReuseNamespace(BaseTestClass):
         assert cns.getfloat("Wooo", 4.4) == 4.4
         assert cns.getboolean("huh", True) is True
         assert cns.list("Waaaa", [1]) == [1]
+        repr(cns)
+
+
+# noinspection PyTypeChecker
+class TestProtectedDict(BaseTestClass):
+
+    def test_create_protected_dict(self):
+        """
+        Validate a protected dictionary can be created with the format of a
+        normal dictionary.
+        """
+        test_dict = {"Test 1": 1, "Test 2": 2, "Test 3": 3}
+        test_protected = reusables.ProtectedDict({"Test 1": 1,
+                                                  "Test 2": 2,
+                                                  "Test 3": 3})
+        str(test_protected)
+        repr(test_protected)
+        for k, v in test_protected.items():
+            assert k in test_dict.keys()
+            assert test_dict[k] == v
+
+    def test_copy_protected_dict(self):
+        """
+        Validate that a copy of a protected dictionary is just a normal
+        dictionary, and no longer a protected dictionary.
+        """
+        test_protected = reusables.ProtectedDict(a=1, b=2, c=3)
+        copy = test_protected.copy()
+        assert test_protected == copy
+        assert isinstance(copy, dict)
+        assert not isinstance(copy, reusables.ProtectedDict)
+
+    def test_add_key(self):
+        """
+        Validate that you cannot add a new key value pair to a protected
+        dictionary.
+        """
+        test_protected = reusables.ProtectedDict({"Test 1": 1,
+                                                  "Test 2": 2,
+                                                  "Test 3": 3})
+
+        try:
+            test_protected["Test 4"] = 4
+        except AttributeError:
+            pass
+        else:
+            assert False
+
+    def test_change_value(self):
+        """
+        Validate that you cannot change the value of a normal key value pair
+        in a protected dictionary.
+        """
+        test_protected = reusables.ProtectedDict({"Test 1": 1,
+                                                  "Test 2": 2,
+                                                  "Test 3": 3})
+
+        try:
+            test_protected["Test 1"] = 10
+        except AttributeError:
+            pass
+        else:
+            assert False
+
+    def test_change_sub_dict(self):
+        """
+        Validate that stored objects, such as a sub dictionary, may be
+        altered in a protected dictionary.
+        """
+        test_protected = reusables.ProtectedDict({"Test 1": {"a": 1, "b": 2},
+                                                  "Test 2": 2, })
+
+        test_protected["Test 1"]["a"] = 3
+        assert test_protected["Test 1"]["a"] == 3
+
+    def test_unhashable(self):
+        """
+        Validate that a protected dictionary with a sub dictionary is not
+        hashable.
+        """
+        test_protected = reusables.ProtectedDict({"Test 1": {"a": 1, "b": 2},
+                                                  "Test 2": 2, })
+        try:
+            hash(test_protected)
+        except TypeError:
+            pass
+        else:
+            assert False
+
+    def test_hashable(self):
+        """
+        Validate that a protected dictionary hash is an integer type.
+        Validate that two protected dictionary objects with the same data
+        have the same hash value.
+        Validate that two protected dictionary objects with different data
+        have different hash values.
+        """
+        test_dict_one = reusables.ProtectedDict({"Test 1": 1,
+                                                 "Test 2": 2,
+                                                 "Test 3": 3})
+        test_dict_two = reusables.ProtectedDict({"Test 1": 1,
+                                                 "Test 2": 2,
+                                                 "Test 3": 3})
+        test_dict_three = reusables.ProtectedDict({"Test 4": 4,
+                                                   "Test 5": 5,
+                                                   "Test 6": 6})
+        assert isinstance(hash(test_dict_one), int)
+        assert isinstance(hash(test_dict_two), int)
+        assert isinstance(hash(test_dict_three), int)
+        assert hash(test_dict_two) == hash(test_dict_one)
+        assert hash(test_dict_three) != hash(test_dict_one)

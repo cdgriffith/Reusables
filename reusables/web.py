@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
-
+#
+# Part of the Reusables package.
+#
+# Copyright (c) 2014-2017 - Chris Griffith - MIT License
 import os as _os
 import logging as _logging
 import time as _time
 import threading as _threading
+import socket as _socket
 try:
     from urllib2 import urlopen as _urlopen
 except ImportError:
@@ -127,4 +131,77 @@ class ThreadedServer(object):
         self._process.join()
 
 
+def url_to_ips(url, port=None, ipv6=False, connect_type=_socket.SOCK_STREAM,
+               proto=_socket.IPPROTO_TCP, flags=0):
+    """
+    Provide a list of IP addresses, uses `socket.getaddrinfo`
 
+    .. code:: python
+
+        reusables.url_to_ips("example.com", ipv6=True)
+        # ['2606:2800:220:1:248:1893:25c8:1946']
+
+    :param url: hostname to resolve to IP addresses
+    :param port: port to send to getaddrinfo
+    :param ipv6: Return IPv6 address if True, otherwise IPv4
+    :param connect_type: defaults to STREAM connection, can be 0 for all
+    :param proto: defaults to TCP, can be 0 for all
+    :param flags: additional flags to pass
+    :return: list of resolved IPs
+    """
+    try:
+        results = _socket.getaddrinfo(url, port,
+                                      (_socket.AF_INET if not ipv6
+                                       else _socket.AF_INET6),
+                                      connect_type,
+                                      proto,
+                                      flags)
+    except _socket.gaierror:
+        _logger.exception("Could not resolve hostname")
+        return []
+
+    return list(set([result[-1][0] for result in results]))
+
+
+def url_to_ip(url):
+    """
+    Provide IP of host, does not support IPv6, uses `socket.gethostbyaddr`
+
+    .. code:: python
+
+        reusables.url_to_ip('example.com')
+        # '93.184.216.34'
+
+    :param url: hostname to resolve to IP addresses
+    :return: string of IP address or None
+    """
+    try:
+        return _socket.gethostbyname(url)
+    except _socket.gaierror:
+        _logger.exception("Could not determine IP")
+
+
+def ip_to_url(ip_addr):
+    """
+    Resolve a hostname based off an IP address.
+
+    This is very limited and will
+    probably not return any results if it is a shared IP address or an
+    address with improperly setup DNS records.
+
+    .. code:: python
+
+        reusables.ip_to_url('93.184.216.34') # example.com
+        # None
+
+        reusables.ip_to_url('8.8.8.8')
+        # 'google-public-dns-a.google.com'
+
+
+    :param ip_addr: IP address to resolve to hostname
+    :return: string of hostname or None
+    """
+    try:
+        return _socket.gethostbyaddr(ip_addr)[0]
+    except (_socket.gaierror, _socket.herror):
+        _logger.exception("Could not resolve hostname")

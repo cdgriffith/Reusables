@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
-
+#
+# Part of the Reusables package.
+#
+# Copyright (c) 2014-2017 - Chris Griffith - MIT License
 try:
     import queue as _queue
 except ImportError:
@@ -20,10 +23,8 @@ _logger = _logging.getLogger('reusables.tasker')
 
 class Tasker(object):
     """
-    BETA BETA BETA BETA BETA BETA BETA BETA BETA (BETAiscally, don't use yet)
-
-    An advanced multiprocessing pool, with ability to change number of
-    workers or pause the service all together.
+    An advanced multiprocessing pool, designed to run in the background,
+    with ability to change number of workers or pause the service all together.
 
     Simply subclass Tasker, overwrite `perform_task` and `run`!
 
@@ -32,7 +33,11 @@ class Tasker(object):
 
     .. warning::
 
-        Do not use with PyPy on Windows at this time
+        Use multiprocessing.Queue not queue.Queue
+
+    .. warning::
+
+        Do not use on Windows at this time
 
     :param tasks: list of tasks to pre-populate the queue with
     :param max_tasks: the max number of parallel workers
@@ -210,12 +215,25 @@ class Tasker(object):
         else:
             _logger.warning("Received an unknown command '{0}'".format(cmd))
 
+    def hook_pre_command(self):
+        pass
+
+    def hook_post_command(self):
+        pass
+
+    def hook_pre_task(self):
+        pass
+
+    def hook_post_task(self):
+        pass
+
     def main_loop(self, stop_at_empty=False):
         """Blocking function that can be run directly, if so would probably
         want to specify 'stop_at_empty' to true, or have a separate process
         adding items to the queue. """
         try:
             while True:
+                self.hook_pre_command()
                 self._check_command_queue()
                 if self.run_until and self.run_until < _datetime.datetime.now():
                     _logger.info("Time limit reached")
@@ -225,6 +243,7 @@ class Tasker(object):
                 if self._pause.value:
                     _time.sleep(.5)
                     continue
+                self.hook_post_command()
                 self._update_tasks()
                 task_id = self._free_task()
                 if task_id:
@@ -235,12 +254,15 @@ class Tasker(object):
                             break
                         self._return_task(task_id)
                     else:
+                        self.hook_pre_task()
                         _logger.debug("Starting task on {0}".format(task_id))
                         try:
                             self._start_task(task_id, task)
                         except Exception as err:
                             _logger.exception("Could not start task {0} -"
                                               " {1}".format(task_id, err))
+                        else:
+                            self.hook_post_task()
         finally:
             _logger.info("Ending main loop")
 
@@ -255,7 +277,16 @@ class Tasker(object):
 
 def run_in_pool(target, iterable, threaded=True, processes=4,
                 async=False, target_kwargs=None):
-    """ Run a set of iterables to a function in a Threaded or MP Pool
+    """ Run a set of iterables to a function in a Threaded or MP Pool.
+
+    .. code: python
+
+        def func(a):
+            return a + a
+
+        reusables.run_in_pool(func, [1,2,3,4,5])
+        # [1, 4, 9, 16, 25]
+
 
     :param target: function to run
     :param iterable: positional arg to pass to function

@@ -93,49 +93,50 @@ Key2 = Value2
 
     def test_count_files(self):
         self._extract_structure()
-        resp = reusables.count_all_files(test_root, ext=".cfg")
+        resp = reusables.count_files(test_root, ext=".cfg")
         assert resp == 1, resp
 
     def test_count_name(self):
         self._extract_structure()
-        resp = reusables.count_all_files(test_root, name="file_")
-        assert resp == 4, reusables.find_all_files(test_root, name="file_")
+        resp = reusables.count_files(test_root, name="file_")
+        assert resp == 4, reusables.find_files_list(test_root, name="file_",
+                                                    abspath=True)
 
     def test_fail_count_files(self):
         self._extract_structure()
         try:
-            reusables.count_all_files(test_root, ext={"ext": ".cfg"})
+            reusables.count_files(test_root, ext={"ext": ".cfg"})
         except TypeError:
             pass
         else:
             raise AssertionError("Should raise type error")
 
     def test_find_files(self):
-        resp = reusables.find_all_files(test_root, ext=".cfg")
+        resp = reusables.find_files_list(test_root, ext=".cfg")
         assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
 
     def test_find_files_multi_ext(self):
-        resp = reusables.find_all_files(test_root, ext=[".cfg", ".nope"])
+        resp = reusables.find_files_list(test_root, ext=[".cfg", ".nope"])
         assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
 
     def test_find_files_name(self):
-        resp = reusables.find_all_files(test_root, name="test_config")
+        resp = reusables.find_files_list(test_root, name="test_config")
         assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
 
     def test_find_files_bad_ext(self):
-        resp = iter(reusables.find_all_files_generator(test_root,
+        resp = iter(reusables.find_files(test_root,
                                                    ext={'test': '.txt'}))
         self.assertRaises(TypeError, next, resp)
 
     def test_find_files_depth(self):
         self._extract_structure()
-        resp = reusables.find_all_files(test_structure, depth=1)
+        resp = reusables.find_files_list(test_structure, depth=1)
         assert not resp, resp
-        resp2 = reusables.find_all_files(test_structure, depth=2)
+        resp2 = reusables.find_files_list(test_structure, depth=2)
         assert len(resp2) == 5, resp2
 
     def test_find_files_iterator(self):
-        resp = reusables.find_all_files_generator(test_root, ext=".cfg")
+        resp = reusables.find_files(test_root, ext=".cfg")
         assert not isinstance(resp, list)
         resp = [x for x in resp]
         assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
@@ -169,36 +170,36 @@ Key2 = Value2
         assert not [x for x in delete if "file" not in x.lower()]
         self._remove_structure()
 
-    def test_extract_all(self):
+    def test_extract(self):
         assert os.path.exists(test_structure_tar)
-        reusables.extract_all(test_structure_tar, path=test_root, delete_on_success=False)
+        reusables.extract(test_structure_tar, path=test_root, delete_on_success=False)
         assert os.path.exists(test_structure)
         assert os.path.isdir(test_structure)
         shutil.rmtree(test_structure)
 
-    def test_extract_all_zip(self):
+    def test_extract_zip(self):
         assert os.path.exists(test_structure_zip)
-        reusables.extract_all(test_structure_zip, path=test_root, delete_on_success=False)
+        reusables.extract(test_structure_zip, path=test_root, delete_on_success=False)
         assert os.path.exists(test_structure)
         assert os.path.isdir(test_structure)
         shutil.rmtree(test_structure)
 
-    def test_extract_all_rar(self):
+    def test_extract_rar(self):
         if reusables.win_based:
             import rarfile
-            rarfile.UNRAR_TOOL = "UnRAR.exe"
+            rarfile.UNRAR_TOOL = os.path.abspath(os.path.join(test_root, "UnRAR.exe"))
         assert os.path.exists(test_structure_rar)
-        reusables.extract_all(test_structure_rar, path=test_root, delete_on_success=False, enable_rar=True)
+        reusables.extract(test_structure_rar, path=test_root, delete_on_success=False, enable_rar=True)
         assert os.path.exists(test_structure)
         assert os.path.isdir(test_structure)
         shutil.rmtree(test_structure)
 
-    def test_extract_all_bad(self):
+    def test_extract_bad(self):
         self._extract_structure()
         path = os.path.join(test_structure, "Files", "file_1")
         assert os.path.exists(path)
         try:
-            reusables.extract_all(path, path=test_root, delete_on_success=False)
+            reusables.extract(path, path=test_root, delete_on_success=False)
         except TypeError:
             pass
         else:
@@ -208,7 +209,7 @@ Key2 = Value2
         empt = tempfile.mktemp()
         open(empt, "a").close()
         try:
-            reusables.extract_all(empt)
+            reusables.extract(empt)
             assert False, "Should have failed"
         except OSError:
             assert True
@@ -218,7 +219,7 @@ Key2 = Value2
         tmpdir = tempfile.mkdtemp()
         fname = tmpdir + "test.zip"
         shutil.copy(test_structure_zip, fname)
-        reusables.extract_all(fname, path=tmpdir, delete_on_success=True)
+        reusables.extract(fname, path=tmpdir, delete_on_success=True)
         assert not os.path.exists(fname)
         shutil.rmtree(tmpdir)
 
@@ -367,34 +368,34 @@ Key2 = Value2
             os.unlink(something)
             os.unlink(empty)
 
-    def test_splice(self):
+    def test_cut(self):
 
-        a = reusables.splice("abcdefghi")
+        a = reusables.cut("abcdefghi")
         assert a == ['ab', 'cd', 'ef', 'gh', 'i']
 
         try:
-            reusables.splice("abcdefghi", 2, "error")
+            reusables.cut("abcdefghi", 2, "error")
         except IndexError:
             pass
         else:
-            raise AssertionError("splice failed")
+            raise AssertionError("cut failed")
 
-        b = reusables.splice("abcdefghi", 2, "remove")
+        b = reusables.cut("abcdefghi", 2, "remove")
         assert b == ['ab', 'cd', 'ef', 'gh']
 
-        c = reusables.splice("abcdefghi", 2, "combine")
+        c = reusables.cut("abcdefghi", 2, "combine")
         assert c == ['ab', 'cd', 'ef', 'ghi']
 
     def test_find_glob(self):
-        resp = reusables.find_all_files(test_root, name="*config*")
+        resp = reusables.find_files_list(test_root, name="*config*")
         assert len(resp) == 3, resp
 
-    def test_archive_all(self):
-        p1 = reusables.archive_all("data", archive_type="zip")
+    def test_archive(self):
+        p1 = reusables.archive("data", overwrite=True)
         assert p1.endswith("archive.zip")
         assert os.path.exists(p1)
         try:
-            p1 = reusables.archive_all("data", archive_type="zip")
+            p1 = reusables.archive("data")
         except OSError:
             pass
         else:
@@ -402,24 +403,55 @@ Key2 = Value2
         finally:
             os.unlink(p1)
 
-        p2 = reusables.archive_all("__init__.py", archive_type="tar")
+        p2 = reusables.archive("__init__.py", name="archive.tar")
         assert p2.endswith("archive.tar")
         assert os.path.exists(p2)
         os.unlink(p2)
-        p3 = reusables.archive_all("__init__.py", archive_type="gz")
+        p3 = reusables.archive("__init__.py", name="archive.gz")
         assert p3.endswith("archive.gz")
         assert os.path.exists(p3)
         os.unlink(p3)
-        p4 = reusables.archive_all("__init__.py", archive_type="bz2")
+        p4 = reusables.archive("__init__.py", name="archive.bz2")
         assert p4.endswith("archive.bz2")
         assert os.path.exists(p4)
         os.unlink(p4)
         try:
-            reusables.archive_all("__init__.py", archive_type="rar")
+            reusables.archive("__init__.py", archive_type="rar")
         except ValueError:
             pass
         else:
             raise AssertionError("Should raise value error about archive_type")
+
+    def test_duplicate_dir(self):
+        dups = reusables.directory_duplicates(test_root)
+        assert len(dups) == 1, len(dups)
+
+    def test_find_with_scandir(self):
+        resp = reusables.find_files_list(test_root, ext=[".cfg", ".nope"], enable_scandir=True)
+        assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
+
+    def test_remove_with_scandir(self):
+        self._extract_structure()
+        delete = reusables.remove_empty_directories(test_structure, enable_scandir=True)
+        assert len(delete) == 8, (len(delete), delete)
+        assert not [x for x in delete if "empty" not in x.lower()]
+        self._remove_structure()
+
+    def test_deprecation(self):
+        reusables.find_all_files_generator(test_root)
+        reusables.find_all_files(test_root)
+        reusables.count_all_files(test_root)
+        reusables.archive_all("data", name="tested.zip")
+        try:
+            reusables.extract_all("tested.zip", "new_dir")
+        except Exception:
+            pass
+        try:
+            os.unlink("tested.zip")
+            shutil.rmtree("new_dir", True)
+        except OSError:
+            pass
+        reusables.dup_finder_generator(test_root)
 
 
 if reusables.nix_based:

@@ -5,6 +5,8 @@ omit =
     */test/*
     */pypy/*
     */nose/*
+    */.*/*
+    */*.egg-info/*
 exclude_lines =
     pragma: no cover
     except Exception
@@ -25,3 +27,16 @@ exclude_lines =
     self.free_tasks
     self.busy_tasks
     self.current_tasks
+    except KeyError
+    if size < self.max_tasks
+    elif size > self.max_tasks
+    raise NotImplementedError
+    return self.result_queue
+    except (Exception, KeyboardInterrupt)
+    if _os.path.isfile
+    elif _os.path.isfile
+    raise InvalidSchema
+    pass
+    _logger
+    t += 1
+    us = 0

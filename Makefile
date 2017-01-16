@@ -2,8 +2,10 @@ HOME ?= $HOME
 CWD = $(shell pwd)
 VENVS ?= $(HOME)/.virtualenvs
 PYTHON2 = $(VENVS)/builder2.7/bin/python2.7
-PYTHON3 = $(VENVS)/builder3.5/bin/python3.5
-PYTHONS = $(VENVS)/builder2.6/bin/python2.6 $(VENVS)/builder2.7/bin/python2.7 $(VENVS)/builder3.5/bin/python3.5 $(VENVS)/builder3.3/bin/python3.3 $(VENVS)/builder3.4/bin/python3.4
+PYTHON2BIN = $(VENVS)/builder2.7/bin
+PYTHON3BIN = $(VENVS)/builder3.6/bin
+PYTHON3 = $(VENVS)/builder3.5/bin/python3.6
+PYTHONS = $(VENVS)/builder2.6/bin/python2.6 $(VENVS)/builder2.7/bin/python2.7 $(VENVS)/builder3.5/bin/python3.5 $(VENVS)/builder3.3/bin/python3.3 $(VENVS)/builder3.4/bin/python3.4 $(VENVS)/builder3.6/bin/python3.6
 PYPY = $(VENVS)/builderpypy/bin/python
 
 .PHONY: all test clean help register build
@@ -24,9 +26,10 @@ clean:
 	rm -rf dist;
 
 test:
-	(set -e; for python in $(PYTHONS); do\
-		PYTHONPATH=$(CWD) "$$python" setup.py test; \
-	done)
+	$(PYTHON3BIN)/tox;
+#	(set -e; for python in $(PYTHONS); do\
+#		PYTHONPATH=$(CWD) "$$python" setup.py test; \
+#	done)
 
 
 build:
@@ -36,6 +39,9 @@ build:
 # for python in $(PYTHONS); do\
  	"$$python" setup.py bdist_egg; \
  done
+
+rstcheck:
+	$(PYTHON2BIN)/rstcheck README.rst;
 
 
 register:
@@ -66,7 +72,7 @@ help:
 develop:
 	sudo add-apt-repository ppa:fkrull/deadsnakes;
 	sudo apt-get update;
-	sudo apt-get install python2.6 python2.7 python3.5 python3.3 python3.4 pypy python-pip unrar -y;
+	sudo apt-get install python2.6 python2.6-dev python2.7 python2.7-dev python3.3 python3.3-dev python3.4 python3.4-dev python3.5 python3.5-dev python3.6 python3.6-dev pypy pypy-dev python-pip unrar -y;
 	sudo pip install virtualenv --upgrade;
 	rm -rf $(VENVS);
 	mkdir -p $(VENVS);
@@ -75,4 +81,7 @@ develop:
 	virtualenv -p python3.3 $(VENVS)/builder3.3;
 	virtualenv -p python3.4 $(VENVS)/builder3.4;
 	virtualenv -p python3.5 $(VENVS)/builder3.5;
+	virtualenv -p python3.6 $(VENVS)/builder3.6;
 	virtualenv -p pypy $(VENVS)/builderpypy;
+	$(PYTHON2BIN)/pip install rstcheck --upgrade;
+	$(PYTHON3BIN)/pip install tox;

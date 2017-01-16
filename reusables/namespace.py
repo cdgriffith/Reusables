@@ -3,7 +3,7 @@
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2016 - Chris Griffith - MIT License
+# Copyright (c) 2014-2017 - Chris Griffith - MIT License
 """
 Improved dictionary management. Inspired by
 javascript style referencing, as it's one of the few things they got right.
@@ -75,7 +75,7 @@ class Namespace(dict):
             object.__delattr__(self, item)
 
     def __repr__(self):
-        return "<Namespace: {0}...>".format(str(self.to_dict())[0:32])
+        return "<Namespace: {0}>".format(str(self.to_dict()))
 
     def __str__(self):
         return str(self.to_dict())
@@ -228,3 +228,51 @@ class ConfigNamespace(Namespace):
 
     def getfloat(self, item, default=None):
         return self.float(item, default)
+
+    def __repr__(self):
+        return "<ConfigNamespace: {0}>".format(str(self.to_dict()))
+
+
+class ProtectedDict(dict):
+    """
+    A special dict class that prohibits the setting of keys and attributes.
+    It will NOT protect objects stored in the dictionary, such as sub dicts.
+
+    .. code: python
+
+        safe_dict = reusables.ProtectedDict(a=5, b="stuff")
+        # same as safe_dict = resuables.ProtectedDict({"a": 5, "b":"stuff"})
+        # <ProtectedDict {'a': 5, 'b': 'stuff'}>
+
+        safe_dict['a']
+        # 5
+        safe_dict['a'] = 4
+        # Traceback (most recent call last):
+        #  File "<input>", line 1, in <module>
+        #  File "reusables\namespace.py", line 249, in __setitem__
+        # AttributeError: This is a protected dict, cannot change anything
+
+
+    """
+
+    def __setitem__(self, key, value):
+        raise AttributeError("This is a protected dict, cannot change anything")
+
+    def __setattr__(self, key, value):
+        raise AttributeError("This is a protected dict, cannot change anything")
+
+    def __copy__(self):
+        return dict(self)
+
+    def __repr__(self):
+        return "<ProtectedDict {0}>".format(str(dict(self)))
+
+    def __hash__(self):
+        """
+        If the dict has objects in it that are not hashable, such as sub dicts,
+        this will error.
+        """
+        hashed = 0
+        for key, value in self.items():
+            hashed ^= hash((key, value))
+        return hashed

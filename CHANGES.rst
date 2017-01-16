@@ -1,6 +1,33 @@
 Changelog
 =========
 
+Version 0.8.0
+-------------
+
+- Adding log_exception wrapper
+- Adding ProtectedDict
+- Adding hooks for Tasker main loop
+- Adding roman number functions
+- Adding directory_duplicates function
+- Adding integer to words functions
+- Adding option to enable scandir package walk instead of os.walk
+- Adding url_to_ip and ip_to_url functions
+- Adding hex_digest kwarg to file_hash
+- Adding args and kwargs to time_it and log_exception wrappers
+- Fixing file_hash checks by just passing to hashlib
+- Changing functions to remove 'all' from them, extract_all, archive_all, find_all_files and find_all_files_generator
+- Changing time_it function to use time.perf_counter on 3.3+ and time.clock on 2.6-3.2
+- Depreciation Warning: extract_all is changing to extract
+- Depreciation Warning: archive_all is changing to archive
+- Depreciation Warning: find_all_files is changing to find_files
+- Depreciation Warning: find_all_files_generator is changing to find_files_generator
+- Depreciation Warning: count_all_files is changing to count_files
+- Breaking change: Removing reuse wrapper
+- Breaking change: archive_all now detects type based off name, should supply extension to name
+- Breaking change: time_it message now takes args seconds, args, kwargs and does not allow positionals
+- Breaking change: os_tree will no longer return an empty dictionary on failure, but include the base directory supplied
+- Breaking change: renaming splice to cut
+
 Version 0.7.0
 -------------
 

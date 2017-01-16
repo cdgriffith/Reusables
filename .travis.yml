@@ -7,7 +7,8 @@ python:
     - "3.3"
     - "3.4"
     - "3.5"
-    - "3.6-dev"
+    - "3.6"
+    - "3.7-dev"
     - "pypy"
 before_install:
     - sudo apt-get -qq update
@@ -16,5 +17,5 @@ install:
     - pip install -r requirements.txt
     - pip install -r requirements-test.txt
     - pip install coveralls
-script: nosetests --with-coverage -vv --cover-package=reusables test
+script: pytest --cov=reusables
 after_success: coveralls

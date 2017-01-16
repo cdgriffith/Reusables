@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# -*- coding: UTF-8 -*-
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2016 - Chris Griffith - MIT License
+# Copyright (c) 2014-2017 - Chris Griffith - MIT License
 """
 Classes for managing Firefox and Chrome Cookies
 """

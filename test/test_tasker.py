@@ -29,7 +29,7 @@ class ExampleAddTasker(reusables.Tasker):
 class TestTasker(BaseTestClass):
 
     def test_example_add_tasker(self):
-        if reusables.win_based and platform.python_implementation() == 'PyPy':
+        if reusables.win_based:
             return
         tasker = ExampleAddTasker(list(range(100)))
         try:
