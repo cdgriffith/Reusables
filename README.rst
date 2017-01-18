@@ -13,18 +13,17 @@ programmers may find themselves often recreating.
 
 It includes:
 
-- Archiving and extraction for zip, tar, gz, bz2, and rar (extraction only)
+- Archiving and extraction for zip, tar, gz, bz2, and rar
 - Path (file and folders) management
 - Fast logging setup and tools
 - Namespace (dict to class modules with child recursion)
 - Friendly datetime formatting
 - Config to dict parsing
 - Common regular expressions and file extensions
-- Unique function wrappers
+- Helpful wrappers
 - Bash analogues
 - Easy downloading
 - Multiprocessing helpers
-- Cookie Management for Firefox and Chrome
 
 Reusables is designed to not require any imports outside the standard library,
 but can be supplemented with those found in the requirements.txt file for
@@ -342,24 +341,6 @@ Examples based on  Mon Mar 28 13:27:11 2016
 {periods}               %p                 PM
 {iso-format}            %Y-%m-%dT%H:%M:%S  2016-03-28T13:27:11
 ===================== =================== ===========================
-
-
-Cookie Management
-~~~~~~~~~~~~~~~~~
-
-Firefox and Chrome Cookie management. (Chrome requires SQLite 3.8 or greater.)
-
-.. code:: python
-
-        fox = reusables.FirefoxCookies()
-        # Automatically uses the DB of the default profile, can specify db=<path>
-
-        fox.add_cookie("example.com", "MyCookie", "Cookie contents!")
-
-        fox.find_cookies(host="Example")
-        # [{'host': u'example.com', 'name': u'MyCookie', 'value': u'Cookie contents!'}]
-
-        fox.delete_cookie("example.com", "MyCookie")
 
 
 FAQ

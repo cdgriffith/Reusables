@@ -4,6 +4,11 @@ Changelog
 Version 0.8.0
 -------------
 
+- Breaking change: removing Cookie Management in favor of separate library
+
+Version 0.8.0
+-------------
+
 - Adding log_exception wrapper
 - Adding ProtectedDict
 - Adding hooks for Tasker main loop
