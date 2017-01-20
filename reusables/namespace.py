@@ -9,6 +9,8 @@ Improved dictionary management. Inspired by
 javascript style referencing, as it's one of the few things they got right.
 """
 
+__all__ = ['Namespace', 'ConfigNamespace', 'ProtectedDict', 'tree_view']
+
 
 class Namespace(dict):
     """

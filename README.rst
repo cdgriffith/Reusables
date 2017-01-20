@@ -8,7 +8,7 @@ Reusables
 Overview
 --------
 
-The reusables library is a reference of python functions and classes that
+The reusables library is a cookbook of python functions and classes that
 programmers may find themselves often recreating.
 
 It includes:

@@ -688,17 +688,11 @@ def archive(files_to_archive, name="archive.zip", archive_type=None,
                                 allowZip64=allow_zip_64)
         write = arch.write
     elif archive_type in ("tar", "gz", "bz2"):
-        if archive_type == "tar":
-            arch = _tarfile.open(name, 'w:', **tarfile_kwargs)
-        elif archive_type == "gz":
-            arch = _tarfile.open(name, 'w:gz', **tarfile_kwargs)
-        elif archive_type == "bz2":
-            arch = _tarfile.open(name, 'w:bz2', **tarfile_kwargs)
+        mode = archive_type if archive_type != "tar" else ""
+        arch = _tarfile.open(name, 'w:{0}'.format(mode), **tarfile_kwargs)
         write = arch.add
-
-    if not (arch and write):
-        raise Exception("Internal error, could not determine how to compress,"
-                        "please report with parameters used")
+    else:
+        raise ValueError("archive_type must be zip, gz, bz2, or gz")
 
     try:
         for file_path in files_to_archive:
