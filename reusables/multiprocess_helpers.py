@@ -5,20 +5,22 @@
 #
 # Copyright (c) 2014-2017 - Chris Griffith - MIT License
 try:
-    import queue as _queue
+    import queue as queue
 except ImportError:
-    import Queue as _queue
-import multiprocessing as _mp
-import multiprocessing.pool as _pool
-import uuid as _uuid
-import time as _time
-import logging as _logging
-from functools import partial as _partial
-import datetime as _datetime
+    import Queue as queue
+import multiprocessing as mp
+from multiprocessing import pool
+import uuid
+import time
+import logging
+from functools import partial
+import datetime
 
 from .shared_variables import win_based
 
-_logger = _logging.getLogger('reusables.tasker')
+__all__ = ['Tasker', 'run_in_pool']
+
+_logger = logging.getLogger('reusables.tasker')
 
 
 class Tasker(object):
@@ -50,13 +52,13 @@ class Tasker(object):
     def __init__(self, tasks=(), max_tasks=4, task_timeout=None,
                  task_queue=None, result_queue=None, command_queue=None,
                  run_until=None):
-        self.task_queue = task_queue or _mp.Queue()
+        self.task_queue = task_queue or mp.Queue()
         if tasks:
             for task in tasks:
                 self.task_queue.put(task)
-        self.result_queue = result_queue or _mp.Queue()
-        self.command_queue = command_queue or _mp.Queue()
-        self.free_tasks = [str(_uuid.uuid4()) for _ in range(max_tasks)]
+        self.result_queue = result_queue or mp.Queue()
+        self.command_queue = command_queue or mp.Queue()
+        self.free_tasks = [str(uuid.uuid4()) for _ in range(max_tasks)]
         self.current_tasks = {}
         for task_id in self.free_tasks:
             self.current_tasks[task_id] = {}
@@ -64,7 +66,7 @@ class Tasker(object):
         self.max_tasks = max_tasks
         self.timeout = task_timeout
         self.run_until = run_until
-        self._pause, self._end = _mp.Value('b', False), _mp.Value('b', False)
+        self._pause, self._end = mp.Value('b', False), mp.Value('b', False)
         self.background_process = None
 
     def get(self, timeout=None):
@@ -88,7 +90,7 @@ class Tasker(object):
             elif not self.current_tasks[task_id]['proc'].is_alive():
                 self.free_tasks.append(task_id)
             elif self.timeout and (self.current_tasks[task_id]['start'] +
-                                   self.timeout) < _time.time():
+                                   self.timeout) < time.time():
                 try:
                     self.current_tasks[task_id]['proc'].terminate()
                 except Exception as err:
@@ -112,9 +114,9 @@ class Tasker(object):
         self.busy_tasks.remove(task_id)
 
     def _start_task(self, task_id, task):
-        self.current_tasks[task_id]['proc'] = _mp.Process(
+        self.current_tasks[task_id]['proc'] = mp.Process(
             target=self.perform_task, args=(task, self.result_queue))
-        self.current_tasks[task_id]['start_time'] = _time.time()
+        self.current_tasks[task_id]['start_time'] = time.time()
         self.current_tasks[task_id]['proc'].start()
 
     def _reset_and_pause(self):
@@ -146,14 +148,14 @@ class Tasker(object):
                         task_id = self.free_tasks.pop(0)
                         del self.current_tasks[task_id]
                     break
-                _time.sleep(0.5)
+                time.sleep(0.5)
             if not size:
                 self._reset_and_pause()
                 return True
         elif size > self.max_tasks:
             diff = size - self.max_tasks
             for i in range(diff):
-                task_id = str(_uuid.uuid4())
+                task_id = str(uuid.uuid4())
                 self.current_tasks[task_id] = {}
                 self.free_tasks.append(task_id)
         self._pause.value = False
@@ -195,7 +197,7 @@ class Tasker(object):
     def _check_command_queue(self):
         try:
             cmd = self.command_queue.get(block=False)
-        except _queue.Empty:
+        except queue.Empty:
             return
 
         if "stop" in cmd.lower():
@@ -235,13 +237,13 @@ class Tasker(object):
             while True:
                 self.hook_pre_command()
                 self._check_command_queue()
-                if self.run_until and self.run_until < _datetime.datetime.now():
+                if self.run_until and self.run_until < datetime.datetime.now():
                     _logger.info("Time limit reached")
                     break
                 if self._end.value:
                     break
                 if self._pause.value:
-                    _time.sleep(.5)
+                    time.sleep(.5)
                     continue
                 self.hook_post_command()
                 self._update_tasks()
@@ -249,7 +251,7 @@ class Tasker(object):
                 if task_id:
                     try:
                         task = self.task_queue.get(timeout=.1)
-                    except _queue.Empty:
+                    except queue.Empty:
                         if stop_at_empty:
                             break
                         self._return_task(task_id)
@@ -271,7 +273,7 @@ class Tasker(object):
         if win_based:
             raise NotImplementedError("Please run main_loop, "
                                       "backgrounding not supported on Windows")
-        self.background_process = _mp.Process(target=self.main_loop)
+        self.background_process = mp.Process(target=self.main_loop)
         self.background_process.start()
 
 
@@ -296,12 +298,12 @@ def run_in_pool(target, iterable, threaded=True, processes=4,
     :param target_kwargs: Keyword arguments to set on the function as a partial
     :return: pool results
     """
-    pool = _pool.ThreadPool if threaded else _pool.Pool
+    my_pool = pool.ThreadPool if threaded else pool.Pool
 
     if target_kwargs:
-        target = _partial(target, **target_kwargs if target_kwargs else None)
+        target = partial(target, **target_kwargs if target_kwargs else None)
 
-    p = pool(processes)
+    p = my_pool(processes)
     try:
         results = (p.map_async(target, iterable) if async
                    else p.map(target, iterable))
