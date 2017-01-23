@@ -4,15 +4,15 @@
 # Part of the Reusables package.
 #
 # Copyright (c) 2014-2017 - Chris Griffith - MIT License
-import os as _os
-import logging as _logging
-import time as _time
-import threading as _threading
-import socket as _socket
+import os
+import logging
+import time
+import threading
+import socket
 try:
-    from urllib2 import urlopen as _urlopen
+    from urllib2 import urlopen
 except ImportError:
-    from urllib.request import urlopen as _urlopen
+    from urllib.request import urlopen
 try:
     from http.server import (HTTPServer as _server,
                              SimpleHTTPRequestHandler as _handler)
@@ -22,7 +22,9 @@ except ImportError:
 
 from .reusables import safe_filename
 
-_logger = _logging.getLogger('reusables.web')
+__all__ = ['download', 'ThreadedServer', 'url_to_ip', 'url_to_ips', 'ip_to_url']
+
+logger = logging.getLogger('reusables.web')
 
 
 def download(url, save_to_file=True, save_dir=".", filename=None,
@@ -44,38 +46,38 @@ def download(url, save_to_file=True, save_dir=".", filename=None,
         if not filename:
             filename = safe_filename(url.split('/')[-1])
             if not filename:
-                filename = "downloaded_at_{}.file".format(_time.time())
-        save_location = _os.path.abspath(_os.path.join(save_dir, filename))
-        if _os.path.exists(save_location) and not overwrite:
-            _logger.error("File {0} already exists".format(save_location))
+                filename = "downloaded_at_{}.file".format(time.time())
+        save_location = os.path.abspath(os.path.join(save_dir, filename))
+        if os.path.exists(save_location) and not overwrite:
+            logger.error("File {0} already exists".format(save_location))
             return False
     else:
         save_location = "memory"
 
     try:
-        request = _urlopen(url)
+        request = urlopen(url)
     except ValueError as err:
         if not quiet and "unknown url type" in str(err):
-            _logger.error("Please make sure URL is formatted correctly and"
-                          " starts with http:// or other protocol")
+            logger.error("Please make sure URL is formatted correctly and"
+                         " starts with http:// or other protocol")
         raise err
     except Exception as err:
         if not quiet:
-            _logger.error("Could not download {0} - {1}".format(url, err))
+            logger.error("Could not download {0} - {1}".format(url, err))
         raise err
 
     try:
         kb_size = int(request.headers["Content-Length"]) / 1024
     except Exception as err:
         if not quiet:
-            _logger.debug("Could not determine file size - {0}".format(err))
+            logger.debug("Could not determine file size - {0}".format(err))
         file_size = "(unknown size)"
     else:
         file_size = "({0:.1f} {1})".format(*(kb_size, "KB") if kb_size < 9999
                                            else (kb_size / 1024, "MB"))
 
     if not quiet:
-        _logger.info("Downloading {0} {1} to {2}".format(url, file_size,
+        logger.info("Downloading {0} {1} to {2}".format(url, file_size,
                                                          save_location))
 
     if save_to_file:
@@ -122,7 +124,7 @@ class ThreadedServer(object):
 
     def start(self):
         """Create a background thread for httpd and serve 'forever'"""
-        self._process = _threading.Thread(target=self._background_runner)
+        self._process = threading.Thread(target=self._background_runner)
         self._process.start()
 
     def stop(self):
@@ -131,8 +133,8 @@ class ThreadedServer(object):
         self._process.join()
 
 
-def url_to_ips(url, port=None, ipv6=False, connect_type=_socket.SOCK_STREAM,
-               proto=_socket.IPPROTO_TCP, flags=0):
+def url_to_ips(url, port=None, ipv6=False, connect_type=socket.SOCK_STREAM,
+               proto=socket.IPPROTO_TCP, flags=0):
     """
     Provide a list of IP addresses, uses `socket.getaddrinfo`
 
@@ -150,14 +152,14 @@ def url_to_ips(url, port=None, ipv6=False, connect_type=_socket.SOCK_STREAM,
     :return: list of resolved IPs
     """
     try:
-        results = _socket.getaddrinfo(url, port,
-                                      (_socket.AF_INET if not ipv6
-                                       else _socket.AF_INET6),
-                                      connect_type,
-                                      proto,
-                                      flags)
-    except _socket.gaierror:
-        _logger.exception("Could not resolve hostname")
+        results = socket.getaddrinfo(url, port,
+                                     (socket.AF_INET if not ipv6
+                                      else socket.AF_INET6),
+                                     connect_type,
+                                     proto,
+                                     flags)
+    except socket.gaierror:
+        logger.exception("Could not resolve hostname")
         return []
 
     return list(set([result[-1][0] for result in results]))
@@ -176,9 +178,9 @@ def url_to_ip(url):
     :return: string of IP address or None
     """
     try:
-        return _socket.gethostbyname(url)
-    except _socket.gaierror:
-        _logger.exception("Could not determine IP")
+        return socket.gethostbyname(url)
+    except socket.gaierror:
+        logger.exception("Could not determine IP")
 
 
 def ip_to_url(ip_addr):
@@ -202,6 +204,6 @@ def ip_to_url(ip_addr):
     :return: string of hostname or None
     """
     try:
-        return _socket.gethostbyaddr(ip_addr)[0]
-    except (_socket.gaierror, _socket.herror):
-        _logger.exception("Could not resolve hostname")
+        return socket.gethostbyaddr(ip_addr)[0]
+    except (socket.gaierror, socket.herror):
+        logger.exception("Could not resolve hostname")
