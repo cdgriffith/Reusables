@@ -236,6 +236,8 @@ That's right, str.endswith_ (as well as str.startswith_) accept a tuple to searc
 Wrappers
 ~~~~~~~~
 
+**unique**
+
 There are tons of wrappers for caching and saving inputs and outputs, this is a
 different take that requires the function returns a result not yet provided.
 
@@ -243,8 +245,19 @@ different take that requires the function returns a result not yet provided.
 
     @reusables.unique(max_retries=100, error_text="All UIDs taken!")
     def gen_small_uid():
-        import random
         return random.randint(0, 100)
+
+**time_it**
+
+Easily time the execution time of a function, using the high precision
+perf_conuter on Python 3.3+, otherwise clock.
+
+.. code:: python
+
+    @reusables.time_it()
+    def test_it():
+        return time.sleep(float(f"0.{random.randint(1, 9)}"))
+
 
 
 Command line helpers
@@ -371,13 +384,6 @@ A common error to see, especially on Windows based systems, is: "rarfile.RarCann
 This is probably because unrar is not downloaded or linked properly. Download UnRAR
 from http://www.rarlab.com/rar_add.htm and follow these instructions before
 trying again: http://rarfile.readthedocs.org/en/latest/faq.html?highlight=windows#how-can-i-get-it-work-on-windows
-
-**I can't figure out how upgrade SQLite on Windows to 3.8 or higher instead of 3.6**
-
-Me neither. ¯\\_(ツ)_/¯
-
-Using Python 3.6 magically fixed it for me. If you ever figure it out, please let me know.
-
 
 License
 -------

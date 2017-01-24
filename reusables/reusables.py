@@ -4,75 +4,35 @@
 # Part of the Reusables package.
 #
 # Copyright (c) 2014-2017 - Chris Griffith - MIT License
-import os as _os
-import sys as _sys
-import csv as _csv
-import json as _json
-import subprocess as _subprocess
-import glob as _glob
-import hashlib as _hashlib
-import warnings as _warnings
-import zipfile as _zipfile
-import tarfile as _tarfile
+import os
+import sys
+import csv
+import json
+import subprocess
+import glob
+import hashlib
+import zipfile
+import tarfile
 try:
-    import ConfigParser as _ConfigParser
+    import ConfigParser as ConfigParser
 except ImportError:
-    import configparser as _ConfigParser
+    import configparser as ConfigParser
 
 from .namespace import ConfigNamespace
 from .log import get_logger
 from .dt import DateTime
 from .shared_variables import *
 
-_logger = get_logger("reusables", level=10, stream=None, file_path=None)
+__all__ = ['os_tree', 'archive', 'config_namespace', 'check_filename',
+           'config_dict', 'count_files', 'csv_to_list', 'cut',
+           'directory_duplicates',
+           'dup_finder', 'extract', 'file_hash', 'find_files',
+           'find_files_list', 'join_here', 'join_paths', 'list_to_csv',
+           'load_json', 'now', 'remove_empty_directories',
+           'remove_empty_files', 'run', 'safe_filename', 'safe_path',
+           'save_json', 'sort_by', 'touch']
 
-
-def archive_all(*args, **kwargs):
-    """Backwards compatible wrapper for 'archive'"""
-    _warnings.warn("archive_all is changing name to archive",
-                   FutureWarning)
-    _logger.warning("archive_all is changing name to archive")
-    return archive(*args, **kwargs)
-
-
-def extract_all(*args, **kwargs):
-    """Backwards compatible wrapper for 'extract'"""
-    _warnings.warn("extract_all is changing name to extract",
-                   FutureWarning)
-    _logger.warning("extract_all is changing name to extract")
-    return extract(*args, **kwargs)
-
-
-def find_all_files(*args, **kwargs):
-    """Backwards compatible wrapper for 'list(find_files())'"""
-    _warnings.warn("find_all_files is changing to find_files_list",
-                   FutureWarning)
-    _logger.warning("find_all_files is changing to find_files_list")
-    return list(find_files(*args, **kwargs))
-
-
-def find_all_files_generator(*args, **kwargs):
-    """Backwards compatible wrapper for 'find_files'"""
-    _warnings.warn("find_all_files_generator is changing to find_files",
-                   FutureWarning)
-    _logger.warning("find_all_files_generator is changing to find_files")
-    return find_files(*args, **kwargs)
-
-
-def count_all_files(*args, **kwargs):
-    """Backwards compatible wrapper for count_files"""
-    _warnings.warn("count_all_files is changing to count_files",
-                   FutureWarning)
-    _logger.warning("count_all_files is changing to count_files")
-    return len(find_files_list(*args, **kwargs))
-
-
-def dup_finder_generator(*args, **kwargs):
-    """Backwards compatible wrapper for 'dup_finder'"""
-    _warnings.warn("dup_file_generator is changing to dup_finder",
-                   FutureWarning)
-    _logger.warning("dup_file_generator is changing to dup_finder")
-    return dup_finder(*args, **kwargs)
+logger = get_logger("reusables", level=10, stream=None, file_path=None)
 
 
 def _walk(directory, enable_scandir=False, **kwargs):
@@ -84,10 +44,10 @@ def _walk(directory, enable_scandir=False, **kwargs):
     :param kwargs: arguments to pass to walk function
     :return: walk generator
     """
-    walk = _os.walk
+    walk = os.walk
     if python_version < (3, 5) and enable_scandir:
-        import scandir as _scandir
-        walk = _scandir.walk
+        import scandir
+        walk = scandir.walk
     return walk(directory, **kwargs)
 
 
@@ -109,22 +69,22 @@ def os_tree(directory, enable_scandir=False):
     :param enable_scandir: on python < 3.5 enable external scandir package
     :return: dictionary of the directory
     """
-    if not _os.path.exists(directory):
+    if not os.path.exists(directory):
         raise OSError("Directory does not exist")
-    if not _os.path.isdir(directory):
+    if not os.path.isdir(directory):
         raise OSError("Path is not a directory")
 
     full_list = []
     for root, dirs, files in _walk(directory, enable_scandir=enable_scandir):
-        full_list.extend([_os.path.join(root, d).lstrip(directory) + _os.sep
+        full_list.extend([os.path.join(root, d).lstrip(directory) + os.sep
                           for d in dirs])
-    tree = {_os.path.basename(directory): {}}
+    tree = {os.path.basename(directory): {}}
     for item in full_list:
-        separated = item.split(_os.sep)
+        separated = item.split(os.sep)
         is_dir = separated[-1:] == ['']
         if is_dir:
             separated = separated[:-1]
-        parent = tree[_os.path.basename(directory)]
+        parent = tree[os.path.basename(directory)]
         for index, path in enumerate(separated):
             if path in parent:
                 parent = parent[path]
@@ -157,11 +117,11 @@ def join_paths(*paths, **kwargs):
     :param kwargs: 'safe', make them into a safe path it True
     :return: abspath as string
     """
-    path = _os.path.abspath(paths[0])
+    path = os.path.abspath(paths[0])
 
     for next_path in paths[1:]:
-        path = _os.path.join(path, next_path.lstrip("\\").lstrip("/").strip())
-    path.rstrip(_os.sep)
+        path = os.path.join(path, next_path.lstrip("\\").lstrip("/").strip())
+    path.rstrip(os.sep)
     return path if not kwargs.get('safe') else safe_path(path)
 
 
@@ -179,11 +139,11 @@ def join_here(*paths, **kwargs):
     :param kwargs: 'safe', make them into a safe path it True
     :return: abspath as string
     """
-    path = _os.path.abspath(".")
+    path = os.path.abspath(".")
     for next_path in paths:
         next_path = next_path.lstrip("\\").lstrip("/").strip() if not \
             kwargs.get('strict') else next_path
-        path = _os.path.abspath(_os.path.join(path, next_path))
+        path = os.path.abspath(os.path.join(path, next_path))
     return path if not kwargs.get('safe') else safe_path(path)
 
 
@@ -212,7 +172,7 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
     if not config_file:
         config_file = []
 
-    cfg_parser = _ConfigParser.ConfigParser(**cfg_options)
+    cfg_parser = ConfigParser.ConfigParser(**cfg_options)
     cfg_files = []
 
     if config_file:
@@ -229,10 +189,10 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
             current_root if isinstance(auto_find, bool) else auto_find,
             ext=(".cfg", ".config", ".ini")))
 
-    _logger.info("config files to be used: {0}".format(cfg_files))
+    logger.info("config files to be used: {0}".format(cfg_files))
 
     if verify:
-        cfg_parser.read([cfg for cfg in cfg_files if _os.path.exists(cfg)])
+        cfg_parser.read([cfg for cfg in cfg_files if os.path.exists(cfg)])
     else:
         cfg_parser.read(cfg_files)
 
@@ -334,10 +294,10 @@ def safe_path(path, replacement="_"):
     """
     if not isinstance(path, str):
         raise TypeError("path must be a string")
-    if _os.sep not in path:
+    if os.sep not in path:
         return safe_filename(path, replacement=replacement)
-    filename = safe_filename(_os.path.basename(path))
-    dirname = _os.path.dirname(path)
+    filename = safe_filename(os.path.basename(path))
+    dirname = os.path.dirname(path)
     safe_dirname = ""
     regexp = regex.path.windows.safe if win_based else regex.path.linux.safe
     if win_based and dirname.find(":\\") == 1 and dirname[0].isalpha():
@@ -348,14 +308,14 @@ def safe_path(path, replacement="_"):
     else:
         for char in dirname:
             safe_dirname += char if regexp.search(char) else replacement
-    sanitized_path = _os.path.normpath("{path}{sep}{filename}".format(
+    sanitized_path = os.path.normpath("{path}{sep}{filename}".format(
         path=safe_dirname,
-        sep=_os.sep if not safe_dirname.endswith(_os.sep) else "",
+        sep=os.sep if not safe_dirname.endswith(os.sep) else "",
         filename=filename))
     if (not filename and
-            path.endswith(_os.sep) and
-            not sanitized_path.endswith(_os.sep)):
-        sanitized_path += _os.sep
+            path.endswith(os.sep) and
+            not sanitized_path.endswith(os.sep)):
+        sanitized_path += os.sep
     return sanitized_path
 
 
@@ -378,7 +338,7 @@ def file_hash(path, hash_type="md5", block_size=65536, hex_digest=True):
     :param hex_digest: returned as hexdigest, false will return digest
     :return: file's hash
     """
-    hashed = _hashlib.new(hash_type)
+    hashed = hashlib.new(hash_type)
     with open(path, "rb") as infile:
         buf = infile.read(block_size)
         while len(buf) > 0:
@@ -439,25 +399,25 @@ def find_files(directory=".", ext=None, name=None,
     if ext or not name:
         disable_glob = True
     if not disable_glob:
-        disable_glob = not _glob.has_magic(name)
+        disable_glob = not glob.has_magic(name)
 
     if ext and isinstance(ext, str):
         ext = [ext]
     elif ext and not isinstance(ext, (list, tuple)):
         raise TypeError("extension must be either one extension or a list")
     if abspath:
-        directory = _os.path.abspath(directory)
-    starting_depth = directory.count(_os.sep)
+        directory = os.path.abspath(directory)
+    starting_depth = directory.count(os.sep)
 
     for root, dirs, files in _walk(directory, enable_scandir=enable_scandir):
-        if depth and root.count(_os.sep) - starting_depth >= depth:
+        if depth and root.count(os.sep) - starting_depth >= depth:
             continue
 
         if not disable_glob:
             if match_case:
                 raise ValueError("Cannot use glob and match case, please "
                                  "either disable glob or not set match_case")
-            glob_generator = _glob.iglob(_os.path.join(root, name))
+            glob_generator = glob.iglob(os.path.join(root, name))
             for item in glob_generator:
                 yield item
             continue
@@ -466,7 +426,7 @@ def find_files(directory=".", ext=None, name=None,
             if ext:
                 for end in ext:
                     if file_name.lower().endswith(end.lower() if not
-                                                  match_case else end):
+                    match_case else end):
                         break
                 else:
                     continue
@@ -475,7 +435,7 @@ def find_files(directory=".", ext=None, name=None,
                     continue
                 elif name.lower() not in file_name.lower():
                     continue
-            yield _os.path.join(root, file_name)
+            yield os.path.join(root, file_name)
 
 
 def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True,
@@ -489,7 +449,7 @@ def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True,
     :param enable_scandir: on python < 3.5 enable external scandir package
     :return: list of removed directories
     """
-    listdir = _os.listdir
+    listdir = os.listdir
     if python_version < (3, 5) and enable_scandir:
         import scandir as _scandir
 
@@ -500,29 +460,29 @@ def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True,
     for root, directories, files in _walk(root_directory,
                                           enable_scandir=enable_scandir,
                                           topdown=False):
-        if (not directories and not files and _os.path.exists(root) and
-                root != root_directory and _os.path.isdir(root)):
+        if (not directories and not files and os.path.exists(root) and
+                    root != root_directory and os.path.isdir(root)):
             directory_list.append(root)
             if not dry_run:
                 try:
-                    _os.rmdir(root)
+                    os.rmdir(root)
                 except OSError as err:
                     if ignore_errors:
-                        _logger.info("{0} could not be deleted".format(root))
+                        logger.info("{0} could not be deleted".format(root))
                     else:
                         raise err
         elif directories and not files:
             for directory in directories:
                 directory = join_paths(root, directory, strict=True)
-                if (_os.path.exists(directory) and _os.path.isdir(directory) and
+                if (os.path.exists(directory) and os.path.isdir(directory) and
                         not listdir(directory)):
                     directory_list.append(directory)
                     if not dry_run:
                         try:
-                            _os.rmdir(directory)
+                            os.rmdir(directory)
                         except OSError as err:
                             if ignore_errors:
-                                _logger.info("{0} could not be deleted".format(
+                                logger.info("{0} could not be deleted".format(
                                     directory))
                             else:
                                 raise err
@@ -545,7 +505,7 @@ def remove_empty_files(root_directory, dry_run=False, ignore_errors=True,
                                           enable_scandir=enable_scandir):
         for file_name in files:
             file_path = join_paths(root, file_name, strict=True)
-            if _os.path.isfile(file_path) and not _os.path.getsize(file_path):
+            if os.path.isfile(file_path) and not os.path.getsize(file_path):
                 if file_hash(file_path) == variables.hashes.empty_file.md5:
                     file_list.append(file_path)
 
@@ -554,10 +514,10 @@ def remove_empty_files(root_directory, dry_run=False, ignore_errors=True,
     if not dry_run:
         for afile in file_list:
             try:
-                _os.unlink(afile)
+                os.unlink(afile)
             except OSError as err:
                 if ignore_errors:
-                    _logger.info("File {0} could not be deleted".format(afile))
+                    logger.info("File {0} could not be deleted".format(afile))
                 else:
                     raise err
 
@@ -589,28 +549,28 @@ def extract(archive_file, path=".", delete_on_success=False,
     :return: path to extracted files
     """
 
-    if not _os.path.exists(archive_file) or not _os.path.getsize(archive_file):
-        _logger.error("File {0} unextractable".format(archive_file))
+    if not os.path.exists(archive_file) or not os.path.getsize(archive_file):
+        logger.error("File {0} unextractable".format(archive_file))
         raise OSError("File does not exist or has zero size")
 
     arch = None
-    if _zipfile.is_zipfile(archive_file):
-        _logger.debug("File {0} detected as a zip file".format(archive_file))
-        arch = _zipfile.ZipFile(archive_file)
-    elif _tarfile.is_tarfile(archive_file):
-        _logger.debug("File {0} detected as a tar file".format(archive_file))
-        arch = _tarfile.open(archive_file)
+    if zipfile.is_zipfile(archive_file):
+        logger.debug("File {0} detected as a zip file".format(archive_file))
+        arch = zipfile.ZipFile(archive_file)
+    elif tarfile.is_tarfile(archive_file):
+        logger.debug("File {0} detected as a tar file".format(archive_file))
+        arch = tarfile.open(archive_file)
     elif enable_rar:
         import rarfile
         if rarfile.is_rarfile(archive_file):
-            _logger.debug("File {0} detected as "
-                          "a rar file".format(archive_file))
+            logger.debug("File {0} detected as "
+                         "a rar file".format(archive_file))
             arch = rarfile.RarFile(archive_file)
 
     if not arch:
         raise TypeError("File is not a known archive")
 
-    _logger.debug("Extracting files to {0}".format(path))
+    logger.debug("Extracting files to {0}".format(path))
 
     try:
         arch.extractall(path=path)
@@ -618,10 +578,10 @@ def extract(archive_file, path=".", delete_on_success=False,
         arch.close()
 
     if delete_on_success:
-        _logger.debug("Archive {0} will now be deleted".format(archive_file))
-        _os.unlink(archive_file)
+        logger.debug("Archive {0} will now be deleted".format(archive_file))
+        os.unlink(archive_file)
 
-    return _os.path.abspath(path)
+    return os.path.abspath(path)
 
 
 def archive(files_to_archive, name="archive.zip", archive_type=None,
@@ -666,54 +626,54 @@ def archive(files_to_archive, name="archive.zip", archive_type=None,
         else:
             err_msg = ("Could not determine archive "
                        "type based off {0}".format(name))
-            _logger.error(err_msg)
+            logger.error(err_msg)
             raise ValueError(err_msg)
-        _logger.debug("{0} file detected for {1}".format(archive_type, name))
+        logger.debug("{0} file detected for {1}".format(archive_type, name))
     elif archive_type not in ("tar", "gz", "bz2", "zip"):
         err_msg = ("archive_type must be zip, gz, bz2,"
                    " or gz, was {0}".format(archive_type))
-        _logger.error(err_msg)
+        logger.error(err_msg)
         raise ValueError(err_msg)
 
-    if not overwrite and _os.path.exists(name):
+    if not overwrite and os.path.exists(name):
         err_msg = "File {0} exists and overwrite not specified".format(name)
-        _logger.error(err_msg)
+        logger.error(err_msg)
         raise OSError(err_msg)
 
     arch, write = None, None
     if archive_type == "zip":
-        arch = _zipfile.ZipFile(name, 'w',
-                                _zipfile.ZIP_STORED if store else
-                                _zipfile.ZIP_DEFLATED,
-                                allowZip64=allow_zip_64)
+        arch = zipfile.ZipFile(name, 'w',
+                               zipfile.ZIP_STORED if store else
+                               zipfile.ZIP_DEFLATED,
+                               allowZip64=allow_zip_64)
         write = arch.write
     elif archive_type in ("tar", "gz", "bz2"):
         mode = archive_type if archive_type != "tar" else ""
-        arch = _tarfile.open(name, 'w:{0}'.format(mode), **tarfile_kwargs)
+        arch = tarfile.open(name, 'w:{0}'.format(mode), **tarfile_kwargs)
         write = arch.add
     else:
         raise ValueError("archive_type must be zip, gz, bz2, or gz")
 
     try:
         for file_path in files_to_archive:
-            if _os.path.isfile(file_path):
-                if err_non_exist and not _os.path.exists(file_path):
+            if os.path.isfile(file_path):
+                if err_non_exist and not os.path.exists(file_path):
                     raise OSError("File {0} does not exist".format(file_path))
                 write(file_path)
-            elif _os.path.isdir(file_path):
+            elif os.path.isdir(file_path):
                 for nf in find_files(file_path, abspath=False, depth=depth):
                     write(nf)
     except (Exception, KeyboardInterrupt) as err:
-        _logger.exception("Could not archive {0}".format(files_to_archive))
+        logger.exception("Could not archive {0}".format(files_to_archive))
         try:
             arch.close()
         finally:
-            _os.unlink(name)
+            os.unlink(name)
         raise err
     else:
         arch.close()
 
-    return _os.path.abspath(name)
+    return os.path.abspath(name)
 
 
 def dup_finder(file_path, directory=".", enable_scandir=False):
@@ -744,7 +704,7 @@ def dup_finder(file_path, directory=".", enable_scandir=False):
     :param enable_scandir: on python < 3.5 enable external scandir package
     :return: generators
     """
-    size = _os.path.getsize(file_path)
+    size = os.path.getsize(file_path)
     if size == 0:
         for empty_file in remove_empty_files(directory, dry_run=True):
             yield empty_file
@@ -756,18 +716,18 @@ def dup_finder(file_path, directory=".", enable_scandir=False):
         for root, directories, files in _walk(directory,
                                               enable_scandir=enable_scandir):
             for each_file in files:
-                test_file = _os.path.join(root, each_file)
-                if _os.path.getsize(test_file) == size:
+                test_file = os.path.join(root, each_file)
+                if os.path.getsize(test_file) == size:
                     try:
                         with open(test_file, 'rb') as f:
                             test_first_twenty = f.read(20)
                     except OSError:
-                        _logger.warning("Could not open file to compare - "
-                                        "{0}".format(test_file))
+                        logger.warning("Could not open file to compare - "
+                                       "{0}".format(test_file))
                     else:
                         if first_twenty == test_first_twenty:
                             if file_hash(test_file, "sha256") == file_sha256:
-                                yield _os.path.abspath(test_file)
+                                yield os.path.abspath(test_file)
 
 
 def directory_duplicates(directory, hash_type='md5', **kwargs):
@@ -793,7 +753,7 @@ def directory_duplicates(directory, hash_type='md5', **kwargs):
     size_map, hash_map = {}, {}
 
     for item in find_files(directory, **kwargs):
-        file_size = _os.path.getsize(item)
+        file_size = os.path.getsize(item)
         size_map.setdefault(file_size, []).append(item)
 
     for possible_dups in (v for v in size_map.values() if len(v) > 1):
@@ -835,7 +795,7 @@ def list_to_csv(my_list, csv_file):
         csv_handler = open(csv_file, 'wb')
 
     try:
-        writer = _csv.writer(csv_handler, delimiter=',', quoting=_csv.QUOTE_ALL)
+        writer = csv.writer(csv_handler, delimiter=',', quoting=csv.QUOTE_ALL)
         writer.writerows(my_list)
     finally:
         csv_handler.close()
@@ -857,7 +817,7 @@ def csv_to_list(csv_file):
     :return: list
     """
     with open(csv_file, 'r' if PY3 else 'rb') as f:
-        return list(_csv.reader(f))
+        return list(csv.reader(f))
 
 
 def load_json(json_file, **kwargs):
@@ -874,7 +834,7 @@ def load_json(json_file, **kwargs):
     :return: Dictionary
     """
     with open(json_file) as f:
-        return _json.load(f, **kwargs)
+        return json.load(f, **kwargs)
 
 
 def save_json(data, json_file, indent=4, **kwargs):
@@ -905,7 +865,7 @@ def save_json(data, json_file, indent=4, **kwargs):
     :param kwargs: Additional arguments for the json.dump command
     """
     with open(json_file, "w") as f:
-        _json.dump(data, f, indent=indent, **kwargs)
+        json.dump(data, f, indent=indent, **kwargs)
 
 
 def touch(path):
@@ -915,10 +875,10 @@ def touch(path):
     :param path: path to file to 'touch'
     """
     with open(path, 'a'):
-        _os.utime(path, None)
+        os.utime(path, None)
 
 
-def run(command, input=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
+def run(command, input=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         timeout=None, copy_local_env=False, **kwargs):
     """
     Cross platform compatible subprocess with CompletedProcess return.
@@ -951,15 +911,15 @@ def run(command, input=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
     """
     if copy_local_env:
         # Copy local env first and overwrite with anything manually specified
-        env = _os.environ.copy()
+        env = os.environ.copy()
         env.update(kwargs.get('env', {}))
     else:
         env = kwargs.get('env')
 
-    if _sys.version_info >= (3, 5):
-        return _subprocess.run(command, input=input, stdout=stdout,
-                               stderr=stderr, timeout=timeout, env=env,
-                               **kwargs)
+    if sys.version_info >= (3, 5):
+        return subprocess.run(command, input=input, stdout=stdout,
+                              stderr=stderr, timeout=timeout, env=env,
+                              **kwargs)
 
     # Created here instead of root level as it should never need to be
     # manually created or referenced
@@ -983,14 +943,14 @@ def run(command, input=None, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE,
         def check_returncode(self):
             if self.returncode:
                 if python_version < (2, 7):
-                    raise _subprocess.CalledProcessError(self.returncode,
-                                                         self.args)
-                raise _subprocess.CalledProcessError(self.returncode,
-                                                     self.args,
-                                                     self.stdout)
+                    raise subprocess.CalledProcessError(self.returncode,
+                                                        self.args)
+                raise subprocess.CalledProcessError(self.returncode,
+                                                    self.args,
+                                                    self.stdout)
 
-    proc = _subprocess.Popen(command, stdout=stdout, stderr=stderr,
-                             env=env, **kwargs)
+    proc = subprocess.Popen(command, stdout=stdout, stderr=stderr,
+                            env=env, **kwargs)
     if PY3:
         out, err = proc.communicate(input=input, timeout=timeout)
     else:
@@ -1065,5 +1025,3 @@ def cut(string, characters=2, trailing="normal"):
             raise IndexError("String of length {0} not divisible by {1} to"
                              " cut".format(len(string), characters))
     return split_str
-
-

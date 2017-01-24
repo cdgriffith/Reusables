@@ -9,7 +9,7 @@ Improved dictionary management. Inspired by
 javascript style referencing, as it's one of the few things they got right.
 """
 
-__all__ = ['Namespace', 'ConfigNamespace', 'ProtectedDict', 'tree_view']
+__all__ = ['Namespace', 'ConfigNamespace', 'ProtectedDict']
 
 
 class Namespace(dict):

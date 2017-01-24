@@ -109,3 +109,7 @@ exts = Namespace(common_exts)
 variables = Namespace(common_variables)
 
 exts._protected_keys.extend(exts.keys())
+
+
+class ReusablesError(Exception):
+    """Reusables specific exception"""

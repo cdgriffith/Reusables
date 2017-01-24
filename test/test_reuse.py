@@ -294,7 +294,7 @@ Key2 = Value2
         empty_file = reusables.join_paths(test_root, "empty")
         touch(empty_file)
         self._extract_structure()
-        b = [x for x in reusables.dup_finder_generator(empty_file, test_root)]
+        b = [x for x in reusables.dup_finder(empty_file, test_root)]
         print(b)
 
     def test_config_reader(self):
@@ -360,9 +360,9 @@ Key2 = Value2
         with open(something, "w") as f:
             f.write("stuff in here")
         try:
-            dups = list(reusables.dup_finder_generator(empty, data_dr))
+            dups = list(reusables.dup_finder(empty, data_dr))
             assert len(dups) == 1, dups
-            dups2 = list(reusables.dup_finder_generator(something, data_dr))
+            dups2 = list(reusables.dup_finder(something, data_dr))
             assert len(dups2) == 1, dups
         finally:
             os.unlink(something)
@@ -436,22 +436,6 @@ Key2 = Value2
         assert len(delete) == 8, (len(delete), delete)
         assert not [x for x in delete if "empty" not in x.lower()]
         self._remove_structure()
-
-    def test_deprecation(self):
-        reusables.find_all_files_generator(test_root)
-        reusables.find_all_files(test_root)
-        reusables.count_all_files(test_root)
-        reusables.archive_all("data", name="tested.zip")
-        try:
-            reusables.extract_all("tested.zip", "new_dir")
-        except Exception:
-            pass
-        try:
-            os.unlink("tested.zip")
-            shutil.rmtree("new_dir", True)
-        except OSError:
-            pass
-        reusables.dup_finder_generator(test_root)
 
 
 if reusables.nix_based:
