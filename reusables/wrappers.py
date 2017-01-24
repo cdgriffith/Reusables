@@ -23,7 +23,6 @@ logger = logging.getLogger("reusables.wrappers")
 g_lock = Lock()
 g_queue = _queue.Queue()
 unique_cache = defaultdict(list)
-reuse_cache = dict()  # Could use DefaultDict but eh, it's another import
 
 
 def _add_args(message, *args, **kwargs):
@@ -316,7 +315,7 @@ def retry_it(exceptions=(Exception, ), tries=10, wait=0, output_check=None,
         @wraps(func)
         def wrapper(*args, **kwargs):
             msg = (raised_message if raised_message
-                   else "Max retries exceeded for {func}")
+                   else "Max retries exceeded for function '{func}'")
             if not raised_message:
                 msg = _add_args(msg, *args, **kwargs)
             try:
@@ -329,8 +328,10 @@ def retry_it(exceptions=(Exception, ), tries=10, wait=0, output_check=None,
                                     output_check=output_check,
                                     wait=wait)(func)(*args, **kwargs)
                 if raised_exception:
-                    raise raised_exception(msg.format(func=func.__name__),
-                                           args=args, kwargs=kwargs)
+                    exc = raised_exception(msg.format(func=func.__name__,
+                                           args=args, kwargs=kwargs))
+                    exc.__cause__ = None
+                    raise exc
             else:
                 if output_check:
                     if not output_check(result):
@@ -340,5 +341,4 @@ def retry_it(exceptions=(Exception, ), tries=10, wait=0, output_check=None,
                 return result
         return wrapper
     return func_wrapper
-
 

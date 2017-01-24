@@ -13,6 +13,7 @@ import glob
 import hashlib
 import zipfile
 import tarfile
+from collections import defaultdict
 try:
     import ConfigParser as ConfigParser
 except ImportError:
@@ -750,16 +751,16 @@ def directory_duplicates(directory, hash_type='md5', **kwargs):
     :param hash_type: Type of hash to perform
     :param kwargs: Arguments to pass to find_files to narrow file types
     :return: list of lists of dups"""
-    size_map, hash_map = {}, {}
+    size_map, hash_map = defaultdict(list), defaultdict(list)
 
     for item in find_files(directory, **kwargs):
         file_size = os.path.getsize(item)
-        size_map.setdefault(file_size, []).append(item)
+        size_map[file_size].append(item)
 
     for possible_dups in (v for v in size_map.values() if len(v) > 1):
         for each_item in possible_dups:
             item_hash = file_hash(each_item, hash_type=hash_type)
-            hash_map.setdefault(item_hash, []).append(each_item)
+            hash_map[item_hash].append(each_item)
 
     return [v for v in hash_map.values() if len(v) > 1]
 

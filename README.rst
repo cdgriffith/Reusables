@@ -25,6 +25,19 @@ It includes:
 - Easy downloading
 - Multiprocessing helpers
 
+Install
+~~~~~~~
+
+Reusables is on PyPI, so can be easily installed with pip or easy_install.
+
+.. code::
+
+   pip install reusables
+
+
+There are no required decencies. If this doesn't work, it's broken, raise
+a github issue.
+
 Reusables is designed to not require any imports outside the standard library,
 but can be supplemented with those found in the requirements.txt file for
 additional functionality.
@@ -365,17 +378,6 @@ Please feel free to make suggestions in the 'issues' section of github, or to be
 functionality you want to see! Only requirements are that it's well thought out and is more in place here rather than it's own project
 (to be merged will need documentation and basic unittests as well, but not a requirement for opening the PR).
 Please don't hesitate if you're new to python! Even the smallest PR contributions will earn a mention in a brand new Contributors section.
-
-
-**Why all the underscored imports?**
-
-The rational behind this is just like the standard library, so that the user is sure anything they have access to is solely from this library
-and not one of it's imports. Several variables are also hidden like this, as they are only to be used by the library itself. For example, loggers
-should not have their objects modified by direct reference, but rather obtained through 'logging.getLogger('reusables')', as it helps sort out those who
-know what they are doing.
-
-I could use __all__ and just expose what I want, but I feel that people should be allowed to copy a single file or function out of here,
-and have a clear understanding what is designed to be exposed without being an interpreter.
 
 **Unrar not installed?**
 

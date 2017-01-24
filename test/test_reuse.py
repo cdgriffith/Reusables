@@ -26,6 +26,7 @@ Key2 = Value2
         if os.path.exists(test_structure):
             shutil.rmtree(test_structure)
 
+
     def test_get_config_dict(self):
         resp = reusables.config_dict(os.path.join(test_root, 'test_config.cfg'))
         assert resp['Section1']['key 1'] == 'value 1'
@@ -240,6 +241,7 @@ Key2 = Value2
             assert False
         finally:
             lol_Im_not_a_dir.close()
+            os.unlink("fake_dir")
 
     def test_os_tree_no_dir(self):
         try:
