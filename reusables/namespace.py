@@ -9,7 +9,7 @@ Improved dictionary management. Inspired by
 javascript style referencing, as it's one of the few things they got right.
 """
 
-__all__ = ['Namespace', 'ConfigNamespace', 'ProtectedDict']
+__all__ = ['Namespace', 'ConfigNamespace', 'ProtectedDict', 'ns', 'cns']
 
 
 class Namespace(dict):
@@ -81,6 +81,9 @@ class Namespace(dict):
 
     def __str__(self):
         return str(self.to_dict())
+
+    def __call__(self, *args, **kwargs):
+        return tuple(self.values())
 
     @classmethod
     def from_dict(cls, dictionary):
@@ -278,3 +281,6 @@ class ProtectedDict(dict):
         for key, value in self.items():
             hashed ^= hash((key, value))
         return hashed
+
+ns = Namespace
+cns = ConfigNamespace
