@@ -12,6 +12,13 @@ javascript style referencing, as it's one of the few things they got right.
 __all__ = ['Namespace', 'ConfigNamespace', 'ProtectedDict', 'ns', 'cns']
 
 
+def _recursive_create(self, iterable):
+    for k, v in iterable:
+        if isinstance(v, dict):
+            v = Namespace(v)
+        setattr(self, k, v)
+
+
 class Namespace(dict):
     """
     Namespace container.
@@ -26,12 +33,12 @@ class Namespace(dict):
     _protected_keys = dir({}) + ['from_dict', 'to_dict', 'tree_view']
 
     def __init__(self, *args, **kwargs):
-        if len(args) == 1 and isinstance(args[0], dict):
-            kwargs = args[0]
-        for k, v in kwargs.items():
-            if isinstance(v, dict):
-                v = Namespace(v)
-            setattr(self, k, v)
+        if len(args) == 1:
+            if isinstance(args[0], dict):
+                _recursive_create(self, args[0].items())
+            else:
+                _recursive_create(self, args[0])
+        _recursive_create(self, kwargs.items())
 
     def __contains__(self, item):
         try:
