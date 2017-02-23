@@ -880,7 +880,7 @@ def touch(path):
 
 
 def run(command, input=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        timeout=None, copy_local_env=False, encoding="utf=8", **kwargs):
+        timeout=None, copy_local_env=False, **kwargs):
     """
     Cross platform compatible subprocess with CompletedProcess return.
 
@@ -908,7 +908,6 @@ def run(command, input=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     :param timeout: max time to wait for command to complete
     :param copy_local_env: Use all current ENV vars in the subprocess as well
     :param kwargs: additional arguments to pass to Popen
-    :param encoding: String encoding to pass to Popen on Python 3.x
     :return: CompletedProcess class
     """
     if copy_local_env:
@@ -921,12 +920,12 @@ def run(command, input=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     if sys.version_info >= (3, 5):
         return subprocess.run(command, input=input, stdout=stdout,
                               stderr=stderr, timeout=timeout, env=env,
-                              encoding=encoding, **kwargs)
+                              **kwargs)
 
     # Created here instead of root level as it should never need to be
     # manually created or referenced
     class CompletedProcess(object):
-        """A backwards compatible clone of subprocess.CompletedProcess"""
+        """A backwards compatible near clone of subprocess.CompletedProcess"""
 
         def __init__(self, args, returncode, stdout=None, stderr=None):
             self.args = args
@@ -950,8 +949,6 @@ def run(command, input=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 raise subprocess.CalledProcessError(self.returncode,
                                                     self.args,
                                                     self.stdout)
-    if encoding and PY3:
-        kwargs['encoding'] = encoding
 
     proc = subprocess.Popen(command, stdout=stdout, stderr=stderr,
                             env=env, **kwargs)

@@ -1,9 +1,10 @@
 Changelog
 =========
 
-Version 0.8.0
+Version 0.9.0
 -------------
 
+- Namespace now operates more like "dict" on init, and can accept both iterable and kwargs
 - Breaking change: removing Cookie Management in favor of separate library
 
 Version 0.8.0
