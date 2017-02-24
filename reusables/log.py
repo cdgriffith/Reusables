@@ -22,7 +22,7 @@ __all__ = ['log_formats', 'get_logger', 'get_registered_loggers',
            'remove_all_handlers', 'remove_file_handlers',
            'remove_stream_handlers']
 
-log_formats = Namespace.from_dict({
+log_formats = Namespace({
     'common': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     'level_first': '%(levelname)s - %(name)s - %(asctime)s - %(message)s',
     'threaded': '%(relativeCreated)d %(threadName)s : %(message)s',

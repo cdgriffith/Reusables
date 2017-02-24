@@ -8,6 +8,15 @@
 Improved dictionary management. Inspired by
 javascript style referencing, as it's one of the few things they got right.
 """
+import sys
+try:
+    from collections.abc import Mapping, Iterable
+except ImportError:
+    Mapping = dict
+    Iterable = (tuple, list)
+
+if sys.version_info >= (3, 0):
+    basestring = str
 
 __all__ = ['Namespace', 'ConfigNamespace', 'ProtectedDict', 'ns', 'cns']
 
@@ -30,14 +39,21 @@ class Namespace(dict):
         - namespace['spam'].eggs
     """
 
-    _protected_keys = dir({}) + ['from_dict', 'to_dict', 'tree_view']
+    _protected_keys = dir({}) + ['to_dict', 'tree_view']
 
     def __init__(self, *args, **kwargs):
         if len(args) == 1:
-            if isinstance(args[0], dict):
+            if isinstance(args[0], basestring):
+                raise ValueError("Cannot extrapolate Namespace from string")
+            if isinstance(args[0], Mapping):
                 _recursive_create(self, args[0].items())
-            else:
+            elif isinstance(args[0], Iterable):
                 _recursive_create(self, args[0])
+            else:
+                raise ValueError("First argument must be mapping or iterable")
+        elif args:
+            raise TypeError("Namespace expected at most 1 argument, "
+                            "got {0}".format(len(args)))
         _recursive_create(self, kwargs.items())
 
     def __contains__(self, item):
@@ -92,12 +108,6 @@ class Namespace(dict):
     def __call__(self, *args, **kwargs):
         return tuple(self.values())
 
-    @classmethod
-    def from_dict(cls, dictionary):
-        if not isinstance(dictionary, dict):
-            raise TypeError("Must be a dictionary")
-        return cls(dictionary)
-
     def to_dict(self, in_dict=None):
         """
         Turn the Namespace and sub Namespaces back into a native
@@ -142,7 +152,7 @@ class ConfigNamespace(Namespace):
 
     """
 
-    _protected_keys = dir({}) + ['from_dict', 'to_dict', 'tree_view',
+    _protected_keys = dir({}) + ['to_dict', 'tree_view',
                                  'bool', 'int', 'float', 'list', 'getboolean',
                                  'getfloat', 'getint']
 

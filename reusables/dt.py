@@ -10,7 +10,7 @@ import re
 
 from .namespace import Namespace
 
-__all__ = ['dt_exps', 'DateTime', 'datetime_regex']
+__all__ = ['dt_exps', 'DateTime', 'datetime_regex', 'now']
 
 dt_exps = {"datetime": {
         "format": {
@@ -121,3 +121,21 @@ class DateTime(datetime.datetime):
             return cls.strptime(iso_datetime, "%Y-%m-%dT%H:%M:%S")
 
     # TODO add a 'from datetime'
+
+def now(utc=False, tz=None):
+    """
+    Get a current DateTime object. By default is local.
+
+    .. code:: python
+
+        reusables.now()
+        # DateTime(2016, 12, 8, 22, 5, 2, 517000)
+
+        reusables.now().format("It's {24-hour}:{min}")
+        # "It's 22:05"
+
+    :param utc: bool, default False, UTC time not local
+    :param tz: TimeZone as specified by the datetime module
+    :return: reusables.DateTime
+    """
+    return DateTime.utcnow() if utc else DateTime.now(tz=tz)

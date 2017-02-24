@@ -9,18 +9,14 @@ try:
 except ImportError:
     import Queue as queue
 import multiprocessing as mp
-from multiprocessing import pool
 import uuid
 import time
 import logging
-from functools import partial
 import datetime
 
-from .shared_variables import win_based
+from ..shared_variables import win_based
 
-__all__ = ['Tasker', 'run_in_pool']
-
-_logger = logging.getLogger('reusables.tasker')
+__all__ = ['Tasker']
 
 
 class Tasker(object):
@@ -51,7 +47,9 @@ class Tasker(object):
 
     def __init__(self, tasks=(), max_tasks=4, task_timeout=None,
                  task_queue=None, result_queue=None, command_queue=None,
-                 run_until=None):
+                 run_until=None, logger='reusables'):
+        if logger:
+            self.log = logging.getLogger('reusables')
         self.task_queue = task_queue or mp.Queue()
         if tasks:
             for task in tasks:
@@ -94,8 +92,8 @@ class Tasker(object):
                 try:
                     self.current_tasks[task_id]['proc'].terminate()
                 except Exception as err:
-                    _logger.exception("Error while terminating "
-                                      "task {} - {}".format(task_id, err))
+                    self.log.exception("Error while terminating "
+                                       "task {} - {}".format(task_id, err))
                 self.free_tasks.append(task_id)
             else:
                 still_busy.append(task_id)
@@ -128,19 +126,19 @@ class Tasker(object):
     def change_task_size(self, size):
         """Blocking request to change number of running tasks"""
         self._pause.value = True
-        _logger.debug("About to change task size to {0}".format(size))
+        self.log.debug("About to change task size to {0}".format(size))
         try:
             size = int(size)
         except ValueError:
-            _logger.error("Cannot change task size, non integer size provided")
+            self.log.error("Cannot change task size, non integer size provided")
             return False
         if size < 0:
-            _logger.error("Cannot change task size, less than 0 size provided")
+            self.log.error("Cannot change task size, less than 0 size provided")
             return False
         self.max_tasks = size
         if size < self.max_tasks:
             diff = self.max_tasks - size
-            _logger.debug("Reducing size offset by {0}".format(diff))
+            self.log.debug("Reducing size offset by {0}".format(diff))
             while True:
                 self._update_tasks()
                 if len(self.free_tasks) >= diff:
@@ -159,7 +157,7 @@ class Tasker(object):
                 self.current_tasks[task_id] = {}
                 self.free_tasks.append(task_id)
         self._pause.value = False
-        _logger.debug("Task size changed to {0}".format(size))
+        self.log.debug("Task size changed to {0}".format(size))
         return True
 
     def stop(self):
@@ -210,12 +208,12 @@ class Tasker(object):
             try:
                 new_size = int(cmd.split(" ")[-1])
             except Exception as err:
-                _logger.warning("Received improperly formatted command tasking "
-                                "'{0}' - {1}".format(cmd, err))
+                self.log.warning("Received improperly formatted command tasking"
+                                 " '{0}' - {1}".format(cmd, err))
             else:
                 self.change_task_size(new_size)
         else:
-            _logger.warning("Received an unknown command '{0}'".format(cmd))
+            self.log.warning("Received an unknown command '{0}'".format(cmd))
 
     def hook_pre_command(self):
         pass
@@ -238,7 +236,7 @@ class Tasker(object):
                 self.hook_pre_command()
                 self._check_command_queue()
                 if self.run_until and self.run_until < datetime.datetime.now():
-                    _logger.info("Time limit reached")
+                    self.log.info("Time limit reached")
                     break
                 if self._end.value:
                     break
@@ -257,16 +255,16 @@ class Tasker(object):
                         self._return_task(task_id)
                     else:
                         self.hook_pre_task()
-                        _logger.debug("Starting task on {0}".format(task_id))
+                        self.log.debug("Starting task on {0}".format(task_id))
                         try:
                             self._start_task(task_id, task)
                         except Exception as err:
-                            _logger.exception("Could not start task {0} -"
-                                              " {1}".format(task_id, err))
+                            self.log.exception("Could not start task {0} -"
+                                               " {1}".format(task_id, err))
                         else:
                             self.hook_post_task()
         finally:
-            _logger.info("Ending main loop")
+            self.log.info("Ending main loop")
 
     def run(self):
         """Start the main loop as a background process. *nix only"""
@@ -275,39 +273,3 @@ class Tasker(object):
                                       "backgrounding not supported on Windows")
         self.background_process = mp.Process(target=self.main_loop)
         self.background_process.start()
-
-
-def run_in_pool(target, iterable, threaded=True, processes=4,
-                async=False, target_kwargs=None):
-    """ Run a set of iterables to a function in a Threaded or MP Pool.
-
-    .. code: python
-
-        def func(a):
-            return a + a
-
-        reusables.run_in_pool(func, [1,2,3,4,5])
-        # [1, 4, 9, 16, 25]
-
-
-    :param target: function to run
-    :param iterable: positional arg to pass to function
-    :param threaded: Threaded if True multiprocessed if False
-    :param processes: Number of workers
-    :param async: will do map_async if True
-    :param target_kwargs: Keyword arguments to set on the function as a partial
-    :return: pool results
-    """
-    my_pool = pool.ThreadPool if threaded else pool.Pool
-
-    if target_kwargs:
-        target = partial(target, **target_kwargs if target_kwargs else None)
-
-    p = my_pool(processes)
-    try:
-        results = (p.map_async(target, iterable) if async
-                   else p.map(target, iterable))
-    finally:
-        p.close()
-        p.join()
-    return results

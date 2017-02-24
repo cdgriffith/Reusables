@@ -6,7 +6,6 @@ import tempfile
 import subprocess
 
 import reusables
-from reusables.cli import touch
 
 from .common_test_data import *
 
@@ -66,13 +65,6 @@ Key2 = Value2
         infilename = "SafeFile.txt"
         resp = reusables.safe_filename(infilename)
         assert resp == infilename, resp
-
-    def test_sorting(self):
-        al = [{"name": "a"}, {"name": "c"}, {"name": "b"}]
-        resp = reusables.sort_by(al, "name")
-        assert resp[0]['name'] == 'a'
-        assert resp[1]['name'] == 'b'
-        assert resp[2]['name'] == 'c'
 
     def test_type_errors(self):
         self.assertRaises(TypeError, reusables.config_dict, dict(config='1'))
@@ -294,7 +286,7 @@ Key2 = Value2
 
     def test_dup_empty(self):
         empty_file = reusables.join_paths(test_root, "empty")
-        touch(empty_file)
+        reusables.touch(empty_file)
         self._extract_structure()
         b = [x for x in reusables.dup_finder(empty_file, test_root)]
         print(b)
