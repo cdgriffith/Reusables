@@ -342,10 +342,6 @@ Key2 = Value2
         else:
             assert False
 
-    def test_now(self):
-        now = reusables.now()
-        assert isinstance(now, reusables.DateTime)
-
     def test_dups(self):
         self._extract_structure()
         empty = os.path.join(data_dr, "empty")

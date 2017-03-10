@@ -4,7 +4,8 @@ Changelog
 Version 0.9.0
 -------------
 
-- Adding from_datetime in DateTime class, required methods
+- Adding datetime_format, dtf methods
+- Adding datetime_from_iso, dtiso methods
 - Adding catch_it and retry_it wrappers
 - Adding CONTRIBUTING file
 - Changing Namespace now operates more like "dict" on init, and can accept both iterable and kwargs
@@ -13,6 +14,7 @@ Version 0.9.0
 - Breaking change: removing Cookie Management in favor of separate library
 - Breaking change: removing sort_by
 - Breaking change: removing namespace.from_dict()
+- Breaking change: removing DateTime class in favor of singluar methods datetime_format and datetime_from_iso
 
 Version 0.8.0
 -------------
