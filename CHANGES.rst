@@ -4,6 +4,7 @@ Changelog
 Version 0.9.0
 -------------
 
+- Adding from_datetime in DateTime class, required methods
 - Adding catch_it and retry_it wrappers
 - Adding CONTRIBUTING file
 - Changing Namespace now operates more like "dict" on init, and can accept both iterable and kwargs
