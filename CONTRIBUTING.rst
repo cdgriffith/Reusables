@@ -30,6 +30,6 @@ Pull Requests
     - Tests should go through both sad and happy paths
 
 - Bug fixes should include
-    - tests for new happy and sad paths
-    - test proving error without new code.
-    - Explain under which circumstances the bug occurs in the pull request.
+    - Explain under which circumstances the bug occurs in the pull request
+    - Tests for new happy and sad paths
+    - Test proving error without new code
