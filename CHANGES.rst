@@ -6,6 +6,8 @@ Version 0.9.0
 
 - Major structure change to better group similar functionality
 - Namespace now operates more like "dict" on init, and can accept both iterable and kwargs
+- Adding catch_it and retry_it wrappers
+- Wrapper time_it now uses .time for older versions instead of the .clock
 - Breaking change: removing Cookie Management in favor of separate library
 - Breaking change: removing sort_by
 - Breaking change: removing namespace.from_dict()

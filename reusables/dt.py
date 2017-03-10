@@ -122,6 +122,7 @@ class DateTime(datetime.datetime):
 
     # TODO add a 'from datetime'
 
+
 def now(utc=False, tz=None):
     """
     Get a current DateTime object. By default is local.
