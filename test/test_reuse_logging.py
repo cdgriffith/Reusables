@@ -42,7 +42,7 @@ class TestReuseLogging(BaseTestClass):
 
     def test_get_stream_logger(self):
         my_stream = open(my_stream_path, "w")
-        logger = reusables.get_logger(__name__, stream=my_stream)
+        logger = reusables.setup_logger(__name__, stream=my_stream)
         logger.info("Test log")
         logger.error("Example error log")
         my_stream.close()
@@ -54,7 +54,7 @@ class TestReuseLogging(BaseTestClass):
         assert "Example error log" in lines[1]
 
     def test_add_file_logger(self):
-        logger = reusables.get_logger(__name__)
+        logger = reusables.setup_logger(__name__)
         reusables.add_file_handler(logger, my_fiie_path)
         logger.info("Test log")
         logger.error("Example error log")

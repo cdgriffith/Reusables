@@ -11,6 +11,7 @@ Version 0.9.0
 - Changing Namespace now operates more like "dict" on init, and can accept both iterable and kwargs
 - Changing major structure of reusables to better group similar functionality
 - Changing wrapper time_it now uses .time for older versions instead of the .clock
+- Depreciation Warning: get_logger is changing to setup_logger
 - Breaking change: removing Cookie Management in favor of separate library
 - Breaking change: removing sort_by
 - Breaking change: removing namespace.from_dict()

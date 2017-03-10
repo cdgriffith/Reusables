@@ -6,7 +6,7 @@ import os
 from .common_test_data import *
 
 from reusables import unique, lock_it, time_it, queue_it, get_logger, \
-    log_exception, remove_file_handlers
+    log_exception, remove_file_handlers, retry_it, catch_it, ReusablesError
 
 
 @unique(exception=OSError, error_text="WHY ME!")
@@ -139,6 +139,39 @@ class TestWrappers(BaseTestClass):
             assert message in f.readlines()[0]
 
         os.remove(os.path.join("out.log"))
+
+    def test_retry_it(self):
+        @retry_it()
+        def a():
+            return True
+
+        def handle(herg):
+            return False
+
+        @retry_it(tries=2, wait=1, handler=handle)
+        def b():
+            raise Exception("Not yet")
+
+        assert a() is True
+
+        try:
+            b()
+        except ReusablesError:
+            pass
+        else:
+            raise AssertionError("Should have failed")
+
+    def test_catch_it(self):
+        def handle(*args, **kwargs):
+            print(args, kwargs)
+            return 10
+
+        @catch_it(handler=handle)
+        def ouch():
+            raise Exception("Wamp wamp")
+
+        assert ouch() == 10
+
 
 if __name__ == "__main__":
     unittest.main()

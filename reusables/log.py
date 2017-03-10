@@ -7,6 +7,7 @@
 """
 Logging helper functions and common log formats.
 """
+import warnings
 import logging
 import sys
 from logging.handlers import (RotatingFileHandler,
@@ -20,7 +21,7 @@ __all__ = ['log_formats', 'get_logger', 'get_registered_loggers',
            'add_stream_handler', 'add_rotating_file_handler',
            'add_timed_rotating_file_handler', 'change_logger_levels',
            'remove_all_handlers', 'remove_file_handlers',
-           'remove_stream_handlers']
+           'remove_stream_handlers', 'setup_logger']
 
 log_formats = Namespace({
     'common': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -77,9 +78,9 @@ def get_file_handler(file_path="out.log", level=logging.INFO,
     return fh
 
 
-def get_logger(module_name=None, level=logging.INFO, stream=sys.stderr,
-               file_path=None, log_format=log_formats.easy_read,
-               suppress_warning=True):
+def setup_logger(module_name=None, level=logging.INFO, stream=sys.stderr,
+                 file_path=None, log_format=log_formats.easy_read,
+                 suppress_warning=True):
     """
     Grabs the specified logger and adds wanted handlers to it. Will
     default to adding a stream handler.
@@ -104,6 +105,13 @@ def get_logger(module_name=None, level=logging.INFO, stream=sys.stderr,
     if level > 0:
         new_logger.setLevel(level)
     return new_logger
+
+
+def get_logger(*args, **kwargs):
+    """ Depreciated, use setup_logger"""
+    warnings.warn("get_logger is changing name to setup_logger",
+                  DeprecationWarning)
+    return setup_logger(*args, **kwargs)
 
 
 def add_stream_handler(logger=None, stream=sys.stderr, level=logging.INFO,

@@ -223,8 +223,8 @@ def queue_it(queue=g_queue, **put_args):
     return func_wrapper
 
 
-def log_exception(log="reusables", message=None,
-                  exception=None, exception_message="Error in '{func}'"):
+def log_exception(log="reusables", message=None, exceptions=(Exception, ),
+                  level=logging.ERROR, show_traceback=True):
     """
     Wrapper. Log the traceback to any exceptions raised. Possible to raise
     custom exception.
@@ -244,10 +244,11 @@ def log_exception(log="reusables", message=None,
 
     Message format options: {func} {err} {args} {kwargs}
 
+    :param exceptions: types of exceptions to catch
     :param log: log name to use
     :param message: message to use in log
-    :param exception: custom exception to raise instead of what was raised
-    :param exception_message: message for the custom exception
+    :param level: logging level
+    :param show_traceback: include full traceback or just error message
     """
     def func_wrapper(func):
         @wraps(func)
@@ -255,23 +256,16 @@ def log_exception(log="reusables", message=None,
             msg = message if message else "Exception in '{func}': {err}"
             if not message:
                 msg = _add_args(msg, *args, **kwargs)
-            exc = (exception_message if exception_message else
-                   "Exception in '{func}': {err}")
-            if not exception_message:
-                exc = _add_args(exc, *args, **kwargs)
 
             try:
                 return func(*args, **kwargs)
-            except Exception as err:
+            except exceptions as err:
                 my_logger = (logging.getLogger(log) if isinstance(log, str)
-                             else logger)
-                my_logger.exception(msg.format(func=func.__name__,
-                                               err=str(err),
-                                               args=args, kwargs=kwargs))
-                if exception:
-                    raise exception(exc.format(
-                        func=func.__name__, err=str(err),
-                        args=args, kwargs=kwargs))
+                             else log)
+                my_logger.log(level, msg.format(func=func.__name__,
+                                                err=str(err),
+                                                args=args, kwargs=kwargs),
+                              exc_info=show_traceback)
                 raise err
         return wrapper
     return func_wrapper
@@ -309,7 +303,7 @@ def catch_it(exceptions=(Exception, ), default=None, handler=None):
     return func_wrapper
 
 
-def retry_it(exceptions=(Exception, ), tries=10, wait=0, output_check=None,
+def retry_it(exceptions=(Exception, ), tries=10, wait=0, handler=None,
              raised_exception=ReusablesError, raised_message=None):
     """
     Retry a function if an exception is raised, or if output_check returns
@@ -320,7 +314,7 @@ def retry_it(exceptions=(Exception, ), tries=10, wait=0, output_check=None,
     :param exceptions: tuple of exceptions to catch
     :param tries: number of tries to retry the function
     :param wait: time to wait between executions in seconds
-    :param output_check: function to check if output is valid
+    :param handler: function to check if output is valid, must return bool 
     :param raised_exception: default is ReusablesError
     :param raised_message: message to pass to raised exception
     """
@@ -338,7 +332,7 @@ def retry_it(exceptions=(Exception, ), tries=10, wait=0, output_check=None,
                     if wait:
                         time.sleep(wait)
                     return retry_it(exceptions=exceptions, tries=tries-1,
-                                    output_check=output_check,
+                                    handler=handler,
                                     wait=wait)(func)(*args, **kwargs)
                 if raised_exception:
                     exc = raised_exception(msg.format(func=func.__name__,
@@ -346,10 +340,10 @@ def retry_it(exceptions=(Exception, ), tries=10, wait=0, output_check=None,
                     exc.__cause__ = None
                     raise exc
             else:
-                if output_check:
-                    if not output_check(result):
+                if handler:
+                    if not handler(result):
                         return retry_it(exceptions=exceptions, tries=tries - 1,
-                                        output_check=output_check,
+                                        handler=handler,
                                         wait=wait)(func)(*args, **kwargs)
                 return result
         return wrapper
