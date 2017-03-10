@@ -14,21 +14,22 @@ Reporting Bugs
 --------------
 
 - Please include sample code and traceback (or unexpected behavior)
-of the error you are experiencing.
+  of the error you are experiencing.
 
-- Also include Python version and Operating System.
+- Python version and Operating System.
 
 Pull Requests
 -------------
 
-- Follow`PEP8 <https://www.python.org/dev/peps/pep-0008/>`_.
+- Follow PEP8
 
-- New features should have:
-    - Reasoning for addition in PR
+- New features should have
+    - Reasoning for addition in pull request
     - Docstring with code block example and parameters
     - Tests with as much coverage as reasonable
     - Tests should go through both sad and happy paths
 
 
 - Bug fixes should include tests, including one where the test fails
-  without your PR. Explain under which circumstances the bug occurs in the PR.
+  without your PR. Explain under which circumstances the
+  bug occurs in the pull request.
