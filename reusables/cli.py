@@ -8,6 +8,7 @@
 import os
 import logging
 import shutil
+from collections import deque
 
 # Keep touch and download import so it can be imported with other CLI commands
 from .shared_variables import *
@@ -184,7 +185,7 @@ def tail(file_path, lines=10, encoding="utf-8",
     :param errors: Decoding errors: 'strict', 'ignore' or 'replace'
     :return: if printed is false, the lines are returned as a list
     """
-    data = []
+    data = deque()
 
     with open(file_path, "rb") as f:
         for line in f:
@@ -193,7 +194,7 @@ def tail(file_path, lines=10, encoding="utf-8",
             else:
                 data.append(line.decode(encoding))
             if len(data) > lines:
-                data.pop(0)
+                data.popleft()
     if printed:
         print("".join(data))
     else:
