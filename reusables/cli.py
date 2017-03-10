@@ -10,7 +10,6 @@ import logging
 import shutil
 from collections import deque
 
-# Keep touch and download import so it can be imported with other CLI commands
 from .shared_variables import *
 from .processes import run
 from .shared_variables import win_based

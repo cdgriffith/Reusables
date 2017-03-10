@@ -32,7 +32,7 @@ exclude_lines =
     elif size > self.max_tasks
     raise NotImplementedError
     return self.result_queue
-    except (Exception, KeyboardInterrupt)
+    except (Exception
     if _os.path.isfile
     elif _os.path.isfile
     raise InvalidSchema
@@ -40,3 +40,6 @@ exclude_lines =
     _logger
     t += 1
     us = 0
+    write(
+    if err_non_exist
+    logger.warning

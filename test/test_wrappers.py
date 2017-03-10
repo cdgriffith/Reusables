@@ -149,7 +149,7 @@ class TestWrappers(BaseTestClass):
             return False
 
         @retry_it(tries=2, wait=1, handler=handle)
-        def b():
+        def b(a, b=True):
             raise Exception("Not yet")
 
         assert a() is True
@@ -166,10 +166,16 @@ class TestWrappers(BaseTestClass):
             print(args, kwargs)
             return 10
 
+
         @catch_it(handler=handle)
         def ouch():
             raise Exception("Wamp wamp")
 
+        @catch_it()
+        def b(a, b=True):
+            raise Exception("Not yet")
+
+        b()
         assert ouch() == 10
 
 

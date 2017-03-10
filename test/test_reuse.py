@@ -105,7 +105,7 @@ Key2 = Value2
             raise AssertionError("Should raise type error")
 
     def test_find_files(self):
-        resp = reusables.find_files_list(test_root, ext=".cfg")
+        resp = reusables.find_files_list(test_root, ext=".cfg", abspath=True)
         assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
 
     def test_find_files_multi_ext(self):
@@ -120,6 +120,14 @@ Key2 = Value2
         resp = iter(reusables.find_files(test_root,
                                                    ext={'test': '.txt'}))
         self.assertRaises(TypeError, next, resp)
+
+    def test_find_file_sad_bad(self):
+        try:
+            reusables.find_files_list(name="*.*", match_case=True)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("Cant do that")
 
     def test_find_files_depth(self):
         self._extract_structure()
@@ -405,12 +413,21 @@ Key2 = Value2
         assert p4.endswith("archive.bz2")
         assert os.path.exists(p4)
         os.unlink(p4)
+
+    def test_bad_archive_type(self):
         try:
             reusables.archive("__init__.py", archive_type="rar")
         except ValueError:
             pass
         else:
             raise AssertionError("Should raise value error about archive_type")
+
+        try:
+            reusables.archive("__init__.py", "asdf.gah")
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("You cant figure out that archive type ")
 
     def test_duplicate_dir(self):
         dups = reusables.directory_duplicates(test_root)
