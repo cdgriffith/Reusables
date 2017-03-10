@@ -29,7 +29,7 @@ Pull Requests
     - Tests with as much coverage as reasonable
     - Tests should go through both sad and happy paths
 
-
-- Bug fixes should include tests, including one where the test fails
-  without your PR. Explain under which circumstances the
-  bug occurs in the pull request.
+- Bug fixes should include
+    - tests for new happy and sad paths
+    - test proving error without new code.
+    - Explain under which circumstances the bug occurs in the pull request.
