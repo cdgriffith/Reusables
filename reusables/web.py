@@ -39,7 +39,7 @@ def download(url, save_to_file=True, save_dir=".", filename=None,
     :param block_size: download chunk size
     :param overwrite: overwrite file if it already exists
     :param quiet: boolean to turn off logging for function
-    :return: boolean or content if saved to memory
+    :return: save location (or content if not saved to file)
     """
 
     if save_to_file:
@@ -87,7 +87,7 @@ def download(url, save_to_file=True, save_dir=".", filename=None,
                 if not buffer:
                     break
                 f.write(buffer)
-        return True
+        return save_location
     else:
         return request.read()
 
