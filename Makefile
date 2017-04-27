@@ -4,7 +4,7 @@ VENVS ?= $(HOME)/.virtualenvs
 PYTHON2 = $(VENVS)/builder2.7/bin/python2.7
 PYTHON2BIN = $(VENVS)/builder2.7/bin
 PYTHON3BIN = $(VENVS)/builder3.6/bin
-PYTHON3 = $(VENVS)/builder3.5/bin/python3.6
+PYTHON3 = $(VENVS)/builder3.6/bin/python3.6
 PYTHONS = $(VENVS)/builder2.6/bin/python2.6 $(VENVS)/builder2.7/bin/python2.7 $(VENVS)/builder3.5/bin/python3.5 $(VENVS)/builder3.3/bin/python3.3 $(VENVS)/builder3.4/bin/python3.4 $(VENVS)/builder3.6/bin/python3.6
 PYPY = $(VENVS)/builderpypy/bin/python
 
@@ -40,8 +40,8 @@ build:
  	"$$python" setup.py bdist_egg; \
  done
 
-rstcheck:
-	$(PYTHON2BIN)/rstcheck README.rst;
+checkdocs:
+	$(PYTHON2) setup.py checkdocs;
 
 
 register:
@@ -50,7 +50,7 @@ register:
 install:
 	sudo $(PYTHON2) setup.py build install;
 
-upload: clean test register build
+upload: clean checkdocs test register build
 	$(PYTHON2) setup.py sdist upload;
 	$(PYTHON2) setup.py bdist_wheel upload;
 	$(PYTHON3) setup.py bdist_wheel upload;
@@ -83,5 +83,5 @@ develop:
 	virtualenv -p python3.5 $(VENVS)/builder3.5;
 	virtualenv -p python3.6 $(VENVS)/builder3.6;
 	virtualenv -p pypy $(VENVS)/builderpypy;
-	$(PYTHON2BIN)/pip install rstcheck --upgrade;
-	$(PYTHON3BIN)/pip install tox;
+	$(PYTHON2BIN)/pip install collective.checkdocs wheel Pygments --upgrade;
+	$(PYTHON3BIN)/pip install tox wheel;

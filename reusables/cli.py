@@ -4,23 +4,22 @@
 # Part of the Reusables package.
 #
 # Copyright (c) 2014-2017 - Chris Griffith - MIT License
-"""
-Functions to only be used on Interactive instances to ease life.
+""" Functions to only be in an interactive instances to ease life. """
+import os
+import logging
+import shutil
+from collections import deque
 
-Designed to be used as a start import. `from reusables.cli import *`
-
-"""
-import os as _os
-import logging as _logging
-import shutil as _shutil
-
-# Keep touch and download import so it can be imported with other CLI commands
 from .shared_variables import *
-from .reusables import run, win_based, find_files_list, touch
-from .web import download
+from .processes import run
+from .shared_variables import win_based
+from .file_operations import find_files_list
 from .log import add_stream_handler
 
-_logger = _logging.getLogger("reusables.cli")
+__all__ = ['cmd', 'pushd', 'popd', 'pwd', 'cd', 'ls',
+           'find', 'head', 'cat', 'tail', 'cp']
+
+_logger = logging.getLogger("reusables.cli")
 add_stream_handler("reusables.cli")
 
 _saved_paths = []
@@ -50,9 +49,9 @@ def pushd(directory):
     :param directory: Where do you want to go and remember?
     :return: saved directory stack
     """
-    directory = _os.path.expanduser(directory)
-    _saved_paths.insert(0, _os.path.abspath(_os.getcwd()))
-    _os.chdir(directory)
+    directory = os.path.expanduser(directory)
+    _saved_paths.insert(0, os.path.abspath(os.getcwd()))
+    os.chdir(directory)
     return [directory] + _saved_paths
 
 
@@ -64,14 +63,14 @@ def popd():
     try:
         directory = _saved_paths.pop(0)
     except IndexError:
-        return [_os.getcwd()]
-    _os.chdir(directory)
+        return [os.getcwd()]
+    os.chdir(directory)
     return [directory] + _saved_paths
 
 
 def pwd():
     """Get the current working directory"""
-    return _os.getcwd()
+    return os.getcwd()
 
 
 def cd(directory):
@@ -79,7 +78,7 @@ def cd(directory):
 
     :param directory: New place you wanted to go
     """
-    _os.chdir(_os.path.expanduser(directory))
+    os.chdir(os.path.expanduser(directory))
 
 
 def ls(params="", directory=".", printed=True):
@@ -185,7 +184,7 @@ def tail(file_path, lines=10, encoding="utf-8",
     :param errors: Decoding errors: 'strict', 'ignore' or 'replace'
     :return: if printed is false, the lines are returned as a list
     """
-    data = []
+    data = deque()
 
     with open(file_path, "rb") as f:
         for line in f:
@@ -194,7 +193,7 @@ def tail(file_path, lines=10, encoding="utf-8",
             else:
                 data.append(line.decode(encoding))
             if len(data) > lines:
-                data.pop(0)
+                data.popleft()
     if printed:
         print("".join(data))
     else:
@@ -213,19 +212,19 @@ def cp(src, dst, overwrite=False):
     if not isinstance(src, list):
         src = [src]
 
-    dst = _os.path.expanduser(dst)
-    dst_folder = _os.path.isdir(dst)
+    dst = os.path.expanduser(dst)
+    dst_folder = os.path.isdir(dst)
 
     if len(src) > 1 and not dst_folder:
         raise OSError("Cannot copy multiple item to same file")
 
     for item in src:
-        source = _os.path.expanduser(item)
+        source = os.path.expanduser(item)
         destination = (dst if not dst_folder else
-                       _os.path.join(dst, _os.path.basename(source)))
-        if not overwrite and _os.path.exists(destination):
+                       os.path.join(dst, os.path.basename(source)))
+        if not overwrite and os.path.exists(destination):
             _logger.warning("Not replacing {0} with {1}, overwrite not enabled"
                             "".format(destination, source))
             continue
 
-        _shutil.copy(source, destination)
+        shutil.copy(source, destination)

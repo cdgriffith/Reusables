@@ -8,23 +8,35 @@ Reusables
 Overview
 --------
 
-The reusables library is a reference of python functions and classes that
+The reusables library is a cookbook of python functions and classes that
 programmers may find themselves often recreating.
 
 It includes:
 
-- Archiving and extraction for zip, tar, gz, bz2, and rar (extraction only)
+- Archiving and extraction for zip, tar, gz, bz2, and rar
 - Path (file and folders) management
 - Fast logging setup and tools
 - Namespace (dict to class modules with child recursion)
 - Friendly datetime formatting
 - Config to dict parsing
 - Common regular expressions and file extensions
-- Unique function wrappers
+- Helpful wrappers
 - Bash analogues
 - Easy downloading
 - Multiprocessing helpers
-- Cookie Management for Firefox and Chrome
+
+Install
+~~~~~~~
+
+Reusables is on PyPI, so can be easily installed with pip or easy_install.
+
+.. code::
+
+   pip install reusables
+
+
+There are no required decencies. If this doesn't work, it's broken, raise
+a github issue.
 
 Reusables is designed to not require any imports outside the standard library,
 but can be supplemented with those found in the requirements.txt file for
@@ -110,6 +122,8 @@ here's both.
 Namespace
 ~~~~~~~~~
 
+Check out Box_, a much improved version as its own library.
+
 Dictionary management class, similar to Bunch, but designed so
 that sub-dictionaries are recursively made into namespaces.
 
@@ -139,7 +153,7 @@ Logging
 
 .. code:: python
 
-        logger = reusables.get_logger(__name__)
+        logger = reusables.setup_logger(__name__)
         # By default it adds a stream logger to sys.stderr
 
         logger.info("Test")
@@ -178,7 +192,7 @@ Because ReStructuredText tables don't preserve whitespace (even with literals),
     reusables.log_formats.keys()
     # ['common', 'level_first', 'threaded', 'easy_read', 'easy_thread', 'detailed']
 
-    logger = reusables.get_logger(__name__, log_format=reusables.log_formats.threaded)
+    logger = reusables.setup_logger(__name__, log_format=reusables.log_formats.threaded)
     reusables.add_timed_rotating_file_handler(logger, "timed.log", level=logging.ERROR, log_format=reusables.log_formats.detailed)
 
 
@@ -237,6 +251,8 @@ That's right, str.endswith_ (as well as str.startswith_) accept a tuple to searc
 Wrappers
 ~~~~~~~~
 
+**unique**
+
 There are tons of wrappers for caching and saving inputs and outputs, this is a
 different take that requires the function returns a result not yet provided.
 
@@ -244,8 +260,19 @@ different take that requires the function returns a result not yet provided.
 
     @reusables.unique(max_retries=100, error_text="All UIDs taken!")
     def gen_small_uid():
-        import random
         return random.randint(0, 100)
+
+**time_it**
+
+Easily time the execution time of a function, using the high precision
+perf_conuter on Python 3.3+, otherwise clock.
+
+.. code:: python
+
+    @reusables.time_it()
+    def test_it():
+        return time.sleep(float(f"0.{random.randint(1, 9)}"))
+
 
 
 Command line helpers
@@ -298,19 +325,19 @@ instances, such as 'touch' and 'download'.
 DateTime
 ~~~~~~~~
 
-Easy formatting for datetime objects. It also adds auto parsing for ISO formatted time.
+Easy formatting for datetime objects. Also parsing for ISO formatted time.
 
 
 .. code:: python
 
-        current_time = reusables.DateTime() # same as datetime.datetime.now(), as DateTime object
-
-        current_time.format("Wake up {son}, it's {hours}:{minutes} {periods}!"
+        reusables.datetime_format("Wake up {son}, it's {hours}:{minutes} {periods}!"
                             "I don't care if it's a {day-fullname}, {command}!",
                             son="John",
                             command="Get out of bed!")
         # "Wake up John, it's 09:51 AM! I don't care if it's a Saturday, Get out of bed!!"
 
+        reusables.datetime_from_iso('2017-03-10T12:56:55.031863')
+        # datetime.datetime(2017, 3, 10, 12, 56, 55, 31863)
 
 
 Examples based on  Mon Mar 28 13:27:11 2016
@@ -344,24 +371,6 @@ Examples based on  Mon Mar 28 13:27:11 2016
 ===================== =================== ===========================
 
 
-Cookie Management
-~~~~~~~~~~~~~~~~~
-
-Firefox and Chrome Cookie management. (Chrome requires SQLite 3.8 or greater.)
-
-.. code:: python
-
-        fox = reusables.FirefoxCookies()
-        # Automatically uses the DB of the default profile, can specify db=<path>
-
-        fox.add_cookie("example.com", "MyCookie", "Cookie contents!")
-
-        fox.find_cookies(host="Example")
-        # [{'host': u'example.com', 'name': u'MyCookie', 'value': u'Cookie contents!'}]
-
-        fox.delete_cookie("example.com", "MyCookie")
-
-
 FAQ
 ---
 
@@ -372,17 +381,6 @@ functionality you want to see! Only requirements are that it's well thought out 
 (to be merged will need documentation and basic unittests as well, but not a requirement for opening the PR).
 Please don't hesitate if you're new to python! Even the smallest PR contributions will earn a mention in a brand new Contributors section.
 
-
-**Why all the underscored imports?**
-
-The rational behind this is just like the standard library, so that the user is sure anything they have access to is solely from this library
-and not one of it's imports. Several variables are also hidden like this, as they are only to be used by the library itself. For example, loggers
-should not have their objects modified by direct reference, but rather obtained through 'logging.getLogger('reusables')', as it helps sort out those who
-know what they are doing.
-
-I could use __all__ and just expose what I want, but I feel that people should be allowed to copy a single file or function out of here,
-and have a clear understanding what is designed to be exposed without being an interpreter.
-
 **Unrar not installed?**
 
 A common error to see, especially on Windows based systems, is: "rarfile.RarCannotExec: Unrar not installed? (rarfile.UNRAR_TOOL='unrar')"
@@ -390,13 +388,6 @@ A common error to see, especially on Windows based systems, is: "rarfile.RarCann
 This is probably because unrar is not downloaded or linked properly. Download UnRAR
 from http://www.rarlab.com/rar_add.htm and follow these instructions before
 trying again: http://rarfile.readthedocs.org/en/latest/faq.html?highlight=windows#how-can-i-get-it-work-on-windows
-
-**I can't figure out how upgrade SQLite on Windows to 3.8 or higher instead of 3.6**
-
-Me neither. ¯\\_(ツ)_/¯
-
-Using Python 3.6 magically fixed it for me. If you ever figure it out, please let me know.
-
 
 License
 -------
@@ -437,6 +428,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 .. _str.startswith: https://docs.python.org/2/library/stdtypes.html#str.startswith
 .. _readthedocs.org: http://reusables.readthedocs.io/en/latest/
 .. _docs: https://docs.python.org/3/library/logging.html#logrecord-attributes
+.. _Box: https://pypi.python.org/pypi/python-box
 
 Additional Info
 ---------------

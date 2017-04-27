@@ -95,7 +95,7 @@ common_variables = {
     },
 }
 
-sizes = Namespace.from_dict({
+sizes = Namespace({
     "kb": 1024,
     "mb": 1024 * 1024,
     "gb": 1024 * 1024 * 1024,
@@ -109,3 +109,7 @@ exts = Namespace(common_exts)
 variables = Namespace(common_variables)
 
 exts._protected_keys.extend(exts.keys())
+
+
+class ReusablesError(Exception):
+    """Reusables specific exception"""

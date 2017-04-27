@@ -64,17 +64,25 @@ class TestReuseNamespace(BaseTestClass):
         assert "Key4" in result and "    Value5\n" not in result
 
     def test_namespace_from_dict(self):
-        ns = reusables.Namespace.from_dict({"k1": "v1", "k2": {"k3": "v2"}})
+        ns = reusables.Namespace({"k1": "v1", "k2": {"k3": "v2"}})
         assert ns.k2.k3 == "v2"
 
     def test_namespace_from_bad_dict(self):
         try:
-            ns = reusables.Namespace.from_dict('{"k1": "v1", '
+            ns = reusables.Namespace('{"k1": "v1", '
                                                '"k2": {"k3": "v2"}}')
-        except TypeError:
+        except ValueError:
             assert True
         else:
             assert False, "Should have raised type error"
+
+    def test_basic_namespace(self):
+        a = reusables.Namespace(one=1, two=2, three=3)
+        b = reusables.Namespace({'one': 1, 'two': 2, 'three': 3})
+        c = reusables.Namespace((zip(['one', 'two', 'three'], [1, 2, 3])))
+        d = reusables.Namespace(([('two', 2), ('one', 1), ('three', 3)]))
+        e = reusables.Namespace(({'three': 3, 'one': 1, 'two': 2}))
+        assert a == b == c == d == e
 
     def test_config_namespace(self):
         g = {"b0": 'no',

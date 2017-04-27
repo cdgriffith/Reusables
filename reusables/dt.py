@@ -4,121 +4,115 @@
 # Part of the Reusables package.
 #
 # Copyright (c) 2014-2017 - Chris Griffith - MIT License
-"""
-A hopefully easier to use formatting system for datetime.
-"""
-import datetime as _datetime
-import time as _time
-import re as _re
+import datetime
+import re
 
 from .namespace import Namespace
 
+__all__ = ['dt_exps', 'datetime_regex', 'now', 'datetime_format',
+           'datetime_from_iso', 'dtf', 'dtiso']
+
 dt_exps = {"datetime": {
         "format": {
-            "%I": _re.compile(r"\{(?:12)?\-?hours?\}"),
-            "%H": _re.compile(r"\{24\-?hours?\}"),
-            "%S": _re.compile(r"\{seco?n?d?s?\}"),
-            "%M": _re.compile(r"\{minu?t?e?s?\}"),
-            "%f": _re.compile(r"\{micro\-?(?:second)?s?\}"),
-            "%Z": _re.compile(r"\{(?:(tz|time\-?zone))?\}"),
-            "%y": _re.compile(r"\{years?\}"),
-            "%Y": _re.compile(r"\{years?\-?(?:(full|name|full\-?name))?s?\}"),
-            "%m": _re.compile(r"\{months?\}"),
-            "%b": _re.compile(r"\{months?\-?name\}"),
-            "%B": _re.compile(r"\{months?\-?(?:(full|full\-?name))?s?\}"),
-            "%d": _re.compile(r"\{days?\}"),
-            "%w": _re.compile(r"\{week\-?days?\}"),
-            "%j": _re.compile(r"\{year\-?days?\}"),
-            "%a": _re.compile(r"\{(?:week)?\-?days?\-?name\}"),
-            "%A": _re.compile(r"\{(?:week)?\-?days?\-?fullname\}"),
-            "%U": _re.compile(r"\{weeks?\}"),
-            "%W": _re.compile(r"\{mon(?:day)?\-?weeks?\}"),
-            "%x": _re.compile(r"\{date\}"),
-            "%X": _re.compile(r"\{time\}"),
-            "%c": _re.compile(r"\{date\-?time\}"),
-            "%z": _re.compile(r"\{(?:utc)?\-?offset\}"),
-            "%p": _re.compile(r"\{periods?\}"),
-            "%Y-%m-%dT%H:%M:%S": _re.compile(r"\{iso-?(?:format)?\}")
+            "%I": re.compile(r"{(?:12)?-?hours?}"),
+            "%H": re.compile(r"{24-?hours?}"),
+            "%S": re.compile(r"{seco?n?d?s?}"),
+            "%M": re.compile(r"{minu?t?e?s?}"),
+            "%f": re.compile(r"{micro-?(?:second)?s?}"),
+            "%Z": re.compile(r"{(?:(tz|time-?zone))?}"),
+            "%y": re.compile(r"{years?}"),
+            "%Y": re.compile(r"{years?-?(?:(full|name|full-?name))?s?}"),
+            "%m": re.compile(r"{months?}"),
+            "%b": re.compile(r"{months?-?name}"),
+            "%B": re.compile(r"{months?-?(?:(full|full-?name))?s?}"),
+            "%d": re.compile(r"{days?}"),
+            "%w": re.compile(r"{week-?days?}"),
+            "%j": re.compile(r"{year-?days?}"),
+            "%a": re.compile(r"{(?:week)?-?days?-?name}"),
+            "%A": re.compile(r"{(?:week)?-?days?-?fullname}"),
+            "%U": re.compile(r"{weeks?}"),
+            "%W": re.compile(r"{mon(?:day)?-?weeks?}"),
+            "%x": re.compile(r"{date}"),
+            "%X": re.compile(r"{time}"),
+            "%c": re.compile(r"{date-?time}"),
+            "%z": re.compile(r"{(?:utc)?-?offset}"),
+            "%p": re.compile(r"{periods?}"),
+            "%Y-%m-%dT%H:%M:%S": re.compile(r"{iso-?(?:format)?}")
         },
-        "date": _re.compile(r"((?:[\d]{2}|[\d]{4})[\- _\\/]?[\d]{2}[\- _\\/]?"
+        "date": re.compile(r"((?:[\d]{2}|[\d]{4})[\- _\\/]?[\d]{2}[\- _\\/]?"
                            r"\n[\d]{2})"),
-        "time": _re.compile(r"([\d]{2}:[\d]{2}(?:\.[\d]{6})?)"),
-        "datetime": _re.compile(r"((?:[\d]{2}|[\d]{4})[\- _\\/]?[\d]{2}[\- _\\/]"
-                               r"?[\d]{2}T[\d]{2}:[\d]{2}(?:\.[\d]{6})?)")
+        "time": re.compile(r"([\d]{2}:[\d]{2}(?:\.[\d]{6})?)"),
+        "datetime": re.compile(r"((?:[\d]{2}|[\d]{4})[\- _\\/]?[\d]{2}"
+                               r"[\- _\\/]?[\d]{2}T[\d]{2}:[\d]{2}"
+                               r"(?:\.[\d]{6})?)")
     }
 }
 
 datetime_regex = Namespace(**dt_exps)
 
 
-class DateTime(_datetime.datetime):
+def datetime_format(desired_format, datetime_instance=None,  *args, **kwargs):
     """
-    Custom DateTime object compatible with datetime.datetime that adds easy
-    string formatting and ISO string parsing.
+    Replaces format style phrases (listed in the dt_exps dictionary)
+    with this datetime instance's information.
+
+    .. code :: python
+
+        reusables.datetime_format("Hey, it's {month-full} already!")
+        "Hey, it's March already!"
+
+    :param desired_format: string to add datetime details too
+    :param datetime_instance: datetime.datetime instance, defaults to 'now'
+    :param args: additional args to pass to str.format
+    :param kwargs: additional kwargs to pass to str format
+    :return: formatted string
     """
+    for strf, exp in datetime_regex.datetime.format.items():
+        desired_format = exp.sub(strf, desired_format)
+    if not datetime_instance:
+        datetime_instance = now()
+    return datetime_instance.strftime(desired_format.format(*args, **kwargs))
 
-    def __new__(cls, year=None, month=None, day=None, hour=0, minute=0,
-                second=0, microsecond=0, tzinfo=None):
-        #  Taken from datetime.datetime.now()
-        if year is not None:
-            return super(DateTime, cls).__new__(cls, year, month, day, hour,
-                                                minute, second, microsecond,
-                                                tzinfo)
-        if tzinfo is not None and not isinstance(tzinfo,
-                                                 _datetime.datetime.tzinfo):
-            raise TypeError("tzinfo argument must be None or a tzinfo subclass")
-        converter = _time.localtime if tzinfo is None else _time.gmtime
-        t = _time.time()
-        t, frac = divmod(t, 1.0)
-        us = int(frac * 1e6)
-        tz = None
-        if us == 1000000:
-            t += 1
-            us = 0
-        y, m, d, hh, mm, ss, weekday, jday, dst = converter(t)
-        ss = min(ss, 59)
-        return super(DateTime, cls).__new__(cls, y, m, d, hh, mm, ss, us, tz)
 
-    def __init__(self, *args):
-        self.__dict__ = dict(
-            year=self.year, month=self.month, day=self.day, hour=self.hour,
-            minute=self.minute, second=self.second,
-            microsecond=self.microsecond, timezone=self.tzinfo)
+def datetime_from_iso(iso_string):
+    """
+    Create a DateTime object from a ISO string
 
-    def format(self, desired_format, *args, **kwargs):
-        """
-        Replaces format style phrases (listed in the dt_exps dictionary)
-        with this datetime instance's information.
+    .. code :: python
 
-        :param desired_format: string to add datetime details too
-        :param args: additional args to pass to str.format
-        :param kwargs: additional kwargs to pass to str format
-        :return: formatted string
-        """
-        for strf, exp in datetime_regex.datetime.format.items():
-            desired_format = exp.sub(strf, desired_format)
-        return self.strftime(desired_format.format(*args, **kwargs))
+        reusables.datetime_from_iso('2017-03-10T12:56:55.031863')
+        datetime.datetime(2017, 3, 10, 12, 56, 55, 31863)
 
-    def __iter__(self):
-        for k, v in self.__dict__.items():
-            yield (k, v)
+    :param iso_string: string of an ISO datetime
+    :return: DateTime object
+    """
+    try:
+        assert datetime_regex.datetime.datetime.match(iso_string).groups()[0]
+    except (ValueError, AssertionError, IndexError, AttributeError):
+        raise TypeError("String is not in ISO format")
+    try:
+        return datetime.datetime.strptime(iso_string, "%Y-%m-%dT%H:%M:%S.%f")
+    except ValueError:
+        return datetime.datetime.strptime(iso_string, "%Y-%m-%dT%H:%M:%S")
 
-    @classmethod
-    def from_iso(cls, iso_datetime):
-        """
-        Create a DateTime object from a ISO string
 
-        :param iso_datetime: string of an ISO datetime
-        :return: DateTime object
-        """
-        try:
-            assert datetime_regex.datetime.datetime.match(
-                iso_datetime).groups()[0]
-        except (ValueError, AssertionError, IndexError, AttributeError):
-            raise TypeError("String is not in ISO format")
-        try:
-            return cls.strptime(iso_datetime, "%Y-%m-%dT%H:%M:%S.%f")
-        except ValueError:
-            return cls.strptime(iso_datetime, "%Y-%m-%dT%H:%M:%S")
+def now(utc=False, tz=None):
+    """
+    Get a current DateTime object. By default is local.
 
-    # TODO add a 'from datetime'
+    .. code:: python
+
+        reusables.now()
+        # DateTime(2016, 12, 8, 22, 5, 2, 517000)
+
+        reusables.now().format("It's {24-hour}:{min}")
+        # "It's 22:05"
+
+    :param utc: bool, default False, UTC time not local
+    :param tz: TimeZone as specified by the datetime module
+    :return: reusables.DateTime
+    """
+    return datetime.datetime.utcnow() if utc else datetime.datetime.now(tz=tz)
+
+dtf = datetime_format
+dtiso = datetime_from_iso

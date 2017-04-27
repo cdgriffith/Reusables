@@ -6,7 +6,6 @@ import tempfile
 import subprocess
 
 import reusables
-from reusables.cli import touch
 
 from .common_test_data import *
 
@@ -25,6 +24,7 @@ Key2 = Value2
             oc.write(config_file)
         if os.path.exists(test_structure):
             shutil.rmtree(test_structure)
+
 
     def test_get_config_dict(self):
         resp = reusables.config_dict(os.path.join(test_root, 'test_config.cfg'))
@@ -66,13 +66,6 @@ Key2 = Value2
         resp = reusables.safe_filename(infilename)
         assert resp == infilename, resp
 
-    def test_sorting(self):
-        al = [{"name": "a"}, {"name": "c"}, {"name": "b"}]
-        resp = reusables.sort_by(al, "name")
-        assert resp[0]['name'] == 'a'
-        assert resp[1]['name'] == 'b'
-        assert resp[2]['name'] == 'c'
-
     def test_type_errors(self):
         self.assertRaises(TypeError, reusables.config_dict, dict(config='1'))
         self.assertRaises(TypeError, reusables.check_filename, tuple())
@@ -112,7 +105,7 @@ Key2 = Value2
             raise AssertionError("Should raise type error")
 
     def test_find_files(self):
-        resp = reusables.find_files_list(test_root, ext=".cfg")
+        resp = reusables.find_files_list(test_root, ext=".cfg", abspath=True)
         assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
 
     def test_find_files_multi_ext(self):
@@ -127,6 +120,14 @@ Key2 = Value2
         resp = iter(reusables.find_files(test_root,
                                                    ext={'test': '.txt'}))
         self.assertRaises(TypeError, next, resp)
+
+    def test_find_file_sad_bad(self):
+        try:
+            reusables.find_files_list(name="*.*", match_case=True)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("Cant do that")
 
     def test_find_files_depth(self):
         self._extract_structure()
@@ -240,6 +241,7 @@ Key2 = Value2
             assert False
         finally:
             lol_Im_not_a_dir.close()
+            os.unlink("fake_dir")
 
     def test_os_tree_no_dir(self):
         try:
@@ -292,9 +294,9 @@ Key2 = Value2
 
     def test_dup_empty(self):
         empty_file = reusables.join_paths(test_root, "empty")
-        touch(empty_file)
+        reusables.touch(empty_file)
         self._extract_structure()
-        b = [x for x in reusables.dup_finder_generator(empty_file, test_root)]
+        b = [x for x in reusables.dup_finder(empty_file, test_root)]
         print(b)
 
     def test_config_reader(self):
@@ -348,10 +350,6 @@ Key2 = Value2
         else:
             assert False
 
-    def test_now(self):
-        now = reusables.now()
-        assert isinstance(now, reusables.DateTime)
-
     def test_dups(self):
         self._extract_structure()
         empty = os.path.join(data_dr, "empty")
@@ -360,9 +358,9 @@ Key2 = Value2
         with open(something, "w") as f:
             f.write("stuff in here")
         try:
-            dups = list(reusables.dup_finder_generator(empty, data_dr))
+            dups = list(reusables.dup_finder(empty, data_dr))
             assert len(dups) == 1, dups
-            dups2 = list(reusables.dup_finder_generator(something, data_dr))
+            dups2 = list(reusables.dup_finder(something, data_dr))
             assert len(dups2) == 1, dups
         finally:
             os.unlink(something)
@@ -415,12 +413,21 @@ Key2 = Value2
         assert p4.endswith("archive.bz2")
         assert os.path.exists(p4)
         os.unlink(p4)
+
+    def test_bad_archive_type(self):
         try:
             reusables.archive("__init__.py", archive_type="rar")
         except ValueError:
             pass
         else:
             raise AssertionError("Should raise value error about archive_type")
+
+        try:
+            reusables.archive("__init__.py", "asdf.gah")
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("You cant figure out that archive type ")
 
     def test_duplicate_dir(self):
         dups = reusables.directory_duplicates(test_root)
@@ -436,22 +443,6 @@ Key2 = Value2
         assert len(delete) == 8, (len(delete), delete)
         assert not [x for x in delete if "empty" not in x.lower()]
         self._remove_structure()
-
-    def test_deprecation(self):
-        reusables.find_all_files_generator(test_root)
-        reusables.find_all_files(test_root)
-        reusables.count_all_files(test_root)
-        reusables.archive_all("data", name="tested.zip")
-        try:
-            reusables.extract_all("tested.zip", "new_dir")
-        except Exception:
-            pass
-        try:
-            os.unlink("tested.zip")
-            shutil.rmtree("new_dir", True)
-        except OSError:
-            pass
-        reusables.dup_finder_generator(test_root)
 
 
 if reusables.nix_based:
