@@ -122,6 +122,8 @@ here's both.
 Namespace
 ~~~~~~~~~
 
+Check out Box_, a much improved version as its own library.
+
 Dictionary management class, similar to Bunch, but designed so
 that sub-dictionaries are recursively made into namespaces.
 
@@ -151,7 +153,7 @@ Logging
 
 .. code:: python
 
-        logger = reusables.get_logger(__name__)
+        logger = reusables.setup_logger(__name__)
         # By default it adds a stream logger to sys.stderr
 
         logger.info("Test")
@@ -190,7 +192,7 @@ Because ReStructuredText tables don't preserve whitespace (even with literals),
     reusables.log_formats.keys()
     # ['common', 'level_first', 'threaded', 'easy_read', 'easy_thread', 'detailed']
 
-    logger = reusables.get_logger(__name__, log_format=reusables.log_formats.threaded)
+    logger = reusables.setup_logger(__name__, log_format=reusables.log_formats.threaded)
     reusables.add_timed_rotating_file_handler(logger, "timed.log", level=logging.ERROR, log_format=reusables.log_formats.detailed)
 
 
@@ -323,19 +325,19 @@ instances, such as 'touch' and 'download'.
 DateTime
 ~~~~~~~~
 
-Easy formatting for datetime objects. It also adds auto parsing for ISO formatted time.
+Easy formatting for datetime objects. Also parsing for ISO formatted time.
 
 
 .. code:: python
 
-        current_time = reusables.DateTime() # same as datetime.datetime.now(), as DateTime object
-
-        current_time.format("Wake up {son}, it's {hours}:{minutes} {periods}!"
+        reusables.datetime_format("Wake up {son}, it's {hours}:{minutes} {periods}!"
                             "I don't care if it's a {day-fullname}, {command}!",
                             son="John",
                             command="Get out of bed!")
         # "Wake up John, it's 09:51 AM! I don't care if it's a Saturday, Get out of bed!!"
 
+        reusables.datetime_from_iso('2017-03-10T12:56:55.031863')
+        # datetime.datetime(2017, 3, 10, 12, 56, 55, 31863)
 
 
 Examples based on  Mon Mar 28 13:27:11 2016
@@ -426,6 +428,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 .. _str.startswith: https://docs.python.org/2/library/stdtypes.html#str.startswith
 .. _readthedocs.org: http://reusables.readthedocs.io/en/latest/
 .. _docs: https://docs.python.org/3/library/logging.html#logrecord-attributes
+.. _Box: https://pypi.python.org/pypi/python-box
 
 Additional Info
 ---------------

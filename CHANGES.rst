@@ -16,7 +16,7 @@ Version 0.9.0
 - Breaking change: removing Cookie Management in favor of separate library
 - Breaking change: removing sort_by
 - Breaking change: removing namespace.from_dict()
-- Breaking change: removing DateTime class in favor of singluar methods datetime_format and datetime_from_iso
+- Breaking change: removing DateTime class in favor of singular methods datetime_format and datetime_from_iso
 
 Version 0.8.0
 -------------
