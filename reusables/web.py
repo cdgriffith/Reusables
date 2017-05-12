@@ -4,6 +4,7 @@
 # Part of the Reusables package.
 #
 # Copyright (c) 2014-2017 - Chris Griffith - MIT License
+from __future__ import absolute_import
 import os
 import logging
 import time
@@ -20,7 +21,7 @@ except ImportError:
     from SimpleHTTPServer import SimpleHTTPRequestHandler as _handler
     from SocketServer import TCPServer as _server
 
-from .file_operations import safe_filename
+from reusables.file_operations import safe_filename
 
 __all__ = ['download', 'ThreadedServer', 'url_to_ip', 'url_to_ips', 'ip_to_url']
 

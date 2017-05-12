@@ -4,6 +4,7 @@
 # Part of the Reusables package.
 #
 # Copyright (c) 2014-2017 - Chris Griffith - MIT License
+from __future__ import absolute_import
 import time
 from threading import Lock
 from functools import wraps
@@ -14,7 +15,7 @@ try:
 except ImportError:
     import Queue as _queue
 
-from .shared_variables import python_version, ReusablesError
+from reusables.shared_variables import python_version, ReusablesError
 
 __all__ = ['unique', 'time_it', 'catch_it', 'log_exception', 'retry_it',
            'lock_it', 'queue_it']

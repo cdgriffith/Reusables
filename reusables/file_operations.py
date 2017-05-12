@@ -5,21 +5,361 @@
 #
 # Copyright (c) 2014-2017 - Chris Griffith - MIT License
 import os
+import zipfile
+import tarfile
+import logging
+import csv
+import json
 import hashlib
 import glob
-import logging
 from collections import defaultdict
+try:
+    import ConfigParser as ConfigParser
+except ImportError:
+    import configparser as ConfigParser
 
-from ..shared_variables import *
+from reusables.namespace import *
+from reusables.shared_variables import *
 
-
-logger = logging.getLogger('reusables')
-
-__all__ = ['os_tree', 'check_filename', 'count_files',
+__all__ = ['load_json', 'list_to_csv', 'save_json', 'csv_to_list',
+           'extract', 'archive', 'config_dict', 'config_namespace',
+           'os_tree', 'check_filename', 'count_files',
            'directory_duplicates', 'dup_finder', 'file_hash', 'find_files',
            'find_files_list', 'join_here', 'join_paths',
            'remove_empty_directories', 'remove_empty_files',
            'safe_filename', 'safe_path', 'touch']
+
+logger = logging.getLogger('reusables')
+
+
+def extract(archive_file, path=".", delete_on_success=False,
+            enable_rar=False):
+    """
+    Automatically detect archive type and extract all files to specified path.
+
+    .. code:: python
+
+        import os
+
+        os.listdir(".")
+        # ['test_structure.zip']
+
+        reusables.extract("test_structure.zip")
+
+        os.listdir(".")
+        # [ 'test_structure', 'test_structure.zip']
+
+
+    :param archive_file: path to file to extract
+    :param path: location to extract to
+    :param delete_on_success: Will delete the original archive if set to True
+    :param enable_rar: include the rarfile import and extract
+    :return: path to extracted files
+    """
+
+    if not os.path.exists(archive_file) or not os.path.getsize(archive_file):
+        logger.error("File {0} unextractable".format(archive_file))
+        raise OSError("File does not exist or has zero size")
+
+    arch = None
+    if zipfile.is_zipfile(archive_file):
+        logger.debug("File {0} detected as a zip file".format(archive_file))
+        arch = zipfile.ZipFile(archive_file)
+    elif tarfile.is_tarfile(archive_file):
+        logger.debug("File {0} detected as a tar file".format(archive_file))
+        arch = tarfile.open(archive_file)
+    elif enable_rar:
+        import rarfile
+        if rarfile.is_rarfile(archive_file):
+            logger.debug("File {0} detected as "
+                         "a rar file".format(archive_file))
+            arch = rarfile.RarFile(archive_file)
+
+    if not arch:
+        raise TypeError("File is not a known archive")
+
+    logger.debug("Extracting files to {0}".format(path))
+
+    try:
+        arch.extractall(path=path)
+    finally:
+        arch.close()
+
+    if delete_on_success:
+        logger.debug("Archive {0} will now be deleted".format(archive_file))
+        os.unlink(archive_file)
+
+    return os.path.abspath(path)
+
+
+def archive(files_to_archive, name="archive.zip", archive_type=None,
+            overwrite=False, store=False, depth=None, err_non_exist=True,
+            allow_zip_64=True, **tarfile_kwargs):
+    """ Archive a list of files (or files inside a folder), can chose between
+
+        - zip
+        - tar
+        - gz (tar.gz, tgz)
+        - bz2 (tar.bz2)
+
+    .. code:: python
+
+        reusables.archive(['reusables', '.travis.yml'],
+                              name="my_archive.bz2")
+        # 'C:\\Users\\Me\\Reusables\\my_archive.bz2'
+
+    :param files_to_archive: list of files and folders to archive
+    :param name: path and name of archive file
+    :param archive_type: auto-detects unless specified
+    :param overwrite: overwrite if archive exists
+    :param store: zipfile only, True will not compress files
+    :param depth: specify max depth for folders
+    :param err_non_exist: raise error if provided file does not exist
+    :param allow_zip_64: must be enabled for zip files larger than 2GB
+    :param tarfile_kwargs: extra args to pass to tarfile.open
+    :return: path to created archive
+    """
+    if not isinstance(files_to_archive, (list, tuple)):
+        files_to_archive = [files_to_archive]
+
+    if not archive_type:
+        if name.lower().endswith("zip"):
+            archive_type = "zip"
+        elif name.lower().endswith("gz"):
+            archive_type = "gz"
+        elif name.lower().endswith("z2"):
+            archive_type = "bz2"
+        elif name.lower().endswith("tar"):
+            archive_type = "tar"
+        else:
+            err_msg = ("Could not determine archive "
+                       "type based off {0}".format(name))
+            logger.error(err_msg)
+            raise ValueError(err_msg)
+        logger.debug("{0} file detected for {1}".format(archive_type, name))
+    elif archive_type not in ("tar", "gz", "bz2", "zip"):
+        err_msg = ("archive_type must be zip, gz, bz2,"
+                   " or gz, was {0}".format(archive_type))
+        logger.error(err_msg)
+        raise ValueError(err_msg)
+
+    if not overwrite and os.path.exists(name):
+        err_msg = "File {0} exists and overwrite not specified".format(name)
+        logger.error(err_msg)
+        raise OSError(err_msg)
+
+    if archive_type == "zip":
+        arch = zipfile.ZipFile(name, 'w',
+                               zipfile.ZIP_STORED if store else
+                               zipfile.ZIP_DEFLATED,
+                               allowZip64=allow_zip_64)
+        write = arch.write
+    elif archive_type in ("tar", "gz", "bz2"):
+        mode = archive_type if archive_type != "tar" else ""
+        arch = tarfile.open(name, 'w:{0}'.format(mode), **tarfile_kwargs)
+        write = arch.add
+    else:
+        raise ValueError("archive_type must be zip, gz, bz2, or gz")
+
+    try:
+        for file_path in files_to_archive:
+            if os.path.isfile(file_path):
+                if err_non_exist and not os.path.exists(file_path):
+                    raise OSError("File {0} does not exist".format(file_path))
+                write(file_path)
+            elif os.path.isdir(file_path):
+                for nf in find_files(file_path, abspath=False, depth=depth):
+                    write(nf)
+    except (Exception, KeyboardInterrupt) as err:
+        logger.exception("Could not archive {0}".format(files_to_archive))
+        try:
+            arch.close()
+        finally:
+            os.unlink(name)
+        raise err
+    else:
+        arch.close()
+
+    return os.path.abspath(name)
+
+
+def list_to_csv(my_list, csv_file):
+    """
+    Save a matrix (list of lists) to a file as a CSV
+
+    .. code:: python
+
+        my_list = [["Name", "Location"],
+                   ["Chris", "South Pole"],
+                   ["Harry", "Depth of Winter"],
+                   ["Bob", "Skull"]]
+
+        reusables.list_to_csv(my_list, "example.csv")
+
+    example.csv
+
+    .. code:: csv
+
+        "Name","Location"
+        "Chris","South Pole"
+        "Harry","Depth of Winter"
+        "Bob","Skull"
+
+    :param my_list: list of lists to save to CSV
+    :param csv_file: File to save data to
+    """
+    if PY3:
+        csv_handler = open(csv_file, 'w', newline='')
+    else:
+        csv_handler = open(csv_file, 'wb')
+
+    try:
+        writer = csv.writer(csv_handler, delimiter=',', quoting=csv.QUOTE_ALL)
+        writer.writerows(my_list)
+    finally:
+        csv_handler.close()
+
+
+def csv_to_list(csv_file):
+    """
+    Open and transform a CSV file into a matrix (list of lists).
+
+    .. code:: python
+
+        reusables.csv_to_list("example.csv")
+        # [['Name', 'Location'],
+        #  ['Chris', 'South Pole'],
+        #  ['Harry', 'Depth of Winter'],
+        #  ['Bob', 'Skull']]
+
+    :param csv_file: Path to CSV file as str
+    :return: list
+    """
+    with open(csv_file, 'r' if PY3 else 'rb') as f:
+        return list(csv.reader(f))
+
+
+def load_json(json_file, **kwargs):
+    """
+    Open and load data from a JSON file
+
+    .. code:: python
+
+        reusables.load_json("example.json")
+        # {u'key_1': u'val_1', u'key_for_dict': {u'sub_dict_key': 8}}
+
+    :param json_file: Path to JSON file as string
+    :param kwargs: Additional arguments for the json.load command
+    :return: Dictionary
+    """
+    with open(json_file) as f:
+        return json.load(f, **kwargs)
+
+
+def save_json(data, json_file, indent=4, **kwargs):
+    """
+    Takes a dictionary and saves it to a file as JSON
+
+    .. code:: python
+
+        my_dict = {"key_1": "val_1",
+                   "key_for_dict": {"sub_dict_key": 8}}
+
+        reusables.save_json(my_dict,"example.json")
+
+    example.json
+
+    .. code::
+
+        {
+            "key_1": "val_1",
+            "key_for_dict": {
+                "sub_dict_key": 8
+            }
+        }
+
+    :param data: dictionary to save as JSON
+    :param json_file: Path to save file location as str
+    :param indent: Format the JSON file with so many numbers of spaces
+    :param kwargs: Additional arguments for the json.dump command
+    """
+    with open(json_file, "w") as f:
+        json.dump(data, f, indent=indent, **kwargs)
+
+
+def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
+    """
+    Return configuration options as dictionary. Accepts either a single
+    config file or a list of files. Auto find will search for all .cfg, .config
+    and .ini in the execution directory and package root (unsafe but handy).
+
+    .. code:: python
+
+        reusables.config_dict(os.path.join("test", "data", "test_config.ini"))
+        # {'General': {'example': 'A regular string'},
+        #  'Section 2': {'anint': '234',
+        #                'examplelist': '234,123,234,543',
+        #                'floatly': '4.4',
+        #                'my_bool': 'yes'}}
+
+
+    :param config_file: path or paths to the files location
+    :param auto_find: look for a config type file at this location or below
+    :param verify: make sure the file exists before trying to read
+    :param cfg_options: options to pass to the parser
+    :return: dictionary of the config files
+    """
+    if not config_file:
+        config_file = []
+
+    cfg_parser = ConfigParser.ConfigParser(**cfg_options)
+    cfg_files = []
+
+    if config_file:
+        if not isinstance(config_file, (list, tuple)):
+            if isinstance(config_file, str):
+                cfg_files.append(config_file)
+            else:
+                raise TypeError("config_files must be a list or a string")
+        else:
+            cfg_files.extend(config_file)
+
+    if auto_find:
+        cfg_files.extend(find_files_list(
+            current_root if isinstance(auto_find, bool) else auto_find,
+            ext=(".cfg", ".config", ".ini")))
+
+    logger.info("config files to be used: {0}".format(cfg_files))
+
+    if verify:
+        cfg_parser.read([cfg for cfg in cfg_files if os.path.exists(cfg)])
+    else:
+        cfg_parser.read(cfg_files)
+
+    return dict((section, dict(cfg_parser.items(section)))
+                for section in cfg_parser.sections())
+
+
+def config_namespace(config_file=None, auto_find=False,
+                     verify=True, **cfg_options):
+    """
+    Return configuration options as a Namespace.
+
+    .. code:: python
+
+        reusables.config_namespace(os.path.join("test", "data",
+                                                "test_config.ini"))
+        # <Namespace: {'General': {'example': 'A regul...>
+
+
+    :param config_file: path or paths to the files location
+    :param auto_find: look for a config type file at this location or below
+    :param verify: make sure the file exists before trying to read
+    :param cfg_options: options to pass to the parser
+    :return: Namespace of the config files
+    """
+    return ConfigNamespace(**config_dict(config_file, auto_find,
+                                         verify, **cfg_options))
 
 
 def _walk(directory, enable_scandir=False, **kwargs):
@@ -511,6 +851,9 @@ def safe_path(path, replacement="_"):
             not sanitized_path.endswith(os.sep)):
         sanitized_path += os.sep
     return sanitized_path
+
+
+
 
 
 

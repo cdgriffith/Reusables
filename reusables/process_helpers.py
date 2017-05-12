@@ -10,7 +10,7 @@ import subprocess
 from multiprocessing import pool
 from functools import partial
 
-from ..shared_variables import *
+from reusables.shared_variables import *
 
 __all__ = ['run', 'run_in_pool']
 

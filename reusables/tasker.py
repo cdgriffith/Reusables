@@ -14,7 +14,7 @@ import time
 import logging
 import datetime
 
-from ..shared_variables import win_based
+from reusables.shared_variables import win_based
 
 __all__ = ['Tasker']
 
