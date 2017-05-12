@@ -13,6 +13,8 @@ from .file_ops import find_files
 
 logger = logging.getLogger('reusables')
 
+__all__ = ['extract', 'archive']
+
 
 def extract(archive_file, path=".", delete_on_success=False,
             enable_rar=False):

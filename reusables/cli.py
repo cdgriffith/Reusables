@@ -10,11 +10,11 @@ import logging
 import shutil
 from collections import deque
 
-from .shared_variables import *
-from .processes import run
-from .shared_variables import win_based
-from .file_operations import find_files_list
-from .log import add_stream_handler
+from reusables.shared_variables import *
+from reusables.processes.helpers import run
+from reusables.shared_variables import win_based
+from reusables.file_operations.file_ops import find_files_list
+from reusables.log import add_stream_handler
 
 __all__ = ['cmd', 'pushd', 'popd', 'pwd', 'cd', 'ls',
            'find', 'head', 'cat', 'tail', 'cp']

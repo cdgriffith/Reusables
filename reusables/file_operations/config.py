@@ -17,6 +17,8 @@ from ..shared_variables import current_root
 
 logger = logging.getLogger('reusables')
 
+__all__ = ['config_dict', 'config_namespace']
+
 
 def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
     """

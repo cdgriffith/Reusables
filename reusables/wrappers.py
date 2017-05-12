@@ -14,7 +14,7 @@ try:
 except ImportError:
     import Queue as _queue
 
-from .shared_variables import python_version, ReusablesError
+from reusables.shared_variables import python_version, ReusablesError
 
 __all__ = ['unique', 'time_it', 'catch_it', 'log_exception', 'retry_it',
            'lock_it', 'queue_it']

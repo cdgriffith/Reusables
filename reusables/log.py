@@ -13,8 +13,8 @@ import sys
 from logging.handlers import (RotatingFileHandler,
                               TimedRotatingFileHandler)
 
-from .namespace import Namespace
-from .shared_variables import sizes
+from reusables.namespace import Namespace
+from reusables.shared_variables import sizes
 
 __all__ = ['log_formats', 'get_logger', 'get_registered_loggers',
            'get_file_handler', 'get_stream_handler', 'add_file_handler',
