@@ -4,6 +4,7 @@
 # Part of the Reusables package.
 #
 # Copyright (c) 2014-2017 - Chris Griffith - MIT License
+from __future__ import absolute_import
 import re as _re
 import os as _os
 import sys as _sys

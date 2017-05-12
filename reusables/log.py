@@ -7,6 +7,7 @@
 """
 Logging helper functions and common log formats.
 """
+from __future__ import absolute_import
 import warnings
 import logging
 import sys

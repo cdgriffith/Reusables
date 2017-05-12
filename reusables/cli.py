@@ -5,15 +5,16 @@
 #
 # Copyright (c) 2014-2017 - Chris Griffith - MIT License
 """ Functions to only be in an interactive instances to ease life. """
+from __future__ import absolute_import
 import os
 import logging
 import shutil
 from collections import deque
 
 from reusables.shared_variables import *
-from reusables.processes.helpers import run
+from reusables.process_helpers import run
 from reusables.shared_variables import win_based
-from reusables.file_operations.file_ops import find_files_list
+from reusables.file_operations import find_files_list
 from reusables.log import add_stream_handler
 
 __all__ = ['cmd', 'pushd', 'popd', 'pwd', 'cd', 'ls',
