@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 0.9.1
+-------------
+
+- Fixing local imports not working when installed
+
 Version 0.9.0
 -------------
 
