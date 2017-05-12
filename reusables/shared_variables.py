@@ -9,7 +9,7 @@ import os as _os
 import sys as _sys
 import tempfile as _tempfile
 
-from .namespace import Namespace
+from reusables.namespace import Namespace
 
 python_version = _sys.version_info[0:3]
 version_string = ".".join([str(x) for x in python_version])

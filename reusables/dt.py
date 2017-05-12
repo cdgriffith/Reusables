@@ -7,7 +7,7 @@
 import datetime
 import re
 
-from .namespace import Namespace
+from reusables.namespace import Namespace
 
 __all__ = ['dt_exps', 'datetime_regex', 'now', 'datetime_format',
            'datetime_from_iso', 'dtf', 'dtiso']

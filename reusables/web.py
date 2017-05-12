@@ -20,7 +20,7 @@ except ImportError:
     from SimpleHTTPServer import SimpleHTTPRequestHandler as _handler
     from SocketServer import TCPServer as _server
 
-from .file_operations import safe_filename
+from reusables.file_operations.file_ops import safe_filename
 
 __all__ = ['download', 'ThreadedServer', 'url_to_ip', 'url_to_ips', 'ip_to_url']
 
