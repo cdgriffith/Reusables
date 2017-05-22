@@ -1,6 +1,6 @@
 Multiprocess Helpers
 ====================
 
-.. automodule:: reusables.multiprocess_helpers
+.. automodule:: reusables.process_helpers
    :members:
    :undoc-members:

@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Version 0.9.2
+-------------
+
+- Adding option of kwargs to task for tasker
+- Fixing documentations links
+
 Version 0.9.1
 -------------
 
