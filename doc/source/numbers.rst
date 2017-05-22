@@ -1,6 +1,6 @@
 Numbers
 =======
 
-.. automodule:: reusables.numbers
+.. automodule:: reusables.string_manipulation
    :members:
    :undoc-members:

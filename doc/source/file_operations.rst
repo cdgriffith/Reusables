@@ -1,6 +1,6 @@
 Cookie Management
 =================
 
-.. automodule:: reusables.browser
+.. automodule:: reusables.file_operations
    :members:
    :undoc-members:

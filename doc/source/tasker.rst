@@ -1,7 +1,7 @@
 File Management and General Helpers
 ===================================
 
-.. automodule:: reusables.reusables
+.. automodule:: reusables.tasker
    :members:
    :undoc-members:
 

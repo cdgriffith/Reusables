@@ -47,7 +47,7 @@ class Tasker(object):
 
     def __init__(self, tasks=(), max_tasks=4, task_timeout=None,
                  task_queue=None, result_queue=None, command_queue=None,
-                 run_until=None, logger='reusables'):
+                 run_until=None, logger='reusables', **task_kwargs):
         if logger:
             self.log = logging.getLogger('reusables')
         self.task_queue = task_queue or mp.Queue()
@@ -66,6 +66,7 @@ class Tasker(object):
         self.run_until = run_until
         self._pause, self._end = mp.Value('b', False), mp.Value('b', False)
         self.background_process = None
+        self.task_kwargs = task_kwargs
 
     def get(self, timeout=None):
         """Retrieve next result from the queue"""
@@ -76,7 +77,7 @@ class Tasker(object):
         return self.task_queue.put(task)
 
     @staticmethod
-    def perform_task(task, result_queue):
+    def perform_task(task, result_queue, **kwargs):
         """Function to be overwritten that performs the tasks from the list"""
         raise NotImplementedError()
 
@@ -113,7 +114,8 @@ class Tasker(object):
 
     def _start_task(self, task_id, task):
         self.current_tasks[task_id]['proc'] = mp.Process(
-            target=self.perform_task, args=(task, self.result_queue))
+            target=self.perform_task, args=(task, self.result_queue),
+            kwargs=self.task_kwargs)
         self.current_tasks[task_id]['start_time'] = time.time()
         self.current_tasks[task_id]['proc'].start()
 

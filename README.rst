@@ -441,8 +441,8 @@ improve existing code is warmly welcomed!
 .. toctree::
    :maxdepth: 2
 
-   reusables
-   browser
+   file_operations
+   tasker
    log
    datetime
    namespace
