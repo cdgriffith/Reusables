@@ -1,5 +1,5 @@
-File Management and General Helpers
-===================================
+Tasker
+======
 
 .. automodule:: reusables.tasker
    :members:

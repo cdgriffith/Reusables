@@ -1,5 +1,5 @@
-Cookie Management
-=================
+File Operations
+===============
 
 .. automodule:: reusables.file_operations
    :members:
