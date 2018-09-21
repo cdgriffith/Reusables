@@ -98,7 +98,7 @@ def run(command, input=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
 
 
 def run_in_pool(target, iterable, threaded=True, processes=4,
-                async=False, target_kwargs=None):
+                asynchronous=False, target_kwargs=None):
     """ Run a set of iterables to a function in a Threaded or MP Pool.
 
     .. code: python
@@ -114,7 +114,7 @@ def run_in_pool(target, iterable, threaded=True, processes=4,
     :param iterable: positional arg to pass to function
     :param threaded: Threaded if True multiprocessed if False
     :param processes: Number of workers
-    :param async: will do map_async if True
+    :param asynchronous: will do map_async if True
     :param target_kwargs: Keyword arguments to set on the function as a partial
     :return: pool results
     """
@@ -125,7 +125,7 @@ def run_in_pool(target, iterable, threaded=True, processes=4,
 
     p = my_pool(processes)
     try:
-        results = (p.map_async(target, iterable) if async
+        results = (p.map_async(target, iterable) if asynchronous
                    else p.map(target, iterable))
     finally:
         p.close()
