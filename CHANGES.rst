@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 0.9.3
+-------------
+
+- Fixing imports in python 3.7
+
 Version 0.9.2
 -------------
 
