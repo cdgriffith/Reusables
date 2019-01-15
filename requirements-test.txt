@@ -1,5 +1,5 @@
 pytest
-coverage >= 3.6
+coverage >= 4.5.2
 rarfile
 scandir
 tox
