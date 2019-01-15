@@ -506,7 +506,7 @@ def find_files(directory=".", ext=None, name=None,
     :return: generator of all files in the specified directory
     """
     def pathed(path):
-        if python_version < (3, 5) or disable_pathlib:
+        if python_version < (3, 4) or disable_pathlib:
             return path
         import pathlib
         return pathlib.Path(path)
