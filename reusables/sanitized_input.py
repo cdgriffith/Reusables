@@ -1,5 +1,6 @@
 from reusables.shared_variables import ReusablesError
 
+
 class InvalidInputError(ReusablesError):
     pass
 
@@ -9,7 +10,7 @@ class RetryCountExceededError(ReusablesError):
 
 
 def sanitized_input(message="", cast_obj=None, n_retries=-1,
-                    error_msg="", valid_input=[], raise_on_invalid=False):
+                    error_msg="", valid_input=(), raise_on_invalid=False):
     """
          Function sanitized_input :
          @args
@@ -49,8 +50,8 @@ def sanitized_input(message="", cast_obj=None, n_retries=-1,
     elif isinstance(cast_obj, tuple) or isinstance(cast_obj, list):
         cast_objects = list(cast_obj)
     else:
-        raise ValueError("""ValueError: argument 'cast_obj'
-                         cannot be of type '{}'""".format(type(cast_obj)))
+        raise ValueError("ValueError: argument 'cast_obj'"
+                         "cannot be of type '{}'".format(type(cast_obj)))
 
     if not hasattr(valid_input, '__iter__'):
         valid_input = (valid_input, )
@@ -62,23 +63,17 @@ def sanitized_input(message="", cast_obj=None, n_retries=-1,
             if not valid_input or rv in valid_input:
                 return rv
             else:
-                raise InvalidInputError("""InvalidInputError: input invalid
-                                        in function 'sanitized_input' of {}""".format(__name__))
+                raise InvalidInputError("InvalidInputError: input invalid"
+                                        "in function 'sanitized_input' of {}".format(__name__))
         except ValueError as e:
-            if error_msg:
-                print(error_msg)
-            else:
-                print(repr(e))
+            print(error_msg if error_msg else repr(e))
             retry_cnt += 1
             continue
         except InvalidInputError as e:
             if raise_on_invalid:
                 raise e
-            if error_msg:
-                print(error_msg)
-            else:
-                print(repr(e))
+            print(error_msg if error_msg else repr(e))
             retry_cnt += 1
             continue
-    raise RetryCountExceededError("""RetryCountExceededError : count exceeded in
-                                  function 'sanitized_input' of {}""".format(__name__))
+    raise RetryCountExceededError("RetryCountExceededError : count exceeded in"
+                                  "function 'sanitized_input' of {}".format(__name__))

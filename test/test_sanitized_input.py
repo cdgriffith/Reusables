@@ -2,7 +2,10 @@
 # -*- coding: UTF-8 -*-
 
 import reusables
-import unittest.mock as mock
+try:
+    import unittest.mock as mock
+except ImportError:
+    from mock import mock
 
 from .common_test_data import *
 

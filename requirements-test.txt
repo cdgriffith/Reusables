@@ -4,3 +4,5 @@ rarfile
 scandir
 tox
 pytest-cov
+mock
+future
