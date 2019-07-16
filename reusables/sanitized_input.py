@@ -20,9 +20,17 @@ def sanitized_input(message="", cast_obj=None, n_retries=-1,
              error_msg: message to show the user before asking the input again in
                         case an error occurs (default: repr of the exception)
              valid_input: an iterable to check if the result is allowed.
+             raise_on_invalid: boolean, wether this function will raise a
+                               reusables.InvalidInputError if the input doesn't match
+                               the valid_input argument.
         @returns
-           rv : string literal casted into the cast_obj as per that object's rules.
-           raises : RetryCountExceededError if the retry count has exceeded the n_retries limit.
+            rv : string literal casted into the cast_obj as per that object's rules.
+            raises : RetryCountExceededError if the retry count has exceeded the n_retries limit.
+        @examples
+            integer = sanitized_input("How many apples?", int, error_msg="Please enter a valid number")
+                >>> returns an int, will prompt until the user enters an integer.
+            validated = sanitized_input(">>>", valid_input=["string"], raise_on_invalid=True)
+                >>> returns the value "string", and will raise InvalidInputError otherwise.
     """
     raw = ""
     retry_cnt = 0
