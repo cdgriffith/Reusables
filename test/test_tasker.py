@@ -53,7 +53,7 @@ class TestTasker(BaseTestClass):
     def test_bad_size_change(self):
         tasker = reusables.Tasker()
         try:
-            tasker.perform_task(1,2)
+            tasker.perform_task(1, 2)
         except NotImplementedError:
             pass
         else:

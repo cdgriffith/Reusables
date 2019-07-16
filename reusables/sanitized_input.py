@@ -1,10 +1,13 @@
 class InvalidInputError(Exception):
     pass
 
+
 class RetryCountExceededError(Exception):
     pass
 
-def sanitized_input(message="", cast_obj=None, n_retries=-1, error_msg="", valid_input=[]):
+
+def sanitized_input(message="", cast_obj=None, n_retries=-1,
+                    error_msg="", valid_input=[], raise_on_invalid=False):
     """
          Function sanitized_input :
          @args
@@ -33,7 +36,8 @@ def sanitized_input(message="", cast_obj=None, n_retries=-1, error_msg="", valid
             if not valid_input or rv in valid_input:
                 return rv
             else:
-                raise InvalidInputError(f"InvalidInputError: input invalid in function 'sanitized_input' of {__name__}")
+                raise InvalidInputError(f"""InvalidInputError: input invalid
+                                        in function 'sanitized_input' of {__name__}""")
         except ValueError as e:
             if error_msg:
                 print(error_msg)
@@ -42,10 +46,13 @@ def sanitized_input(message="", cast_obj=None, n_retries=-1, error_msg="", valid
             retry_cnt += 1
             continue
         except InvalidInputError as e:
+            if raise_on_invalid:
+                raise e
             if error_msg:
                 print(error_msg)
             else:
                 print(repr(e))
             retry_cnt += 1
             continue
-    raise RetryCountExceededError(f"RetryCountExceededError : count exceeded in function 'sanitized_input' of {__name__}")
+    raise RetryCountExceededError(f"""RetryCountExceededError : count exceeded in
+                                  function 'sanitized_input' of {__name__}""")
