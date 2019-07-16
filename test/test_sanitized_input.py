@@ -65,10 +65,23 @@ class TestSanitizedInput(BaseTestClass):
     def test_valid_input(self):
         kwargs = {"message": "",
                   "cast_obj": str,
-                  "n_retries": 1,
+                  "n_retries": -1,
                   "error_msg": "",
                   "valid_input": ["1", "2"],
                   "raise_on_invalid": True}
         with mock.patch('builtins.input', return_value="3"):
             self.assertRaises(reusables.InvalidInputError,
                               reusables.sanitized_input, **kwargs)
+
+    def test_chain_cast(self):
+        kwargs = {"message": "",
+                  "cast_obj": "int, float",
+                  "n_retries": -1,
+                  "error_msg": "",
+                  "valid_input": [],
+                  "raise_on_invalid": False}
+        with mock.patch('builtins.input', return_value="3.2"):
+            assert isinstance(reusables.sanitized_input(cast_obj=[int, float]), int)
+            self.assertRaises(ValueError,
+                              reusables.sanitized_input, **kwargs)
+
