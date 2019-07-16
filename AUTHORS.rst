@@ -5,3 +5,4 @@ reporting, all input is greatly appreciated!
 
 - Clara Griffith (beautiousmax)
 - Hellowlol
+- Dogeek

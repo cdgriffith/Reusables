@@ -17,7 +17,7 @@ from logging.handlers import (RotatingFileHandler,
 from reusables.namespace import Namespace
 from reusables.shared_variables import sizes
 
-__all__ = ['log_formats', 'setup_logger', 'get_registered_loggers',
+__all__ = ['log_formats', 'get_logger', 'setup_logger', 'get_registered_loggers',
            'get_file_handler', 'get_stream_handler', 'add_file_handler',
            'add_stream_handler', 'add_rotating_file_handler',
            'add_timed_rotating_file_handler', 'change_logger_levels',
@@ -41,6 +41,13 @@ if sys.version_info < (2, 7):
             pass
 
     logging.NullHandler = NullHandler
+
+
+def get_logger(*args, **kwargs):
+    """ Depreciated, use setup_logger"""
+    warnings.warn("get_logger is changing name to setup_logger",
+                  DeprecationWarning)
+    return setup_logger(*args, **kwargs)
 
 
 def get_stream_handler(stream=sys.stderr, level=logging.INFO,

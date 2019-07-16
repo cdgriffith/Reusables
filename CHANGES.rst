@@ -5,8 +5,8 @@ Version 0.9.4
 -------------
 
 - Adding sync_dirs function
+- Adding sanitized_input function (Thanks to Dogeek)
 - Breaking change: Changing find_files to return pathlib objects by default on Python 3.4+
-- Breaking change: get_logger has been depreciated, use setup_logger
 - Removing python 2.6 from travis tests
 
 Version 0.9.3
