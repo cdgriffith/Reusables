@@ -27,7 +27,8 @@ def sanitized_input(message="", cast_obj=None, n_retries=-1,
             rv : string literal casted into the cast_obj as per that object's rules.
             raises : RetryCountExceededError if the retry count has exceeded the n_retries limit.
         @examples
-            integer = sanitized_input("How many apples?", int, error_msg="Please enter a valid number")
+            integer = sanitized_input("How many apples?", int,
+                      error_msg="Please enter a valid number")
                 >>> returns an int, will prompt until the user enters an integer.
             validated = sanitized_input(">>>", valid_input=["string"], raise_on_invalid=True)
                 >>> returns the value "string", and will raise InvalidInputError otherwise.
@@ -44,8 +45,8 @@ def sanitized_input(message="", cast_obj=None, n_retries=-1,
             if not valid_input or rv in valid_input:
                 return rv
             else:
-                raise InvalidInputError(f"""InvalidInputError: input invalid
-                                        in function 'sanitized_input' of {__name__}""")
+                raise InvalidInputError("""InvalidInputError: input invalid
+                                        in function 'sanitized_input' of {}""".format(__name__))
         except ValueError as e:
             if error_msg:
                 print(error_msg)
@@ -62,5 +63,5 @@ def sanitized_input(message="", cast_obj=None, n_retries=-1,
                 print(repr(e))
             retry_cnt += 1
             continue
-    raise RetryCountExceededError(f"""RetryCountExceededError : count exceeded in
-                                  function 'sanitized_input' of {__name__}""")
+    raise RetryCountExceededError("""RetryCountExceededError : count exceeded in
+                                  function 'sanitized_input' of {}""".format(__name__))
