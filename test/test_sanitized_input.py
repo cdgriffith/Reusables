@@ -28,7 +28,7 @@ class TestSanitizedInput(BaseTestClass):
         kwargs = {"message": "",
                   "cast_as": int,
                   "number_of_retries": 1,
-                  "error_msg": "",
+                  "error_message": "",
                   "valid_input": [],
                   "raise_on_invalid": False}
         with mock.patch('reusables.sanitizers._get_input', return_value="x"):
@@ -39,7 +39,7 @@ class TestSanitizedInput(BaseTestClass):
         kwargs = {"message": "",
                   "cast_as": int,
                   "number_of_retries": -1,
-                  "error_msg": "",
+                  "error_message": "",
                   "valid_input": [],
                   "raise_on_invalid": False}
         with mock.patch('reusables.sanitizers._get_input', return_value="32"):
@@ -49,7 +49,7 @@ class TestSanitizedInput(BaseTestClass):
         kwargs = {"message": "",
                   "cast_as": IntVar,
                   "number_of_retries": -1,
-                  "error_msg": "",
+                  "error_message": "",
                   "valid_input": [],
                   "raise_on_invalid": False}
         with mock.patch('reusables.sanitizers._get_input', return_value=1):
@@ -69,7 +69,7 @@ class TestSanitizedInput(BaseTestClass):
         kwargs = {"message": "",
                   "cast_as": str,
                   "number_of_retries": -1,
-                  "error_msg": "",
+                  "error_message": "",
                   "valid_input": ["1", "2"],
                   "raise_on_invalid": True}
         with mock.patch('reusables.sanitizers._get_input', return_value="3"):
@@ -80,7 +80,7 @@ class TestSanitizedInput(BaseTestClass):
         kwargs = {"message": "",
                   "cast_as": "int, float",
                   "number_of_retries": -1,
-                  "error_msg": "",
+                  "error_message": "",
                   "valid_input": [],
                   "raise_on_invalid": False}
         with mock.patch('reusables.sanitizers._get_input', return_value="3.2"):
