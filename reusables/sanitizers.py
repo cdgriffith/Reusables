@@ -15,7 +15,10 @@ class RetryCountExceededError(ReusablesError):
 
 
 def _get_input(prompt):
-    return input(prompt)
+    try:
+        return raw_input(prompt)
+    except NameError:
+        return input(prompt)
 
 
 def sanitized_input(message="", cast_as=None, number_of_retries=-1,
@@ -29,7 +32,7 @@ def sanitized_input(message="", cast_as=None, number_of_retries=-1,
                        and be a subclass of type.
                        The object should raise a ValueError exception if a
                        string can't be cast into that object.
-                       cast_obj can also be a tuple or a list, which will
+                       cast_as can also be a tuple or a list, which will
                        chain casts until the end of the list. Casts are chained in
                        reverse order of the list (to mimic the syntax int(float(x))) (default: str)
         :param number_of_retries: number of retries. No limit if n_retries == -1 (default: -1)
@@ -40,7 +43,7 @@ def sanitized_input(message="", cast_as=None, number_of_retries=-1,
         :param raise_on_invalid: boolean, whether this function will raise a
                                reusables.InvalidInputError if the input doesn't match
                                the valid_input argument.
-        :return: string literal casted into the cast_obj as per that object's rules.
+        :return: string literal casted into the cast_as as per that object's rules.
 
         :raises: RetryCountExceededError if the retry count has exceeded the n_retries limit.
 
@@ -53,7 +56,7 @@ def sanitized_input(message="", cast_as=None, number_of_retries=-1,
             validated = sanitized_input(">>>", valid_input=["string"], raise_on_invalid=True)
             # returns the value "string", and will raise InvalidInputError otherwise.
 
-            chain_cast = sanitized_input(">>>", cast_obj=[int, float])
+            chain_cast = sanitized_input(">>>", cast_as=[int, float])
             # returns an int, prompts like '2.3' won't raise a ValueError Exception.
     """
     retry_count = 0
