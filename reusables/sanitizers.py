@@ -1,3 +1,8 @@
+try:
+    from collections.abc import Iterable, Callable
+except ImportError:
+    from collections import Iterable, Callable
+
 from reusables.shared_variables import ReusablesError
 
 
@@ -9,14 +14,18 @@ class RetryCountExceededError(ReusablesError):
     pass
 
 
-def sanitized_input(message="", cast_obj=None, n_retries=-1,
+def _get_input(prompt):
+    return input(prompt)
+
+
+def sanitized_input(message="", cast_as=None, number_of_retries=-1,
                     error_msg="", valid_input=(), raise_on_invalid=False):
     """
          Function sanitized_input :
          @args
              message: string to show the user (default: "")
-             cast_obj: an object to cast the string into. Object must have a __new__
-                       method that can take a string as the first positionnal argument
+             cast_as: an object to cast the string into. Object must have a __new__
+                       method that can take a string as the first positional argument
                        and be a subclass of type.
                        The object should raise a ValueError exception if a
                        string can't be cast into that object.
@@ -27,7 +36,7 @@ def sanitized_input(message="", cast_obj=None, n_retries=-1,
              error_msg: message to show the user before asking the input again in
                         case an error occurs (default: repr of the exception)
              valid_input: an iterable to check if the result is allowed.
-             raise_on_invalid: boolean, wether this function will raise a
+             raise_on_invalid: boolean, whether this function will raise a
                                reusables.InvalidInputError if the input doesn't match
                                the valid_input argument.
         @returns
@@ -42,22 +51,20 @@ def sanitized_input(message="", cast_obj=None, n_retries=-1,
             chain_cast = sanitized_input(">>>", cast_obj=[int, float])
                 >>> returns an int, prompts like '2.3' won't raise a ValueError Exception.
     """
-    retry_cnt = 0
+    retry_count = 0
 
-    cast_obj = cast_obj if cast_obj is not None else str
-    if isinstance(cast_obj, type):
-        cast_objects = (cast_obj, )
-    elif isinstance(cast_obj, tuple) or isinstance(cast_obj, list):
-        cast_objects = list(cast_obj)
-    else:
-        raise ValueError("ValueError: argument 'cast_obj'"
-                         "cannot be of type '{}'".format(type(cast_obj)))
+    cast_as = cast_as if cast_as is not None else str
+    cast_objects = list(cast_as) if isinstance(cast_as, Iterable) else (cast_as, )
+    for cast_obj in cast_objects:
+        if not isinstance(cast_obj, Callable):
+            raise ValueError("ValueError: argument 'cast_as'"
+                             "cannot be of type '{}'".format(type(cast_as)))
 
     if not hasattr(valid_input, '__iter__'):
         valid_input = (valid_input, )
-    while (retry_cnt < n_retries) or n_retries < 0:
+    while retry_count < number_of_retries or number_of_retries < 0:
         try:
-            rv = input(message)
+            rv = _get_input(message)
             for cast_obj in reversed(cast_objects):
                 rv = cast_obj(rv)
             if not valid_input or rv in valid_input:
@@ -67,13 +74,13 @@ def sanitized_input(message="", cast_obj=None, n_retries=-1,
                                         "in function 'sanitized_input' of {}".format(__name__))
         except ValueError as e:
             print(error_msg if error_msg else repr(e))
-            retry_cnt += 1
+            retry_count += 1
             continue
         except InvalidInputError as e:
             if raise_on_invalid:
                 raise e
             print(error_msg if error_msg else repr(e))
-            retry_cnt += 1
+            retry_count += 1
             continue
     raise RetryCountExceededError("RetryCountExceededError : count exceeded in"
                                   "function 'sanitized_input' of {}".format(__name__))
