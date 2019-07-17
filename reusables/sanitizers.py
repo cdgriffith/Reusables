@@ -67,24 +67,20 @@ def sanitized_input(message="", cast_as=None, number_of_retries=-1,
 
     if not hasattr(valid_input, '__iter__'):
         valid_input = (valid_input, )
+
     while retry_count < number_of_retries or number_of_retries == -1:
         try:
-            rv = _get_input(message)
+            return_value = _get_input(message)
             for cast_obj in reversed(cast_objects):
-                rv = cast_obj(rv)
-            if not valid_input or rv in valid_input:
-                return rv
-            else:
+                return_value = cast_obj(return_value)
+            if valid_input and return_value not in valid_input:
                 raise InvalidInputError("InvalidInputError: input invalid"
                                         "in function 'sanitized_input' of {}".format(__name__))
-        except ValueError as e:
-            print(error_message.format(error=str(e)) if error_message else repr(e))
-            retry_count += 1
-            continue
-        except InvalidInputError as e:
-            if raise_on_invalid:
-                raise e
-            print(error_message.format(error=str(e)) if error_message else repr(e))
+            return return_value
+        except (InvalidInputError, ValueError) as err:
+            if raise_on_invalid and type(err).__name__ == "InvalidInputError":
+                raise err
+            print(error_message.format(error=str(err)) if error_message else repr(err))
             retry_count += 1
             continue
     raise RetryCountExceededError("RetryCountExceededError : count exceeded in"
