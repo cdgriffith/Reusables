@@ -78,13 +78,13 @@ def sanitized_input(message="", cast_as=None, number_of_retries=-1,
                 raise InvalidInputError("InvalidInputError: input invalid"
                                         "in function 'sanitized_input' of {}".format(__name__))
         except ValueError as e:
-            print(error_message.format(error=e.message) if error_message else e.message)
+            print(error_message.format(error=str(e)) if error_message else repr(e))
             retry_count += 1
             continue
         except InvalidInputError as e:
             if raise_on_invalid:
                 raise e
-            print(error_message.format(error=e.message) if error_message else e.message)
+            print(error_message.format(error=str(e)) if error_message else repr(e))
             retry_count += 1
             continue
     raise RetryCountExceededError("RetryCountExceededError : count exceeded in"
