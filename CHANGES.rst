@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 1.0.0
+-------------
+
+- Breaking change: Python 3.6+ only upgrade!
+- Breaking change: Removing touch function in favor of native Path.touch
+- Breaking change: Removing all 'enable_scandir' parameters
+
+
+
 Version 0.9.4
 -------------
 
