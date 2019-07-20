@@ -64,11 +64,11 @@ class TestWeb(BaseTestClass):
             assert False
 
     def test_url_to_ip(self):
-        assert reusables.url_to_ip("xdxd.in") == '172.99.117.254'
+        assert len(reusables.url_to_ip("xdxd.in").split(".")) == 4
         assert not reusables.url_to_ip('9999999999999999999')
 
     def test_url_to_ips(self):
-        assert reusables.url_to_ips("xdxd.in") == ['172.99.117.254']
+        assert len(reusables.url_to_ips("xdxd.in")[0].split(".")) == 4
         assert not reusables.url_to_ips('9999999999999999999')
 
     def test_ip_to_url(self):

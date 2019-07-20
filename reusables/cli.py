@@ -116,7 +116,7 @@ def find(name=None, ext=None, directory=".", match_case=False,
     """
     return find_files_list(directory=directory, ext=ext, name=name,
                            match_case=match_case, disable_glob=disable_glob,
-                           depth=depth)
+                           depth=depth, disable_pathlib=True)
 
 
 def head(file_path, lines=10, encoding="utf-8", printed=True,

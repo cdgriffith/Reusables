@@ -66,10 +66,10 @@ class TestReuseLogging(BaseTestClass):
         assert "Example error log" in lines[1]
 
     def test_change_log_level(self):
-        logger = reusables.get_logger(__name__,
-                                      level=logging.WARNING,
-                                      stream=None,
-                                      file_path=my_stream_path)
+        logger = reusables.setup_logger(__name__,
+                                        level=logging.WARNING,
+                                        stream=None,
+                                        file_path=my_stream_path)
         logger.debug("Hello There, sexy")
         reusables.change_logger_levels(__name__, 10)
         logger.debug("This isn't a good idea")
@@ -79,8 +79,8 @@ class TestReuseLogging(BaseTestClass):
         assert "good idea" in line, line
 
     def test_get_file_logger(self):
-        logger = reusables.get_logger(__name__, stream=None,
-                                      file_path=my_stream_path)
+        logger = reusables.setup_logger(__name__, stream=None,
+                                        file_path=my_stream_path)
         logger.info("Test log")
         logger.error("Example 2nd error log")
         reusables.remove_file_handlers(logger)
@@ -91,11 +91,11 @@ class TestReuseLogging(BaseTestClass):
         assert "Example 2nd error log" in lines[1]
 
     def test_add_null(self):
-        logger = reusables.get_logger("add_null", stream=None, suppress_warning=True)
+        logger = reusables.setup_logger("add_null", stream=None, suppress_warning=True)
         assert isinstance(logger.handlers[0], logging.NullHandler)
 
     def test_remove_stream_handlers(self):
-        logger = reusables.get_logger("sample_stream_logger", file_path=my_stream_path)
+        logger = reusables.setup_logger("sample_stream_logger", file_path=my_stream_path)
         logger.addHandler(logging.NullHandler())
         for _ in range(10):
             logger.addHandler(reusables.get_stream_handler())
@@ -105,7 +105,7 @@ class TestReuseLogging(BaseTestClass):
         reusables.remove_all_handlers(logger)
 
     def test_remove_file_handlers(self):
-        logger = reusables.get_logger("sample_file_logger", file_path=my_stream_path)
+        logger = reusables.setup_logger("sample_file_logger", file_path=my_stream_path)
         logger.addHandler(logging.FileHandler("test_file"))
         logger.addHandler(logging.NullHandler())
         reusables.remove_file_handlers("sample_file_logger")
@@ -120,7 +120,7 @@ class TestReuseLogging(BaseTestClass):
     def test_add_rotate_file_handlers(self):
         from logging.handlers import RotatingFileHandler,\
             TimedRotatingFileHandler
-        logger = reusables.get_logger("add_file")
+        logger = reusables.setup_logger("add_file")
         reusables.remove_all_handlers(logger)
         reusables.add_rotating_file_handler("add_file")
         assert isinstance(logger.handlers[0], RotatingFileHandler), logger.handlers
@@ -130,7 +130,7 @@ class TestReuseLogging(BaseTestClass):
         reusables.remove_all_handlers("add_file")
 
     def test_add_simple_handlers(self):
-        logger = reusables.get_logger("test1")
+        logger = reusables.setup_logger("test1")
         reusables.remove_all_handlers("test1")
         reusables.add_stream_handler("test1")
         assert isinstance(logger.handlers[0], logging.StreamHandler)

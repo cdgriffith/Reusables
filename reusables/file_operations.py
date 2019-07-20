@@ -3,7 +3,7 @@
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2017 - Chris Griffith - MIT License
+# Copyright (c) 2014-2019 - Chris Griffith - MIT License
 import os
 import zipfile
 import tarfile
@@ -12,6 +12,7 @@ import csv
 import json
 import hashlib
 import glob
+import shutil
 from collections import defaultdict
 try:
     import ConfigParser as ConfigParser
@@ -27,7 +28,7 @@ __all__ = ['load_json', 'list_to_csv', 'save_json', 'csv_to_list',
            'directory_duplicates', 'dup_finder', 'file_hash', 'find_files',
            'find_files_list', 'join_here', 'join_paths',
            'remove_empty_directories', 'remove_empty_files',
-           'safe_filename', 'safe_path', 'touch']
+           'safe_filename', 'safe_path', 'touch', 'sync_dirs']
 
 logger = logging.getLogger('reusables')
 
@@ -168,7 +169,8 @@ def archive(files_to_archive, name="archive.zip", archive_type=None,
                     raise OSError("File {0} does not exist".format(file_path))
                 write(file_path)
             elif os.path.isdir(file_path):
-                for nf in find_files(file_path, abspath=False, depth=depth):
+                for nf in find_files(file_path, abspath=False,
+                                     depth=depth, disable_pathlib=True):
                     write(nf)
     except (Exception, KeyboardInterrupt) as err:
         logger.exception("Could not archive {0}".format(files_to_archive))
@@ -327,7 +329,7 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
     if auto_find:
         cfg_files.extend(find_files_list(
             current_root if isinstance(auto_find, bool) else auto_find,
-            ext=(".cfg", ".config", ".ini")))
+            ext=(".cfg", ".config", ".ini"), disable_pathlib=True))
 
     logger.info("config files to be used: {0}".format(cfg_files))
 
@@ -462,11 +464,14 @@ def count_files(*args, **kwargs):
 
 def find_files(directory=".", ext=None, name=None,
                match_case=False, disable_glob=False, depth=None,
-               abspath=False, enable_scandir=False):
+               abspath=False, enable_scandir=False, disable_pathlib=False):
     """
     Walk through a file directory and return an iterator of files
     that match requirements. Will autodetect if name has glob as magic
     characters.
+
+    Returns pathlib objects by default with Python versions 3.4 or grater
+    unless disable_pathlib is enabled.
 
     Note: For the example below, you can use find_files_list to return as a
     list, this is simply an easy way to show the output.
@@ -497,8 +502,15 @@ def find_files(directory=".", ext=None, name=None,
     :param depth: How many directories down to search
     :param abspath: Return files with their absolute paths
     :param enable_scandir: on python < 3.5 enable external scandir package
+    :param disable_pathlib: only return string, not path objects
     :return: generator of all files in the specified directory
     """
+    def pathed(path):
+        if python_version < (3, 4) or disable_pathlib:
+            return path
+        import pathlib
+        return pathlib.Path(path)
+
     if ext or not name:
         disable_glob = True
     if not disable_glob:
@@ -522,7 +534,7 @@ def find_files(directory=".", ext=None, name=None,
                                  "either disable glob or not set match_case")
             glob_generator = glob.iglob(os.path.join(root, name))
             for item in glob_generator:
-                yield item
+                yield pathed(item)
             continue
 
         for file_name in files:
@@ -538,7 +550,7 @@ def find_files(directory=".", ext=None, name=None,
                     continue
                 elif name.lower() not in file_name.lower():
                     continue
-            yield os.path.join(root, file_name)
+            yield pathed(os.path.join(root, file_name))
 
 
 def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True,
@@ -703,7 +715,7 @@ def directory_duplicates(directory, hash_type='md5', **kwargs):
     :return: list of lists of dups"""
     size_map, hash_map = defaultdict(list), defaultdict(list)
 
-    for item in find_files(directory, **kwargs):
+    for item in find_files(directory, disable_pathlib=True, **kwargs):
         file_size = os.path.getsize(item)
         size_map[file_size].append(item)
 
@@ -851,6 +863,51 @@ def safe_path(path, replacement="_"):
             not sanitized_path.endswith(os.sep)):
         sanitized_path += os.sep
     return sanitized_path
+
+
+def sync_dirs(dir1, dir2, checksums=True, overwrite=False,
+              only_log_errors=True):
+    """
+    Make sure all files in directory 1 exist in directory 2.
+
+    :param dir1: Copy from
+    :param dir2: Copy too
+    :param checksums: Use hashes to make sure file contents match
+    :param overwrite: If sizes don't match, overwrite with file from dir 1
+    :param only_log_errors: Do not raise copy errors, only log them
+    :return: None
+    """
+    def cp(f1, f2):
+        try:
+            shutil.copy(f1, f2)
+        except OSError:
+            if only_log_errors:
+                logger.error("Could not copy {} to {}".format(f1, f2))
+            else:
+                raise
+
+    for file in find_files(dir1, disable_pathlib=True):
+        path_two = os.path.join(dir2, file[len(dir1)+1:])
+        try:
+            os.makedirs(os.path.dirname(path_two))
+        except OSError:
+            pass  # Because exists_ok doesn't exist in 2.x
+        if os.path.exists(path_two):
+            if os.path.getsize(file) != os.path.getsize(path_two):
+                logger.info("File sizes do not match: "
+                            "{} - {}".format(file, path_two))
+                if overwrite:
+                    logger.info("Overwriting {}".format(path_two))
+                    cp(file, path_two)
+            elif checksums and (file_hash(file) != file_hash(path_two)):
+                logger.warning("Files do not match: "
+                               "{} - {}".format(file, path_two))
+                if overwrite:
+                    logger.info("Overwriting {}".format(file, path_two))
+                    cp(file, path_two)
+        else:
+            logger.info("Copying {} to {}".format(file, path_two))
+            cp(file, path_two)
 
 
 

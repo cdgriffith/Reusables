@@ -18,6 +18,7 @@ from reusables.shared_variables import *
 from reusables.tasker import *
 from reusables.web import *
 from reusables.wrappers import *
+from reusables.sanitizers import *
 
 __author__ = "Chris Griffith"
-__version__ = "0.9.3"
+__version__ = "0.9.4"
