@@ -84,4 +84,3 @@ class TestSanitizedInput(BaseTestClass):
             assert isinstance(reusables.sanitized_input(cast_obj=[int, float]), int)
             self.assertRaises(ValueError,
                               reusables.sanitized_input, **kwargs)
-
