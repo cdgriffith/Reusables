@@ -5,7 +5,7 @@ import os
 
 from .common_test_data import *
 
-from reusables import unique, lock_it, time_it, queue_it, get_logger, \
+from reusables import unique, lock_it, time_it, queue_it, setup_logger, \
     log_exception, remove_file_handlers, retry_it, catch_it, ReusablesError
 
 
@@ -120,7 +120,7 @@ class TestWrappers(BaseTestClass):
         Validate the message passed to the custom log exception is written
         correctly in the logs.
         """
-        get_logger("my_logger", file_path="out.log")
+        setup_logger("my_logger", file_path="out.log")
         message = "I would like to take this moment to say something " \
                   "interesting has happened. "
 

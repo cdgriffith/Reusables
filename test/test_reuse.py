@@ -105,20 +105,19 @@ Key2 = Value2
             raise AssertionError("Should raise type error")
 
     def test_find_files(self):
-        resp = reusables.find_files_list(test_root, ext=".cfg", abspath=True)
+        resp = reusables.find_files_list(test_root, ext=".cfg", abspath=True, disable_pathlib=True)
         assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
 
     def test_find_files_multi_ext(self):
-        resp = reusables.find_files_list(test_root, ext=[".cfg", ".nope"])
+        resp = reusables.find_files_list(test_root, ext=[".cfg", ".nope"], disable_pathlib=True)
         assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
 
     def test_find_files_name(self):
-        resp = reusables.find_files_list(test_root, name="test_config")
+        resp = reusables.find_files_list(test_root, name="test_config", disable_pathlib=True)
         assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
 
     def test_find_files_bad_ext(self):
-        resp = iter(reusables.find_files(test_root,
-                                                   ext={'test': '.txt'}))
+        resp = iter(reusables.find_files(test_root, ext={'test': '.txt'}, disable_pathlib=True))
         self.assertRaises(TypeError, next, resp)
 
     def test_find_file_sad_bad(self):
@@ -137,7 +136,7 @@ Key2 = Value2
         assert len(resp2) == 5, resp2
 
     def test_find_files_iterator(self):
-        resp = reusables.find_files(test_root, ext=".cfg")
+        resp = reusables.find_files(test_root, ext=".cfg", disable_pathlib=True)
         assert not isinstance(resp, list)
         resp = [x for x in resp]
         assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
@@ -434,7 +433,7 @@ Key2 = Value2
         assert len(dups) == 1, len(dups)
 
     def test_find_with_scandir(self):
-        resp = reusables.find_files_list(test_root, ext=[".cfg", ".nope"], enable_scandir=True)
+        resp = reusables.find_files_list(test_root, ext=[".cfg", ".nope"], enable_scandir=True, disable_pathlib=True)
         assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
 
     def test_remove_with_scandir(self):
@@ -443,6 +442,22 @@ Key2 = Value2
         assert len(delete) == 8, (len(delete), delete)
         assert not [x for x in delete if "empty" not in x.lower()]
         self._remove_structure()
+
+    def test_find_file_pathlib(self):
+        if reusables.python_version >= (3, 4):
+            import pathlib
+            files = reusables.find_files_list(test_root, ext=".cfg",
+                                              abspath=True)
+            assert isinstance(files[0], pathlib.Path)
+            files2 = reusables.find_files_list(test_root, ext=".cfg",
+                                              abspath=True, disable_pathlib=True)
+            assert not isinstance(files2[0], pathlib.Path)
+
+    def test_sync_dirs(self):
+        if reusables.python_version >= (3, 4):
+            pass
+        files = reusables.find_files_list(test_root, ext=".cfg", abspath=True)
+
 
 
 if reusables.nix_based:
