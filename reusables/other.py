@@ -6,6 +6,8 @@
 # Copyright (c) 2014-2019 - Chris Griffith - MIT License
 from contextlib import contextmanager
 
+__all__ = ['ignored']
+
 
 @contextmanager
 def ignored(*exceptions):
