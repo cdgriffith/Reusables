@@ -45,3 +45,4 @@ test/fake_dir
 *.sqlite-shm
 *.sqlite-wal
 *.ignore
+release.bat

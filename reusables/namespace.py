@@ -3,7 +3,7 @@
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2017 - Chris Griffith - MIT License
+# Copyright (c) 2014-2019 - Chris Griffith - MIT License
 """
 Improved dictionary management. Inspired by
 javascript style referencing, as it's one of the few things they got right.

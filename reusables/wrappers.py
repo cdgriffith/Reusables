@@ -3,7 +3,7 @@
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2017 - Chris Griffith - MIT License
+# Copyright (c) 2014-2019 - Chris Griffith - MIT License
 from __future__ import absolute_import
 import time
 from threading import Lock
