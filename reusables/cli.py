@@ -3,7 +3,7 @@
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2017 - Chris Griffith - MIT License
+# Copyright (c) 2014-2019 - Chris Griffith - MIT License
 """ Functions to only be in an interactive instances to ease life. """
 from __future__ import absolute_import
 import os

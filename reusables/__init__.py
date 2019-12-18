@@ -3,7 +3,7 @@
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2017 - Chris Griffith - MIT License
+# Copyright (c) 2014-2019 - Chris Griffith - MIT License
 from __future__ import absolute_import
 
 from reusables.string_manipulation import *
@@ -19,6 +19,7 @@ from reusables.tasker import *
 from reusables.web import *
 from reusables.wrappers import *
 from reusables.sanitizers import *
+from reusables.other import *
 
 __author__ = "Chris Griffith"
-__version__ = "0.9.4"
+__version__ = "0.9.5"

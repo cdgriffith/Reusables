@@ -3,7 +3,7 @@
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2017 - Chris Griffith - MIT License
+# Copyright (c) 2014-2019 - Chris Griffith - MIT License
 from __future__ import absolute_import
 import datetime
 import re
@@ -81,8 +81,8 @@ def datetime_from_iso(iso_string):
 
     .. code :: python
 
-        reusables.datetime_from_iso('2017-03-10T12:56:55.031863')
-        datetime.datetime(2017, 3, 10, 12, 56, 55, 31863)
+        reusables.datetime_from_iso('2019-03-10T12:56:55.031863')
+        datetime.datetime(2019, 3, 10, 12, 56, 55, 31863)
 
     :param iso_string: string of an ISO datetime
     :return: DateTime object

@@ -336,8 +336,8 @@ Easy formatting for datetime objects. Also parsing for ISO formatted time.
                             command="Get out of bed!")
         # "Wake up John, it's 09:51 AM! I don't care if it's a Saturday, Get out of bed!!"
 
-        reusables.datetime_from_iso('2017-03-10T12:56:55.031863')
-        # datetime.datetime(2017, 3, 10, 12, 56, 55, 31863)
+        reusables.datetime_from_iso('2019-03-10T12:56:55.031863')
+        # datetime.datetime(2019, 3, 10, 12, 56, 55, 31863)
 
 
 Examples based on  Mon Mar 28 13:27:11 2016
@@ -437,19 +437,3 @@ This does not claim to provide the most accurate, fastest or most 'pythonic'
 way to implement these useful snippets, this is simply designed for easy
 reference. Any contributions that would help add functionality or
 improve existing code is warmly welcomed!
-
-.. toctree::
-   :maxdepth: 2
-
-   file_operations
-   tasker
-   log
-   datetime
-   namespace
-   web
-   multiprocess_helpers
-   cli
-   wrappers
-   numbers
-   changelog
-

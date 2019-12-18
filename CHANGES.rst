@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 0.9.5
+-------------
+
+- Adding `ignored` context manager (Thanks to Dogeek)
+
 Version 0.9.4
 -------------
 
