@@ -10,6 +10,8 @@ from threading import Lock
 from functools import wraps
 from collections import defaultdict
 import logging
+import io
+import contextlib
 try:
     import queue as _queue
 except ImportError:
@@ -17,8 +19,10 @@ except ImportError:
 
 from reusables.shared_variables import python_version, ReusablesError
 
-__all__ = ['unique', 'time_it', 'catch_it', 'log_exception', 'retry_it',
-           'lock_it', 'queue_it']
+__all__ = [
+    'unique', 'time_it', 'catch_it', 'log_exception', 'retry_it',
+    'lock_it', 'queue_it', 'log_function', 'LoggerIOWrapper',
+]
 
 logger = logging.getLogger("reusables.wrappers")
 g_lock = Lock()
@@ -225,7 +229,7 @@ def queue_it(queue=g_queue, **put_args):
 
 
 def log_exception(log="reusables", message=None, exceptions=(Exception, ),
-                  level=logging.ERROR, show_traceback=True):
+                  level=logging.ERROR, show_traceback=True, suppress=False):
     """
     Wrapper. Log the traceback to any exceptions raised. Possible to raise
     custom exception.
@@ -246,11 +250,19 @@ def log_exception(log="reusables", message=None, exceptions=(Exception, ),
     Message format options: {func} {err} {args} {kwargs}
 
     :param exceptions: types of exceptions to catch
+    :type exceptions: tuple<Exception>
     :param log: log name to use
+    :type log: str or logging.Logger
     :param message: message to use in log
+    :type message: str
     :param level: logging level
+    :type level: str
     :param show_traceback: include full traceback or just error message
+    :type show_traceback: bool
+    :param suppress: Whether to raise or suppress the exception after logging it, defaults to False
+    :type suppress: bool
     """
+    logger = logging.getLogger(log) if isinstance(log, str) else log
     def func_wrapper(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -261,13 +273,15 @@ def log_exception(log="reusables", message=None, exceptions=(Exception, ),
             try:
                 return func(*args, **kwargs)
             except exceptions as err:
-                my_logger = (logging.getLogger(log) if isinstance(log, str)
-                             else log)
-                my_logger.log(level, msg.format(func=func.__name__,
-                                                err=str(err),
-                                                args=args, kwargs=kwargs),
-                              exc_info=show_traceback)
-                raise err
+                logger.log(
+                    level, msg.format(
+                        func=func.__name__, err=str(err),
+                        args=args, kwargs=kwargs
+                    ),
+                    exc_info=show_traceback,
+                )
+                if not suppress:
+                    raise err
         return wrapper
     return func_wrapper
 
@@ -315,7 +329,7 @@ def retry_it(exceptions=(Exception, ), tries=10, wait=0, handler=None,
     :param exceptions: tuple of exceptions to catch
     :param tries: number of tries to retry the function
     :param wait: time to wait between executions in seconds
-    :param handler: function to check if output is valid, must return bool 
+    :param handler: function to check if output is valid, must return bool
     :param raised_exception: default is ReusablesError
     :param raised_message: message to pass to raised exception
     """
@@ -350,3 +364,57 @@ def retry_it(exceptions=(Exception, ), tries=10, wait=0, handler=None,
         return wrapper
     return func_wrapper
 
+
+def log_function(logger=None):
+    """
+    Decorator that logs function calls with their arguments to the specified logger.
+    :param logger: logger to log function calls to, defaults to the root logger
+    :type logger: logging.Logger
+    """
+    if logger is None:
+        logger = logging.getLogger()
+    def wrapper(func):
+        def decorated(*a, **kw):
+            nonlocal logger
+            args = list(zip(func.__code__.co_varnames, a))
+            kwargs = list(kw.items())
+            argslist = ', '.join('%s=%s' % i for i in args + kwargs)
+            logger.info('Calling %s with arguments %s', func.__name__, argslist)
+            return func(*a, **kw)
+        return decorated
+    return wrapper
+
+
+class LoggerIOWrapper(io.IOBase):
+    '''
+    A wrapper around logging.Logger in order to set the logger as a standard stream
+    such as redirecting the sys.stdout input like so
+    sys.stdout = LoggerIOWrapper(logging.getLogger(__name__))
+
+    :param logger: logger to log the messages to.
+    :type logger: logging.Logger
+    '''
+    def __init__(self, logger):
+        super().__init__()
+        self.logger = logger
+
+    def close(self):
+        handlers = (h for h in self.logger.handlers if isinstance(h, logging.FileHandler))
+        if handlers:
+            for h in handlers:
+                h.stream.close()
+
+    def fileno(self):
+        for h in self.logger.handlers:
+            with contextlib.suppress(OSError):
+                return h.stream.fileno()
+        raise OSError()
+
+    def write(self, message, *args, level=logging.DEBUG, exc_info=False):
+        self.logger.log(level, message, *args, exc_info=exc_info)
+
+    def writeable(self):
+        return True
+
+    def readable(self):
+        return False
