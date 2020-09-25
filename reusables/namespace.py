@@ -1,14 +1,15 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2019 - Chris Griffith - MIT License
+# Copyright (c) 2014-2020 - Chris Griffith - MIT License
 """
 Improved dictionary management. Inspired by
 javascript style referencing, as it's one of the few things they got right.
 """
 import sys
+
 try:
     from collections.abc import Mapping, Iterable
 except ImportError:
@@ -18,7 +19,7 @@ except ImportError:
 if sys.version_info >= (3, 0):
     basestring = str
 
-__all__ = ['Namespace', 'ConfigNamespace', 'ProtectedDict', 'ns', 'cns']
+__all__ = ["Namespace", "ConfigNamespace", "ProtectedDict", "ns", "cns"]
 
 
 def _recursive_create(self, iterable):
@@ -39,7 +40,7 @@ class Namespace(dict):
         - namespace['spam'].eggs
     """
 
-    _protected_keys = dir({}) + ['to_dict', 'tree_view']
+    _protected_keys = dir({}) + ["to_dict", "tree_view"]
 
     def __init__(self, *args, **kwargs):
         if len(args) == 1:
@@ -52,8 +53,7 @@ class Namespace(dict):
             else:
                 raise ValueError("First argument must be mapping or iterable")
         elif args:
-            raise TypeError("Namespace expected at most 1 argument, "
-                            "got {0}".format(len(args)))
+            raise TypeError("Namespace expected at most 1 argument, " "got {0}".format(len(args)))
         _recursive_create(self, kwargs.items())
 
     def __contains__(self, item):
@@ -133,9 +133,12 @@ def tree_view(dictionary, level=0, sep="|  "):
     """
     View a dictionary as a tree.
     """
-    return "".join(["{0}{1}\n{2}".format(sep * level, k,
-                   tree_view(v, level + 1, sep=sep) if isinstance(v, dict)
-                   else "") for k, v in dictionary.items()])
+    return "".join(
+        [
+            "{0}{1}\n{2}".format(sep * level, k, tree_view(v, level + 1, sep=sep) if isinstance(v, dict) else "")
+            for k, v in dictionary.items()
+        ]
+    )
 
 
 class ConfigNamespace(Namespace):
@@ -152,9 +155,17 @@ class ConfigNamespace(Namespace):
 
     """
 
-    _protected_keys = dir({}) + ['to_dict', 'tree_view',
-                                 'bool', 'int', 'float', 'list', 'getboolean',
-                                 'getfloat', 'getint']
+    _protected_keys = dir({}) + [
+        "to_dict",
+        "tree_view",
+        "bool",
+        "int",
+        "float",
+        "list",
+        "getboolean",
+        "getfloat",
+        "getint",
+    ]
 
     def __getattr__(self, item):
         """Config file keys are stored in lower case, be a little more
@@ -181,8 +192,7 @@ class ConfigNamespace(Namespace):
         if isinstance(item, (bool, int)):
             return bool(item)
 
-        if (isinstance(item, str) and
-           item.lower() in ('n', 'no', 'false', 'f', '0')):
+        if isinstance(item, str) and item.lower() in ("n", "no", "false", "f", "0"):
             return False
 
         return True if item else False
@@ -298,6 +308,7 @@ class ProtectedDict(dict):
         for key, value in self.items():
             hashed ^= hash((key, value))
         return hashed
+
 
 ns = Namespace
 cns = ConfigNamespace

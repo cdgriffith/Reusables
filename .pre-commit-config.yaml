@@ -1,0 +1,16 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.5.0
+    hooks:
+    - id: mixed-line-ending
+    - id: trailing-whitespace
+    - id: requirements-txt-fixer
+    - id: fix-encoding-pragma
+    - id: check-byte-order-marker
+    - id: debug-statements
+    - id: check-yaml
+-   repo: https://github.com/ambv/black
+    rev: stable
+    hooks:
+    - id: black
+      args: [--config=.black.toml]

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2019 - Chris Griffith - MIT License
+# Copyright (c) 2014-2020 - Chris Griffith - MIT License
 """
 Logging helper functions and common log formats.
 """
@@ -11,31 +11,48 @@ from __future__ import absolute_import
 import warnings
 import logging
 import sys
-from logging.handlers import (RotatingFileHandler,
-                              TimedRotatingFileHandler)
+import io
+import contextlib
+from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 
 from reusables.namespace import Namespace
 from reusables.shared_variables import sizes
+from reusables.wrappers import log_it, log_exception
 
-__all__ = ['log_formats', 'get_logger', 'setup_logger', 'get_registered_loggers',
-           'get_file_handler', 'get_stream_handler', 'add_file_handler',
-           'add_stream_handler', 'add_rotating_file_handler',
-           'add_timed_rotating_file_handler', 'change_logger_levels',
-           'remove_all_handlers', 'remove_file_handlers',
-           'remove_stream_handlers', 'setup_logger']
+__all__ = [
+    "log_formats",
+    "get_logger",
+    "setup_logger",
+    "get_registered_loggers",
+    "get_file_handler",
+    "get_stream_handler",
+    "add_file_handler",
+    "add_stream_handler",
+    "add_rotating_file_handler",
+    "add_timed_rotating_file_handler",
+    "change_logger_levels",
+    "remove_all_handlers",
+    "remove_file_handlers",
+    "remove_stream_handlers",
+    "setup_logger",
+    "log_it",
+    "log_exception",
+    "LoggerIOWrapper",
+]
 
-log_formats = Namespace({
-    'common': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    'level_first': '%(levelname)s - %(name)s - %(asctime)s - %(message)s',
-    'threaded': '%(relativeCreated)d %(threadName)s : %(message)s',
-    'easy_read': '%(asctime)s - %(name)-12s  %(levelname)-8s %(message)s',
-    'easy_thread': '%(relativeCreated)8d %(threadName)s : %(name)-12s '
-                   '%(levelname)-8s  %(message)s',
-    'detailed': '%(asctime)s : %(relativeCreated)5d %(threadName)s : %(name)s '
-                '%(levelname)s %(message)s'
-})
+log_formats = Namespace(
+    {
+        "common": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        "level_first": "%(levelname)s - %(name)s - %(asctime)s - %(message)s",
+        "threaded": "%(relativeCreated)d %(threadName)s : %(message)s",
+        "easy_read": "%(asctime)s - %(name)-12s  %(levelname)-8s %(message)s",
+        "easy_thread": "%(relativeCreated)8d %(threadName)s : %(name)-12s " "%(levelname)-8s  %(message)s",
+        "detailed": "%(asctime)s : %(relativeCreated)5d %(threadName)s : %(name)s " "%(levelname)s %(message)s",
+    }
+)
 
 if sys.version_info < (2, 7):
+
     class NullHandler(logging.Handler):
         def emit(self, record):
             pass
@@ -45,13 +62,11 @@ if sys.version_info < (2, 7):
 
 def get_logger(*args, **kwargs):
     """ Depreciated, use setup_logger"""
-    warnings.warn("get_logger is changing name to setup_logger",
-                  DeprecationWarning)
+    warnings.warn("get_logger is changing name to setup_logger", DeprecationWarning)
     return setup_logger(*args, **kwargs)
 
 
-def get_stream_handler(stream=sys.stderr, level=logging.INFO,
-                       log_format=log_formats.easy_read):
+def get_stream_handler(stream=sys.stderr, level=logging.INFO, log_format=log_formats.easy_read):
     """
     Returns a set up stream handler to add to a logger.
 
@@ -66,10 +81,13 @@ def get_stream_handler(stream=sys.stderr, level=logging.INFO,
     return sh
 
 
-def get_file_handler(file_path="out.log", level=logging.INFO,
-                     log_format=log_formats.easy_read,
-                     handler=logging.FileHandler,
-                     **handler_kwargs):
+def get_file_handler(
+    file_path="out.log",
+    level=logging.INFO,
+    log_format=log_formats.easy_read,
+    handler=logging.FileHandler,
+    **handler_kwargs,
+):
     """
     Set up a file handler to add to a logger.
 
@@ -86,9 +104,14 @@ def get_file_handler(file_path="out.log", level=logging.INFO,
     return fh
 
 
-def setup_logger(module_name=None, level=logging.INFO, stream=sys.stderr,
-                 file_path=None, log_format=log_formats.easy_read,
-                 suppress_warning=True):
+def setup_logger(
+    module_name=None,
+    level=logging.INFO,
+    stream=sys.stderr,
+    file_path=None,
+    log_format=log_formats.easy_read,
+    suppress_warning=True,
+):
     """
     Grabs the specified logger and adds wanted handlers to it. Will
     default to adding a stream handler.
@@ -106,7 +129,7 @@ def setup_logger(module_name=None, level=logging.INFO, stream=sys.stderr,
     if stream:
         new_logger.addHandler(get_stream_handler(stream, level, log_format))
     elif not file_path and suppress_warning and not new_logger.handlers:
-            new_logger.addHandler(logging.NullHandler())
+        new_logger.addHandler(logging.NullHandler())
 
     if file_path:
         new_logger.addHandler(get_file_handler(file_path, level, log_format))
@@ -115,8 +138,7 @@ def setup_logger(module_name=None, level=logging.INFO, stream=sys.stderr,
     return new_logger
 
 
-def add_stream_handler(logger=None, stream=sys.stderr, level=logging.INFO,
-                       log_format=log_formats.easy_read):
+def add_stream_handler(logger=None, stream=sys.stderr, level=logging.INFO, log_format=log_formats.easy_read):
     """
     Addes a newly created stream handler to the specified logger
 
@@ -131,8 +153,7 @@ def add_stream_handler(logger=None, stream=sys.stderr, level=logging.INFO,
     logger.addHandler(get_stream_handler(stream, level, log_format))
 
 
-def add_file_handler(logger=None, file_path="out.log", level=logging.INFO,
-                     log_format=log_formats.easy_read):
+def add_file_handler(logger=None, file_path="out.log", level=logging.INFO, log_format=log_formats.easy_read):
     """
     Addes a newly created file handler to the specified logger
 
@@ -147,11 +168,15 @@ def add_file_handler(logger=None, file_path="out.log", level=logging.INFO,
     logger.addHandler(get_file_handler(file_path, level, log_format))
 
 
-def add_rotating_file_handler(logger=None, file_path="out.log",
-                              level=logging.INFO,
-                              log_format=log_formats.easy_read,
-                              max_bytes=10*sizes.mb, backup_count=5,
-                              **handler_kwargs):
+def add_rotating_file_handler(
+    logger=None,
+    file_path="out.log",
+    level=logging.INFO,
+    log_format=log_formats.easy_read,
+    max_bytes=10 * sizes.mb,
+    backup_count=5,
+    **handler_kwargs,
+):
     """ Adds a rotating file handler to the specified logger.
 
     :param logger: logging name or object to modify, defaults to root logger
@@ -165,18 +190,29 @@ def add_rotating_file_handler(logger=None, file_path="out.log",
     if not isinstance(logger, logging.Logger):
         logger = logging.getLogger(logger)
 
-    logger.addHandler(get_file_handler(file_path, level, log_format,
-                                       handler=RotatingFileHandler,
-                                       maxBytes=max_bytes,
-                                       backupCount=backup_count,
-                                       **handler_kwargs))
+    logger.addHandler(
+        get_file_handler(
+            file_path,
+            level,
+            log_format,
+            handler=RotatingFileHandler,
+            maxBytes=max_bytes,
+            backupCount=backup_count,
+            **handler_kwargs,
+        )
+    )
 
 
-def add_timed_rotating_file_handler(logger=None, file_path="out.log",
-                                    level=logging.INFO,
-                                    log_format=log_formats.easy_read,
-                                    when='w0', interval=1, backup_count=5,
-                                    **handler_kwargs):
+def add_timed_rotating_file_handler(
+    logger=None,
+    file_path="out.log",
+    level=logging.INFO,
+    log_format=log_formats.easy_read,
+    when="w0",
+    interval=1,
+    backup_count=5,
+    **handler_kwargs,
+):
     """ Adds a timed rotating file handler to the specified logger.
     Defaults to weekly rotation, with 5 backups.
 
@@ -192,12 +228,18 @@ def add_timed_rotating_file_handler(logger=None, file_path="out.log",
     if not isinstance(logger, logging.Logger):
         logger = logging.getLogger(logger)
 
-    logger.addHandler(get_file_handler(file_path, level, log_format,
-                                       handler=TimedRotatingFileHandler,
-                                       when=when,
-                                       interval=interval,
-                                       backupCount=backup_count,
-                                       **handler_kwargs))
+    logger.addHandler(
+        get_file_handler(
+            file_path,
+            level,
+            log_format,
+            handler=TimedRotatingFileHandler,
+            when=when,
+            interval=interval,
+            backupCount=backup_count,
+            **handler_kwargs,
+        )
+    )
 
 
 def remove_stream_handlers(logger=None):
@@ -213,10 +255,11 @@ def remove_stream_handlers(logger=None):
     for handler in logger.handlers:
         # FileHandler is a subclass of StreamHandler so
         # 'if not a StreamHandler' does not work
-        if (isinstance(handler, logging.FileHandler) or
-            isinstance(handler, logging.NullHandler) or
-            (isinstance(handler, logging.Handler) and not
-                isinstance(handler, logging.StreamHandler))):
+        if (
+            isinstance(handler, logging.FileHandler)
+            or isinstance(handler, logging.NullHandler)
+            or (isinstance(handler, logging.Handler) and not isinstance(handler, logging.StreamHandler))
+        ):
             new_handlers.append(handler)
     logger.handlers = new_handlers
 
@@ -278,6 +321,44 @@ def get_registered_loggers(hide_children=False, hide_reusables=False):
     :return: list of logger names
     """
 
-    return [logger for logger in logging.Logger.manager.loggerDict.keys()
-            if not (hide_reusables and "reusables" in logger)
-            and not (hide_children and "." in logger)]
+    return [
+        logger
+        for logger in logging.Logger.manager.loggerDict.keys()
+        if not (hide_reusables and "reusables" in logger) and not (hide_children and "." in logger)
+    ]
+
+
+class LoggerIOWrapper(io.IOBase):
+    """
+    A wrapper around logging.Logger in order to set the logger as a standard stream
+    such as redirecting the sys.stdout input like so
+    sys.stdout = LoggerIOWrapper(logging.getLogger(__name__))
+
+    :param logger: logger to log the messages to.
+    :type logger: logging.Logger
+    """
+
+    def __init__(self, logger):
+        super().__init__()
+        self.logger = logger
+
+    def close(self):
+        handlers = (h for h in self.logger.handlers if isinstance(h, logging.FileHandler))
+        if handlers:
+            for h in handlers:
+                h.stream.close()
+
+    def fileno(self):
+        for handle in self.logger.handlers:
+            with contextlib.suppress(OSError):
+                return handle.stream.fileno()
+        raise OSError()
+
+    def write(self, message, *args, level=logging.DEBUG, exc_info=False):
+        self.logger.log(level, message, *args, exc_info=exc_info)
+
+    def writeable(self):
+        return True
+
+    def readable(self):
+        return False

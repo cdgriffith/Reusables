@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 import datetime
 
 import reusables
@@ -8,7 +8,6 @@ from .common_test_data import *
 
 
 class TestDateTime(BaseTestClass):
-
     def test_datetime_from_iso(self):
         test = datetime.datetime.now()
         testiso = test.isoformat()
@@ -41,11 +40,10 @@ class TestDateTime(BaseTestClass):
         assert now.hour == today.hour
 
     def test_datetime_format(self):
-        assert reusables.dtf("{hour}:{minute}:{second}"
-                             ) == datetime.datetime.now().strftime("%I:%M:%S")
-        assert reusables.dtf("{hour}:{minute}:{hour}:{24hour}:{24-hour}"
-                             ) == datetime.datetime.now().strftime(
-            "%I:%M:%I:%H:%H")
+        assert reusables.dtf("{hour}:{minute}:{second}") == datetime.datetime.now().strftime("%I:%M:%S")
+        assert reusables.dtf("{hour}:{minute}:{hour}:{24hour}:{24-hour}") == datetime.datetime.now().strftime(
+            "%I:%M:%I:%H:%H"
+        )
 
     def test_now(self):
         now = reusables.now()

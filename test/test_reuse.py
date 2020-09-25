@@ -11,7 +11,6 @@ from .common_test_data import *
 
 
 class TestReuse(BaseTestClass):
-
     @classmethod
     def setUpClass(cls):
         config_file = """[Section1]
@@ -25,28 +24,26 @@ Key2 = Value2
         if os.path.exists(test_structure):
             shutil.rmtree(test_structure)
 
-
     def test_get_config_dict(self):
-        resp = reusables.config_dict(os.path.join(test_root, 'test_config.cfg'))
-        assert resp['Section1']['key 1'] == 'value 1'
-        assert resp['Section 2'] == {}
+        resp = reusables.config_dict(os.path.join(test_root, "test_config.cfg"))
+        assert resp["Section1"]["key 1"] == "value 1"
+        assert resp["Section 2"] == {}
 
     def test_get_config_dict_auto(self):
         resp = reusables.config_dict(auto_find=test_root)
-        assert resp.get('Section1') == {'key 1': 'value 1', 'key2': 'Value2'}, resp.get('Section1')
+        assert resp.get("Section1") == {"key 1": "value 1", "key2": "Value2"}, resp.get("Section1")
 
     def test_get_config_dict_no_verify(self):
-        resp = reusables.config_dict('bad_loc.cfg', verify=False)
+        resp = reusables.config_dict("bad_loc.cfg", verify=False)
         assert resp == {}, resp
 
     def test_get_config_dict_multiple(self):
-        resp = reusables.config_dict([os.path.join(test_root, 'test_config.cfg')])
-        assert resp == {'Section1': {'key 1': 'value 1', 'key2': 'Value2'}, 'Section 2': {}}, resp
+        resp = reusables.config_dict([os.path.join(test_root, "test_config.cfg")])
+        assert resp == {"Section1": {"key 1": "value 1", "key2": "Value2"}, "Section 2": {}}, resp
 
     def test_get_config_namespace(self):
-        resp = reusables.config_namespace(os.path.join(test_root,
-                                                   'test_config.cfg'))
-        assert resp.Section1.key2 == 'Value2', str(resp.Section1)
+        resp = reusables.config_namespace(os.path.join(test_root, "test_config.cfg"))
+        assert resp.Section1.key2 == "Value2", str(resp.Section1)
 
     def test_check_bad_filename(self):
         resp = reusables.check_filename("safeFile?.text")
@@ -57,8 +54,8 @@ Key2 = Value2
         assert resp
 
     def test_safe_bad_filename(self):
-        resp = reusables.safe_filename("<\">ThatsNotaFileName.\0ThatsASpaceShip^&*")
-        assert not [x for x in ("\"", "?", "\0", "<", ">", "*") if x in resp], resp
+        resp = reusables.safe_filename('<">ThatsNotaFileName.\0ThatsASpaceShip^&*')
+        assert not [x for x in ('"', "?", "\0", "<", ">", "*") if x in resp], resp
         assert reusables.check_filename(resp)
 
     def test_safe_good_filename(self):
@@ -67,7 +64,7 @@ Key2 = Value2
         assert resp == infilename, resp
 
     def test_type_errors(self):
-        self.assertRaises(TypeError, reusables.config_dict, dict(config='1'))
+        self.assertRaises(TypeError, reusables.config_dict, dict(config="1"))
         self.assertRaises(TypeError, reusables.check_filename, tuple())
         self.assertRaises(TypeError, reusables.safe_filename, set())
         self.assertRaises(TypeError, reusables.safe_path, dict())
@@ -75,7 +72,7 @@ Key2 = Value2
     def test_hash_file(self):
         valid = "81dc9bdb52d04dc20036dbd8313ed055"
         hash_file = "1234"
-        with open(os.path.join(test_root, "test_hash"), 'w') as out_hash:
+        with open(os.path.join(test_root, "test_hash"), "w") as out_hash:
             out_hash.write(hash_file)
         resp = reusables.file_hash(os.path.join(test_root, "test_hash"))
         os.unlink(os.path.join(test_root, "test_hash"))
@@ -92,8 +89,7 @@ Key2 = Value2
     def test_count_name(self):
         self._extract_structure()
         resp = reusables.count_files(test_root, name="file_")
-        assert resp == 4, reusables.find_files_list(test_root, name="file_",
-                                                    abspath=True)
+        assert resp == 4, reusables.find_files_list(test_root, name="file_", abspath=True)
 
     def test_fail_count_files(self):
         self._extract_structure()
@@ -117,7 +113,7 @@ Key2 = Value2
         assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
 
     def test_find_files_bad_ext(self):
-        resp = iter(reusables.find_files(test_root, ext={'test': '.txt'}, disable_pathlib=True))
+        resp = iter(reusables.find_files(test_root, ext={"test": ".txt"}, disable_pathlib=True))
         self.assertRaises(TypeError, next, resp)
 
     def test_find_file_sad_bad(self):
@@ -142,8 +138,8 @@ Key2 = Value2
         assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
 
     def test_path_single(self):
-        resp = reusables.safe_path('path')
-        assert resp == 'path', resp
+        resp = reusables.safe_path("path")
+        assert resp == "path", resp
 
     def _extract_structure(self):
         tar = tarfile.open(test_structure_tar)
@@ -187,6 +183,7 @@ Key2 = Value2
     def test_extract_rar(self):
         if reusables.win_based:
             import rarfile
+
             rarfile.UNRAR_TOOL = os.path.abspath(os.path.join(test_root, "UnRAR.exe"))
         assert os.path.exists(test_structure_rar)
         reusables.extract(test_structure_rar, path=test_root, delete_on_success=False, enable_rar=True)
@@ -259,9 +256,11 @@ Key2 = Value2
             assert False
 
     def test_csv(self):
-        matrix = [["Date", "System", "Size", "INFO"],
-                  ["2016-05-10", "MAIN", 456, [1, 2]],
-                  ["2016-06-11", "SECONDARY", 4556, 66]]
+        matrix = [
+            ["Date", "System", "Size", "INFO"],
+            ["2016-05-10", "MAIN", 456, [1, 2]],
+            ["2016-06-11", "SECONDARY", 4556, 66],
+        ]
         afile = reusables.join_paths(test_root, "test.csv")
         try:
             reusables.list_to_csv(matrix, afile)
@@ -274,8 +273,8 @@ Key2 = Value2
 
         assert len(from_save) == 3
         assert from_save[0] == ["Date", "System", "Size", "INFO"], from_save[0]
-        assert from_save[1] == ["2016-05-10", "MAIN", '456', '[1, 2]'], from_save[1]
-        assert from_save[2] == ["2016-06-11", "SECONDARY", '4556', '66'], from_save[2]
+        assert from_save[1] == ["2016-05-10", "MAIN", "456", "[1, 2]"], from_save[1]
+        assert from_save[2] == ["2016-06-11", "SECONDARY", "4556", "66"], from_save[2]
 
     def test_json_save(self):
         test_data = {"Hello": ["how", "are"], "You": "?", "I'm": True, "fine": 5}
@@ -299,40 +298,40 @@ Key2 = Value2
         print(b)
 
     def test_config_reader(self):
-        cfg = reusables.config_namespace(
-            reusables.join_paths(test_root, "data", "test_config.ini"))
+        cfg = reusables.config_namespace(reusables.join_paths(test_root, "data", "test_config.ini"))
 
         assert isinstance(cfg, reusables.ConfigNamespace)
         assert cfg.General.example == "A regular string"
 
-        assert cfg["Section 2"].list(
-            "exampleList", mod=lambda x: int(x)) == [234, 123, 234, 543]
+        assert cfg["Section 2"].list("exampleList", mod=lambda x: int(x)) == [234, 123, 234, 543]
 
     def test_config_reader_bad(self):
         try:
-            cfg = reusables.config_namespace(
-                reusables.join_paths(test_root, "data", "test_bad_config.ini"))
+            cfg = reusables.config_namespace(reusables.join_paths(test_root, "data", "test_bad_config.ini"))
         except AttributeError:
             pass
         else:
             assert False
 
     def test_run(self):
-        cl = reusables.run('echo test', shell=True, stderr=None, copy_local_env=True)
+        cl = reusables.run("echo test", shell=True, stderr=None, copy_local_env=True)
         try:
             cl.check_returncode()
         except subprocess.CalledProcessError:
             pass
-        assert cl.stdout == (b'test\n' if reusables.nix_based else b'test\r\n'), cl
+        assert cl.stdout == (b"test\n" if reusables.nix_based else b"test\r\n"), cl
         import platform
-        outstr = "CompletedProcess(args='echo test', returncode=0{2}, stdout={0}'test{1}\\n')".format('b' if reusables.PY3 else '',
-                                                                                                      '\\r' if reusables.win_based else '',
-                                                                                                      'L' if reusables.win_based and platform.python_implementation() == 'PyPy' else '')
+
+        outstr = "CompletedProcess(args='echo test', returncode=0{2}, stdout={0}'test{1}\\n')".format(
+            "b" if reusables.PY3 else "",
+            "\\r" if reusables.win_based else "",
+            "L" if reusables.win_based and platform.python_implementation() == "PyPy" else "",
+        )
 
         assert str(cl) == outstr, "{0} != {1}".format(str(cl), outstr)
 
         try:
-            cl2 = reusables.run('echo test', shell=True, timeout=5)
+            cl2 = reusables.run("echo test", shell=True, timeout=5)
         except NotImplementedError:
             if reusables.PY3:
                 raise AssertionError("Should only happen on PY2")
@@ -341,7 +340,7 @@ Key2 = Value2
             if reusables.PY2:
                 raise AssertionError("Timeout should not have worked for PY2")
 
-        cl3 = reusables.run('exit 1', shell=True)
+        cl3 = reusables.run("exit 1", shell=True)
         try:
             cl3.check_returncode()
         except subprocess.CalledProcessError:
@@ -368,7 +367,7 @@ Key2 = Value2
     def test_cut(self):
 
         a = reusables.cut("abcdefghi")
-        assert a == ['ab', 'cd', 'ef', 'gh', 'i']
+        assert a == ["ab", "cd", "ef", "gh", "i"]
 
         try:
             reusables.cut("abcdefghi", 2, "error")
@@ -378,10 +377,10 @@ Key2 = Value2
             raise AssertionError("cut failed")
 
         b = reusables.cut("abcdefghi", 2, "remove")
-        assert b == ['ab', 'cd', 'ef', 'gh']
+        assert b == ["ab", "cd", "ef", "gh"]
 
         c = reusables.cut("abcdefghi", 2, "combine")
-        assert c == ['ab', 'cd', 'ef', 'ghi']
+        assert c == ["ab", "cd", "ef", "ghi"]
 
     def test_find_glob(self):
         resp = reusables.find_files_list(test_root, name="*config*")
@@ -446,11 +445,10 @@ Key2 = Value2
     def test_find_file_pathlib(self):
         if reusables.python_version >= (3, 4):
             import pathlib
-            files = reusables.find_files_list(test_root, ext=".cfg",
-                                              abspath=True)
+
+            files = reusables.find_files_list(test_root, ext=".cfg", abspath=True)
             assert isinstance(files[0], pathlib.Path)
-            files2 = reusables.find_files_list(test_root, ext=".cfg",
-                                              abspath=True, disable_pathlib=True)
+            files2 = reusables.find_files_list(test_root, ext=".cfg", abspath=True, disable_pathlib=True)
             assert not isinstance(files2[0], pathlib.Path)
 
     def test_sync_dirs(self):
@@ -459,15 +457,14 @@ Key2 = Value2
         files = reusables.find_files_list(test_root, ext=".cfg", abspath=True)
 
 
-
 if reusables.nix_based:
+
     class TestReuseLinux(unittest.TestCase):
         def test_safe_bad_path(self):
             path = "/var/lib\\/test/p?!ath/fi\0lename.txt"
             expected = "/var/lib_/test/p__ath/fi_lename.txt"
             resp = reusables.safe_path(path)
-            assert not [x for x in ("!", "?", "\0", "^", "&", "*") if
-                        x in resp], resp
+            assert not [x for x in ("!", "?", "\0", "^", "&", "*") if x in resp], resp
             assert resp == expected, resp
 
         def test_safe_good_path(self):
@@ -476,38 +473,39 @@ if reusables.nix_based:
             assert resp == path, resp
 
         def test_join_path_clean(self):
-            resp = reusables.join_paths('/test/', 'clean/', 'path')
-            assert resp == '/test/clean/path', resp
+            resp = reusables.join_paths("/test/", "clean/", "path")
+            assert resp == "/test/clean/path", resp
 
         def test_join_path_dirty(self):
-            resp = reusables.join_paths('/test/', '/dirty/', ' path.file ')
-            assert resp == '/test/dirty/path.file', resp
+            resp = reusables.join_paths("/test/", "/dirty/", " path.file ")
+            assert resp == "/test/dirty/path.file", resp
 
         def test_join_path_clean_strict(self):
-            resp = reusables.join_paths('/test/', 'clean/', 'path/')
-            assert resp == '/test/clean/path/', resp
+            resp = reusables.join_paths("/test/", "clean/", "path/")
+            assert resp == "/test/clean/path/", resp
 
         def test_join_here(self):
-            resp = reusables.join_here('clean/')
-            path = os.path.abspath(os.path.join(".", 'clean/'))
+            resp = reusables.join_here("clean/")
+            path = os.path.abspath(os.path.join(".", "clean/"))
             assert resp == path, (resp, path)
 
 
 if reusables.win_based:
+
     class TestReuseWindows(unittest.TestCase):
-            # Windows based path tests
+        # Windows based path tests
 
         def test_win_join_path_clean(self):
-            resp = reusables.join_paths('C:\\test', 'clean\\', 'path').rstrip("\\")
-            assert resp == 'C:\\test\\clean\\path', resp
+            resp = reusables.join_paths("C:\\test", "clean\\", "path").rstrip("\\")
+            assert resp == "C:\\test\\clean\\path", resp
 
         def test_win_join_path_dirty(self):
-            resp = reusables.join_paths('C:\\test\\', 'D:\\dirty', ' path.file ')
-            assert resp == 'D:\\dirty\\path.file', resp
+            resp = reusables.join_paths("C:\\test\\", "D:\\dirty", " path.file ")
+            assert resp == "D:\\dirty\\path.file", resp
 
         def test_win_join_here(self):
-            resp = reusables.join_here('clean\\')
-            path = os.path.abspath(os.path.join(".", 'clean\\'))
+            resp = reusables.join_here("clean\\")
+            path = os.path.abspath(os.path.join(".", "clean\\"))
             assert resp == path, (resp, path)
 
         def test_cant_delete_empty_file(self):

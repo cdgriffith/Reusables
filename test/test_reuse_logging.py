@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 
 
 import logging
@@ -12,6 +12,7 @@ my_stream_path = os.path.join(test_root, "my_stream.log")
 my_fiie_path = os.path.join(test_root, "my_file.log")
 
 if sys.version_info < (2, 7):
+
     class NullHandler(logging.Handler):
         def emit(self, record):
             pass
@@ -20,7 +21,6 @@ if sys.version_info < (2, 7):
 
 
 class TestReuseLogging(BaseTestClass):
-
     def setUp(self):
         logging.getLogger(__name__).handlers = []
         if os.path.exists(my_stream_path):
@@ -66,10 +66,7 @@ class TestReuseLogging(BaseTestClass):
         assert "Example error log" in lines[1]
 
     def test_change_log_level(self):
-        logger = reusables.setup_logger(__name__,
-                                        level=logging.WARNING,
-                                        stream=None,
-                                        file_path=my_stream_path)
+        logger = reusables.setup_logger(__name__, level=logging.WARNING, stream=None, file_path=my_stream_path)
         logger.debug("Hello There, sexy")
         reusables.change_logger_levels(__name__, 10)
         logger.debug("This isn't a good idea")
@@ -79,8 +76,7 @@ class TestReuseLogging(BaseTestClass):
         assert "good idea" in line, line
 
     def test_get_file_logger(self):
-        logger = reusables.setup_logger(__name__, stream=None,
-                                        file_path=my_stream_path)
+        logger = reusables.setup_logger(__name__, stream=None, file_path=my_stream_path)
         logger.info("Test log")
         logger.error("Example 2nd error log")
         reusables.remove_file_handlers(logger)
@@ -118,8 +114,8 @@ class TestReuseLogging(BaseTestClass):
         reusables.remove_all_handlers(logger)
 
     def test_add_rotate_file_handlers(self):
-        from logging.handlers import RotatingFileHandler,\
-            TimedRotatingFileHandler
+        from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
+
         logger = reusables.setup_logger("add_file")
         reusables.remove_all_handlers(logger)
         reusables.add_rotating_file_handler("add_file")
@@ -135,5 +131,3 @@ class TestReuseLogging(BaseTestClass):
         reusables.add_stream_handler("test1")
         assert isinstance(logger.handlers[0], logging.StreamHandler)
         reusables.remove_all_handlers("test1")
-
-

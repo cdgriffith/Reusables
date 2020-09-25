@@ -1,24 +1,71 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2019 - Chris Griffith - MIT License
-_roman_dict = {'I': 1, 'IV': 4, 'V': 5, 'IX': 9, 'X': 10, 'XL': 40, 'L': 50,
-               'XC': 90, 'C': 100, 'CD': 400, 'D': 500, 'CM': 900, 'M': 1000}
+# Copyright (c) 2014-2020 - Chris Griffith - MIT License
+_roman_dict = {
+    "I": 1,
+    "IV": 4,
+    "V": 5,
+    "IX": 9,
+    "X": 10,
+    "XL": 40,
+    "L": 50,
+    "XC": 90,
+    "C": 100,
+    "CD": 400,
+    "D": 500,
+    "CM": 900,
+    "M": 1000,
+}
 
 
-_numbers = {0: "zero", 1: "one", 2: "two", 3: "three", 4: "four", 5: "five",
-            6: "six", 7: "seven", 8: "eight", 9: "nine", 10: "ten",
-            11: "eleven", 12: "twelve", 13: "thirteen", 14: "fourteen",
-            15: "fifteen", 16: "sixteen", 17: "seventeen", 18: "eighteen",
-            19: "nineteen", 20: "twenty", 30: "thirty", 40: "forty",
-            50: "fifty", 60: "sixty", 70: "seventy", 80: "eighty",
-            90: "ninety"}
+_numbers = {
+    0: "zero",
+    1: "one",
+    2: "two",
+    3: "three",
+    4: "four",
+    5: "five",
+    6: "six",
+    7: "seven",
+    8: "eight",
+    9: "nine",
+    10: "ten",
+    11: "eleven",
+    12: "twelve",
+    13: "thirteen",
+    14: "fourteen",
+    15: "fifteen",
+    16: "sixteen",
+    17: "seventeen",
+    18: "eighteen",
+    19: "nineteen",
+    20: "twenty",
+    30: "thirty",
+    40: "forty",
+    50: "fifty",
+    60: "sixty",
+    70: "seventy",
+    80: "eighty",
+    90: "ninety",
+}
 
-_places = {1: "", 2: "thousand", 3: "million", 4: "billion", 5: "trillion",
-           6: "quadrillion", 7: "quintillion", 8: "sextillion",
-           9: "septillion", 10: "octillion", 11: "nonillion", 12: "decillion"}
+_places = {
+    1: "",
+    2: "thousand",
+    3: "million",
+    4: "billion",
+    5: "trillion",
+    6: "quadrillion",
+    7: "quintillion",
+    8: "sextillion",
+    9: "septillion",
+    10: "octillion",
+    11: "nonillion",
+    12: "decillion",
+}
 
 
 def cut(string, characters=2, trailing="normal"):
@@ -55,8 +102,7 @@ def cut(string, characters=2, trailing="normal"):
     :param trailing: "normal", "remove", "combine", or "error"
     :return: list of the cut string
     """
-    split_str = [string[i:i + characters] for
-                 i in range(0, len(string), characters)]
+    split_str = [string[i : i + characters] for i in range(0, len(string), characters)]
 
     if trailing != "normal" and len(split_str[-1]) != characters:
         if trailing.lower() == "remove":
@@ -64,8 +110,7 @@ def cut(string, characters=2, trailing="normal"):
         if trailing.lower() == "combine" and len(split_str) >= 2:
             return split_str[:-2] + [split_str[-2] + split_str[-1]]
         if trailing.lower() == "error":
-            raise IndexError("String of length {0} not divisible by {1} to"
-                             " cut".format(len(string), characters))
+            raise IndexError("String of length {0} not divisible by {1} to" " cut".format(len(string), characters))
     return split_str
 
 
@@ -86,8 +131,7 @@ def int_to_roman(integer):
         raise ValueError("Input integer must be of type int")
     output = []
     while integer > 0:
-        for r, i in sorted(_roman_dict.items(),
-                           key=lambda x: x[1], reverse=True):
+        for r, i in sorted(_roman_dict.items(), key=lambda x: x[1], reverse=True):
             while integer >= i:
                 output.append(r)
                 integer -= i
@@ -155,6 +199,7 @@ def int_to_words(number, european=False):
         set this parameter to True
     :return: The translated string
     """
+
     def ones(n):
         return "" if n == 0 else _numbers[n]
 
@@ -179,8 +224,7 @@ def int_to_words(number, european=False):
 
     def comma_separated(list_of_strings):
         if len(list_of_strings) > 1:
-            return "{0} ".format("" if len(list_of_strings) == 2
-                                 else ",").join(list_of_strings)
+            return "{0} ".format("" if len(list_of_strings) == 2 else ",").join(list_of_strings)
         else:
             return list_of_strings[0]
 
@@ -188,25 +232,22 @@ def int_to_words(number, european=False):
         index = 0
         group_set = int(len(list_of_numbers) / 3)
         while group_set != 0:
-            value = hundreds(list_of_numbers[index:index + 3])
+            value = hundreds(list_of_numbers[index : index + 3])
             if value:
-                final_list.append("{0} {1}".format(value, _places[group_set])
-                                  if _places[group_set] else value)
+                final_list.append("{0} {1}".format(value, _places[group_set]) if _places[group_set] else value)
             group_set -= 1
             index += 3
 
     number_list = []
     decimal_list = []
 
-    decimal = ''
+    decimal = ""
     number = str(number)
-    group_delimiter, point_delimiter = (",", ".") \
-        if not european else (".", ",")
+    group_delimiter, point_delimiter = (",", ".") if not european else (".", ",")
 
     if point_delimiter in number:
         decimal = number.split(point_delimiter)[1]
-        number = number.split(point_delimiter)[0].replace(
-            group_delimiter, "")
+        number = number.split(point_delimiter)[0].replace(group_delimiter, "")
     elif group_delimiter in number:
         number = number.replace(group_delimiter, "")
 
@@ -233,15 +274,17 @@ def int_to_words(number, european=False):
         while_loop(d, decimal_list)
 
         if decimal_list:
-            name = ''
+            name = ""
             if len(decimal) % 3 == 1:
-                name = 'ten'
+                name = "ten"
             elif len(decimal) % 3 == 2:
-                name = 'hundred'
+                name = "hundred"
 
             place = int((str(len(decimal) / 3).split(".")[0]))
-            number_list.append("and {0} {1}{2}{3}ths".format(
-                comma_separated(decimal_list), name,
-                "-" if name and _places[place+1] else "", _places[place+1]))
+            number_list.append(
+                "and {0} {1}{2}{3}ths".format(
+                    comma_separated(decimal_list), name, "-" if name and _places[place + 1] else "", _places[place + 1]
+                )
+            )
 
     return comma_separated(number_list)

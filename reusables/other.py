@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2019 - Chris Griffith - MIT License
+# Copyright (c) 2014-2020 - Chris Griffith - MIT License
 from contextlib import contextmanager
 
-__all__ = ['ignored']
+__all__ = ["ignored"]
 
 
 @contextmanager

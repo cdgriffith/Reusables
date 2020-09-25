@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 import os
 import unittest
 import shutil
@@ -14,7 +14,6 @@ test_structure = os.path.join(test_root, "test_structure")
 
 
 class BaseTestClass(unittest.TestCase):
-
     @classmethod
     def tearDownClass(cls):
         try:

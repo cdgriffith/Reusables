@@ -1,17 +1,16 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2019 - Chris Griffith - MIT License
+# Copyright (c) 2014-2020 - Chris Griffith - MIT License
 from __future__ import absolute_import
 import time
 from threading import Lock
 from functools import wraps
 from collections import defaultdict
 import logging
-import io
-import contextlib
+
 try:
     import queue as _queue
 except ImportError:
@@ -20,11 +19,17 @@ except ImportError:
 from reusables.shared_variables import python_version, ReusablesError
 
 __all__ = [
-    'unique', 'time_it', 'catch_it', 'log_exception', 'retry_it',
-    'lock_it', 'queue_it', 'log_function', 'LoggerIOWrapper',
+    "unique",
+    "time_it",
+    "catch_it",
+    "log_exception",
+    "retry_it",
+    "lock_it",
+    "queue_it",
+    "log_it",
 ]
 
-logger = logging.getLogger("reusables.wrappers")
+reusables_logger = logging.getLogger("reusables.wrappers")
 g_lock = Lock()
 g_queue = _queue.Queue()
 unique_cache = defaultdict(list)
@@ -38,8 +43,7 @@ def _add_args(message, *args, **kwargs):
     return message
 
 
-def unique(max_retries=10, wait=0, alt_return="-no_alt_return-",
-           exception=Exception, error_text=None):
+def unique(max_retries=10, wait=0, alt_return="-no_alt_return-", exception=Exception, error_text=None):
     """
     Wrapper. Makes sure the function's return value has not been returned before
     or else it run with the same inputs again.
@@ -68,11 +72,11 @@ def unique(max_retries=10, wait=0, alt_return="-no_alt_return-",
     :param alt_return: if specified, an exception is not raised on failure,
      instead the provided value of any type of will be returned
     """
+
     def func_wrap(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            msg = (error_text if error_text else
-                   "No result was unique for function '{func}'")
+            msg = error_text if error_text else "No result was unique for function '{func}'"
             if not error_text:
                 msg = _add_args(msg, *args, **kwargs)
             for i in range(max_retries):
@@ -85,9 +89,10 @@ def unique(max_retries=10, wait=0, alt_return="-no_alt_return-",
             else:
                 if alt_return != "-no_alt_return-":
                     return alt_return
-                raise exception(msg.format(func=func.__name__,
-                                           args=args, kwargs=kwargs))
+                raise exception(msg.format(func=func.__name__, args=args, kwargs=kwargs))
+
         return wrapper
+
     return func_wrap
 
 
@@ -124,12 +129,15 @@ def lock_it(lock=g_lock):
 
     :param lock: Which lock to use, uses unique default
     """
+
     def func_wrapper(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
             with lock:
                 return func(*args, **kwargs)
+
         return wrapper
+
     return func_wrapper
 
 
@@ -165,35 +173,33 @@ def time_it(log=None, message=None, append=None):
     :param message: string to format with total time as the only input
     :param append: list to append item too
     """
+
     def func_wrapper(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
             # Can't use nonlocal in 2.x
-            msg = (message if message else
-                   "Function '{func}' took a total of {seconds} seconds")
+            msg = message if message else "Function '{func}' took a total of {seconds} seconds"
             if not message:
                 msg = _add_args(msg, *args, **kwargs)
 
-            time_func = (time.perf_counter if python_version >= (3, 3)
-                         else time.time)
+            time_func = time.perf_counter if python_version >= (3, 3) else time.time
             start_time = time_func()
             try:
                 return func(*args, **kwargs)
             finally:
                 total_time = time_func() - start_time
 
-                time_string = msg.format(func=func.__name__,
-                                         seconds=total_time,
-                                         args=args, kwargs=kwargs)
+                time_string = msg.format(func=func.__name__, seconds=total_time, args=args, kwargs=kwargs)
                 if log:
-                    my_logger = logging.getLogger(log) if isinstance(log, str)\
-                                else logger
+                    my_logger = logging.getLogger(log) if isinstance(log, str) else reusables_logger
                     my_logger.info(time_string)
                 else:
                     print(time_string)
                 if isinstance(append, list):
                     append.append(total_time)
+
         return wrapper
+
     return func_wrapper
 
 
@@ -220,16 +226,20 @@ def queue_it(queue=g_queue, **put_args):
 
     :param queue: Queue to add result into
     """
+
     def func_wrapper(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
             queue.put(func(*args, **kwargs), **put_args)
+
         return wrapper
+
     return func_wrapper
 
 
-def log_exception(log="reusables", message=None, exceptions=(Exception, ),
-                  level=logging.ERROR, show_traceback=True, suppress=False):
+def log_exception(
+    log="reusables", message=None, exceptions=(Exception,), level=logging.ERROR, show_traceback=True, suppress=False
+):
     """
     Wrapper. Log the traceback to any exceptions raised. Possible to raise
     custom exception.
@@ -263,6 +273,7 @@ def log_exception(log="reusables", message=None, exceptions=(Exception, ),
     :type suppress: bool
     """
     logger = logging.getLogger(log) if isinstance(log, str) else log
+
     def func_wrapper(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -274,19 +285,19 @@ def log_exception(log="reusables", message=None, exceptions=(Exception, ),
                 return func(*args, **kwargs)
             except exceptions as err:
                 logger.log(
-                    level, msg.format(
-                        func=func.__name__, err=str(err),
-                        args=args, kwargs=kwargs
-                    ),
+                    level,
+                    msg.format(func=func.__name__, err=str(err), args=args, kwargs=kwargs),
                     exc_info=show_traceback,
                 )
                 if not suppress:
                     raise err
+
         return wrapper
+
     return func_wrapper
 
 
-def catch_it(exceptions=(Exception, ), default=None, handler=None):
+def catch_it(exceptions=(Exception,), default=None, handler=None):
     """
     If the function encounters an exception, catch it, and
     return the specified default or sent to a handler function instead.
@@ -305,6 +316,7 @@ def catch_it(exceptions=(Exception, ), default=None, handler=None):
     :param default: what to return if the exception is caught
     :param handler: function to send exception, func, *args and **kwargs
     """
+
     def func_wrapper(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -314,12 +326,15 @@ def catch_it(exceptions=(Exception, ), default=None, handler=None):
                 if handler:
                     return handler(err, func, *args, **kwargs)
                 return default
+
         return wrapper
+
     return func_wrapper
 
 
-def retry_it(exceptions=(Exception, ), tries=10, wait=0, handler=None,
-             raised_exception=ReusablesError, raised_message=None):
+def retry_it(
+    exceptions=(Exception,), tries=10, wait=0, handler=None, raised_exception=ReusablesError, raised_message=None
+):
     """
     Retry a function if an exception is raised, or if output_check returns
     False.
@@ -333,11 +348,11 @@ def retry_it(exceptions=(Exception, ), tries=10, wait=0, handler=None,
     :param raised_exception: default is ReusablesError
     :param raised_message: message to pass to raised exception
     """
+
     def func_wrapper(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            msg = (raised_message if raised_message
-                   else "Max retries exceeded for function '{func}'")
+            msg = raised_message if raised_message else "Max retries exceeded for function '{func}'"
             if not raised_message:
                 msg = _add_args(msg, *args, **kwargs)
             try:
@@ -346,26 +361,27 @@ def retry_it(exceptions=(Exception, ), tries=10, wait=0, handler=None,
                 if tries:
                     if wait:
                         time.sleep(wait)
-                    return retry_it(exceptions=exceptions, tries=tries-1,
-                                    handler=handler,
-                                    wait=wait)(func)(*args, **kwargs)
+                    return retry_it(exceptions=exceptions, tries=tries - 1, handler=handler, wait=wait)(func)(
+                        *args, **kwargs
+                    )
                 if raised_exception:
-                    exc = raised_exception(msg.format(func=func.__name__,
-                                           args=args, kwargs=kwargs))
+                    exc = raised_exception(msg.format(func=func.__name__, args=args, kwargs=kwargs))
                     exc.__cause__ = None
                     raise exc
             else:
                 if handler:
                     if not handler(result):
-                        return retry_it(exceptions=exceptions, tries=tries - 1,
-                                        handler=handler,
-                                        wait=wait)(func)(*args, **kwargs)
+                        return retry_it(exceptions=exceptions, tries=tries - 1, handler=handler, wait=wait)(func)(
+                            *args, **kwargs
+                        )
                 return result
+
         return wrapper
+
     return func_wrapper
 
 
-def log_function(logger=None):
+def log_it(logger=None):
     """
     Decorator that logs function calls with their arguments to the specified logger.
     :param logger: logger to log function calls to, defaults to the root logger
@@ -373,48 +389,18 @@ def log_function(logger=None):
     """
     if logger is None:
         logger = logging.getLogger()
+    elif isinstance(logger, str):
+        logger = logging.getLogger(logger)
+
     def wrapper(func):
         def decorated(*a, **kw):
             nonlocal logger
             args = list(zip(func.__code__.co_varnames, a))
             kwargs = list(kw.items())
-            argslist = ', '.join('%s=%s' % i for i in args + kwargs)
-            logger.info('Calling %s with arguments %s', func.__name__, argslist)
+            arg_list = ", ".join("{}={}".format(*i) for i in args + kwargs)
+            logger.info("Calling %s with arguments %s", func.__name__, arg_list)
             return func(*a, **kw)
+
         return decorated
+
     return wrapper
-
-
-class LoggerIOWrapper(io.IOBase):
-    '''
-    A wrapper around logging.Logger in order to set the logger as a standard stream
-    such as redirecting the sys.stdout input like so
-    sys.stdout = LoggerIOWrapper(logging.getLogger(__name__))
-
-    :param logger: logger to log the messages to.
-    :type logger: logging.Logger
-    '''
-    def __init__(self, logger):
-        super().__init__()
-        self.logger = logger
-
-    def close(self):
-        handlers = (h for h in self.logger.handlers if isinstance(h, logging.FileHandler))
-        if handlers:
-            for h in handlers:
-                h.stream.close()
-
-    def fileno(self):
-        for h in self.logger.handlers:
-            with contextlib.suppress(OSError):
-                return h.stream.fileno()
-        raise OSError()
-
-    def write(self, message, *args, level=logging.DEBUG, exc_info=False):
-        self.logger.log(level, message, *args, exc_info=exc_info)
-
-    def writeable(self):
-        return True
-
-    def readable(self):
-        return False

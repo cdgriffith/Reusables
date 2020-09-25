@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 try:
     from collections.abc import Iterable, Callable
 except ImportError:
@@ -21,8 +22,9 @@ def _get_input(prompt):
         return input(prompt)
 
 
-def sanitized_input(message="", cast_as=None, number_of_retries=-1,
-                    error_message="", valid_input=(), raise_on_invalid=False):
+def sanitized_input(
+    message="", cast_as=None, number_of_retries=-1, error_message="", valid_input=(), raise_on_invalid=False
+):
     """
         Clean up and cast user input.
 
@@ -62,14 +64,13 @@ def sanitized_input(message="", cast_as=None, number_of_retries=-1,
     retry_count = 0
 
     cast_as = cast_as if cast_as is not None else str
-    cast_objects = list(cast_as) if isinstance(cast_as, Iterable) else (cast_as, )
+    cast_objects = list(cast_as) if isinstance(cast_as, Iterable) else (cast_as,)
     for cast_obj in cast_objects:
         if not isinstance(cast_obj, Callable):
-            raise ValueError("ValueError: argument 'cast_as'"
-                             "cannot be of type '{}'".format(type(cast_as)))
+            raise ValueError("ValueError: argument 'cast_as'" "cannot be of type '{}'".format(type(cast_as)))
 
-    if not hasattr(valid_input, '__iter__'):
-        valid_input = (valid_input, )
+    if not hasattr(valid_input, "__iter__"):
+        valid_input = (valid_input,)
 
     while retry_count < number_of_retries or number_of_retries == -1:
         try:
@@ -77,8 +78,9 @@ def sanitized_input(message="", cast_as=None, number_of_retries=-1,
             for cast_obj in reversed(cast_objects):
                 return_value = cast_obj(return_value)
             if valid_input and return_value not in valid_input:
-                raise InvalidInputError("InvalidInputError: input invalid"
-                                        "in function 'sanitized_input' of {}".format(__name__))
+                raise InvalidInputError(
+                    "InvalidInputError: input invalid" "in function 'sanitized_input' of {}".format(__name__)
+                )
             return return_value
         except (InvalidInputError, ValueError) as err:
             if raise_on_invalid and type(err).__name__ == "InvalidInputError":
@@ -86,5 +88,6 @@ def sanitized_input(message="", cast_as=None, number_of_retries=-1,
             print(error_message.format(error=str(err)) if error_message else repr(err))
             retry_count += 1
             continue
-    raise RetryCountExceededError("RetryCountExceededError : count exceeded in"
-                                  "function 'sanitized_input' of {}".format(__name__))
+    raise RetryCountExceededError(
+        "RetryCountExceededError : count exceeded in" "function 'sanitized_input' of {}".format(__name__)
+    )

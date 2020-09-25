@@ -1,8 +1,8 @@
-pytest >= 4.1.1
 coverage >= 4.5.2
+future
+mock
+pytest >= 4.1.1
+pytest-cov
 rarfile
 scandir
 tox
-pytest-cov
-mock
-future

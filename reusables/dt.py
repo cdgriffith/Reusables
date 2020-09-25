@@ -1,19 +1,19 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2019 - Chris Griffith - MIT License
+# Copyright (c) 2014-2020 - Chris Griffith - MIT License
 from __future__ import absolute_import
 import datetime
 import re
 
 from reusables.namespace import Namespace
 
-__all__ = ['dt_exps', 'datetime_regex', 'now', 'datetime_format',
-           'datetime_from_iso', 'dtf', 'dtiso']
+__all__ = ["dt_exps", "datetime_regex", "now", "datetime_format", "datetime_from_iso", "dtf", "dtiso"]
 
-dt_exps = {"datetime": {
+dt_exps = {
+    "datetime": {
         "format": {
             "%I": re.compile(r"{(?:12)?-?hours?}"),
             "%H": re.compile(r"{24-?hours?}"),
@@ -38,21 +38,20 @@ dt_exps = {"datetime": {
             "%c": re.compile(r"{date-?time}"),
             "%z": re.compile(r"{(?:utc)?-?offset}"),
             "%p": re.compile(r"{periods?}"),
-            "%Y-%m-%dT%H:%M:%S": re.compile(r"{iso-?(?:format)?}")
+            "%Y-%m-%dT%H:%M:%S": re.compile(r"{iso-?(?:format)?}"),
         },
-        "date": re.compile(r"((?:[\d]{2}|[\d]{4})[\- _\\/]?[\d]{2}[\- _\\/]?"
-                           r"\n[\d]{2})"),
+        "date": re.compile(r"((?:[\d]{2}|[\d]{4})[\- _\\/]?[\d]{2}[\- _\\/]?" r"\n[\d]{2})"),
         "time": re.compile(r"([\d]{2}:[\d]{2}(?:\.[\d]{6})?)"),
-        "datetime": re.compile(r"((?:[\d]{2}|[\d]{4})[\- _\\/]?[\d]{2}"
-                               r"[\- _\\/]?[\d]{2}T[\d]{2}:[\d]{2}"
-                               r"(?:\.[\d]{6})?)")
+        "datetime": re.compile(
+            r"((?:[\d]{2}|[\d]{4})[\- _\\/]?[\d]{2}" r"[\- _\\/]?[\d]{2}T[\d]{2}:[\d]{2}" r"(?:\.[\d]{6})?)"
+        ),
     }
 }
 
 datetime_regex = Namespace(**dt_exps)
 
 
-def datetime_format(desired_format, datetime_instance=None,  *args, **kwargs):
+def datetime_format(desired_format, datetime_instance=None, *args, **kwargs):
     """
     Replaces format style phrases (listed in the dt_exps dictionary)
     with this datetime instance's information.
@@ -114,6 +113,7 @@ def now(utc=False, tz=None):
     :return: reusables.DateTime
     """
     return datetime.datetime.utcnow() if utc else datetime.datetime.now(tz=tz)
+
 
 dtf = datetime_format
 dtiso = datetime_from_iso
