@@ -4,9 +4,10 @@ Changelog
 Version 0.9.6
 -------------
 
-- Adding defaultlist (Thanks to Dogeek)
+- Adding #58 defaultlist (Thanks to Dogeek)
 - Adding LoggerIOWrapper (Thanks to Dogeek)
 - Adding log_it (Thanks to Dogeek)
+- Adding #57 singleton implementation (Thanks to Dogeek)
 - Changing line length to 120 and using `black` standard formatter
 
 Version 0.9.5
