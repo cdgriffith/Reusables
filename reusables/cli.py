@@ -223,7 +223,7 @@ def cp(src, dst, overwrite=False):
         source = os.path.expanduser(item)
         destination = dst if not dst_folder else os.path.join(dst, os.path.basename(source))
         if not overwrite and os.path.exists(destination):
-            _logger.warning("Not replacing {0} with {1}, overwrite not enabled" "".format(destination, source))
+            _logger.warning("Not replacing {0} with {1}, overwrite not enabled".format(destination, source))
             continue
 
         shutil.copy(source, destination)

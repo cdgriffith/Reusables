@@ -126,11 +126,11 @@ numbers_list = [
     ("89.1", "eighty-nine and one tenths"),
     ("1.00012", "one and twelve hundred-thousandths"),
     (10.10, "ten and one tenths"),
-    (0.11111, "zero and eleven thousand one hundred eleven " "hundred-thousandths"),
+    (0.11111, "zero and eleven thousand one hundred eleven hundred-thousandths"),
 ]
 
 european_numbers = [
-    ("123.456.789", "one hundred twenty-three million, four hundred " "fifty-six thousand, seven hundred eighty-nine"),
+    ("123.456.789", "one hundred twenty-three million, four hundred fifty-six thousand, seven hundred eighty-nine"),
     ("1,345", "one and three hundred forty-five thousandths"),
     ("10.000,5", "ten thousand and five tenths"),
 ]

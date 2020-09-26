@@ -101,7 +101,7 @@ class Tasker(object):
                 try:
                     self.current_tasks[task_id]["proc"].terminate()
                 except Exception as err:
-                    self.log.exception("Error while terminating " "task {} - {}".format(task_id, err))
+                    self.log.exception("Error while terminating task {} - {}".format(task_id, err))
                 self.free_tasks.append(task_id)
             else:
                 still_busy.append(task_id)
@@ -218,7 +218,7 @@ class Tasker(object):
             try:
                 new_size = int(cmd.split(" ")[-1])
             except Exception as err:
-                self.log.warning("Received improperly formatted command tasking" " '{0}' - {1}".format(cmd, err))
+                self.log.warning("Received improperly formatted command tasking '{0}' - {1}".format(cmd, err))
             else:
                 self.change_task_size(new_size)
         else:
@@ -268,7 +268,7 @@ class Tasker(object):
                         try:
                             self._start_task(task_id, task)
                         except Exception as err:
-                            self.log.exception("Could not start task {0} -" " {1}".format(task_id, err))
+                            self.log.exception("Could not start task {0} - {1}".format(task_id, err))
                         else:
                             self.hook_post_task()
         finally:
@@ -277,6 +277,6 @@ class Tasker(object):
     def run(self):
         """Start the main loop as a background process. *nix only"""
         if win_based:
-            raise NotImplementedError("Please run main_loop, " "backgrounding not supported on Windows")
+            raise NotImplementedError("Please run main_loop, backgrounding not supported on Windows")
         self.background_process = mp.Process(target=self.main_loop)
         self.background_process.start()

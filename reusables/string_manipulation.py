@@ -110,7 +110,7 @@ def cut(string, characters=2, trailing="normal"):
         if trailing.lower() == "combine" and len(split_str) >= 2:
             return split_str[:-2] + [split_str[-2] + split_str[-1]]
         if trailing.lower() == "error":
-            raise IndexError("String of length {0} not divisible by {1} to" " cut".format(len(string), characters))
+            raise IndexError("String of length {0} not divisible by {1} to cut".format(len(string), characters))
     return split_str
 
 

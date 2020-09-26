@@ -46,8 +46,8 @@ log_formats = Namespace(
         "level_first": "%(levelname)s - %(name)s - %(asctime)s - %(message)s",
         "threaded": "%(relativeCreated)d %(threadName)s : %(message)s",
         "easy_read": "%(asctime)s - %(name)-12s  %(levelname)-8s %(message)s",
-        "easy_thread": "%(relativeCreated)8d %(threadName)s : %(name)-12s " "%(levelname)-8s  %(message)s",
-        "detailed": "%(asctime)s : %(relativeCreated)5d %(threadName)s : %(name)s " "%(levelname)s %(message)s",
+        "easy_thread": "%(relativeCreated)8d %(threadName)s : %(name)-12s %(levelname)-8s  %(message)s",
+        "detailed": "%(asctime)s : %(relativeCreated)5d %(threadName)s : %(name)s %(levelname)s %(message)s",
     }
 )
 

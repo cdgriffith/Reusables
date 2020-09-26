@@ -53,7 +53,7 @@ class Namespace(dict):
             else:
                 raise ValueError("First argument must be mapping or iterable")
         elif args:
-            raise TypeError("Namespace expected at most 1 argument, " "got {0}".format(len(args)))
+            raise TypeError("Namespace expected at most 1 argument, got {0}".format(len(args)))
         _recursive_create(self, kwargs.items())
 
     def __contains__(self, item):

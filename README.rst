@@ -35,8 +35,7 @@ Reusables is on PyPI, so can be easily installed with pip or easy_install.
    pip install reusables
 
 
-There are no required decencies. If this doesn't work, it's broken, raise
-a github issue.
+There are no required decencies. If this doesn't work, it's broken, raise a github issue.
 
 Reusables is designed to not require any imports outside the standard library,
 but can be supplemented with those found in the requirements.txt file for
@@ -44,16 +43,11 @@ additional functionality.
 
 CI tests run on:
 
-* Python 2.6+
-* Python 3.3+
+* Python 3.6+
 * Pypy
 
 Examples are provided below, and the API documentation can always be found at
 readthedocs.org_.
-
-Please note this is currently in development. Any item in development
-prior to a major version (1.x, 2.x) may change. Once at a major version,
-no breaking changes are planned to occur within that version.
 
 What's included
 ---------------

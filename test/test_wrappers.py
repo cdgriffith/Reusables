@@ -131,7 +131,7 @@ class TestWrappers(BaseTestClass):
         correctly in the logs.
         """
         setup_logger("my_logger", file_path="out.log")
-        message = "I would like to take this moment to say something " "interesting has happened. "
+        message = "I would like to take this moment to say something interesting has happened. "
 
         @log_exception("my_logger", message=message)
         def unique_function_5():

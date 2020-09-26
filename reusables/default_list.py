@@ -3,13 +3,14 @@
 
 
 class defaultlist(list):
-    def __init__(self, *args, factory=None, **kwargs):
+    def __init__(self, *args, factory=lambda: None, **kwargs):
         super().__init__(*args, **kwargs)
+        if not callable(factory):
+            raise Exception("The factory must be callable (a function)")
         self.factory = factory
 
     def __getitem__(self, index):
         if index >= len(self):
-            diff = index - len(self) + 1
-            for i in range(diff):
+            for i in range(index - len(self) + 1):
                 self.append(self.factory())
         return super().__getitem__(index)

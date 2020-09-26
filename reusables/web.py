@@ -58,7 +58,7 @@ def download(url, save_to_file=True, save_dir=".", filename=None, block_size=640
         request = urlopen(url)
     except ValueError as err:
         if not quiet and "unknown url type" in str(err):
-            logger.error("Please make sure URL is formatted correctly and" " starts with http:// or other protocol")
+            logger.error("Please make sure URL is formatted correctly and starts with http:// or other protocol")
         raise err
     except Exception as err:
         if not quiet:

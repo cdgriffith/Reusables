@@ -67,7 +67,7 @@ def sanitized_input(
     cast_objects = list(cast_as) if isinstance(cast_as, Iterable) else (cast_as,)
     for cast_obj in cast_objects:
         if not isinstance(cast_obj, Callable):
-            raise ValueError("ValueError: argument 'cast_as'" "cannot be of type '{}'".format(type(cast_as)))
+            raise ValueError("ValueError: argument 'cast_as' cannot be of type '{}'".format(type(cast_as)))
 
     if not hasattr(valid_input, "__iter__"):
         valid_input = (valid_input,)
@@ -79,7 +79,7 @@ def sanitized_input(
                 return_value = cast_obj(return_value)
             if valid_input and return_value not in valid_input:
                 raise InvalidInputError(
-                    "InvalidInputError: input invalid" "in function 'sanitized_input' of {}".format(__name__)
+                    "InvalidInputError: input invalid in function 'sanitized_input' of {}".format(__name__)
                 )
             return return_value
         except (InvalidInputError, ValueError) as err:
@@ -89,5 +89,5 @@ def sanitized_input(
             retry_count += 1
             continue
     raise RetryCountExceededError(
-        "RetryCountExceededError : count exceeded in" "function 'sanitized_input' of {}".format(__name__)
+        "RetryCountExceededError : count exceeded in function 'sanitized_input' of {}".format(__name__)
     )

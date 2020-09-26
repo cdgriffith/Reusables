@@ -431,13 +431,13 @@ Key2 = Value2
         dups = reusables.directory_duplicates(test_root)
         assert len(dups) == 1, len(dups)
 
-    def test_find_with_scandir(self):
-        resp = reusables.find_files_list(test_root, ext=[".cfg", ".nope"], enable_scandir=True, disable_pathlib=True)
+    def test_find(self):
+        resp = reusables.find_files_list(test_root, ext=[".cfg", ".nope"], disable_pathlib=True)
         assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
 
-    def test_remove_with_scandir(self):
+    def test_remove(self):
         self._extract_structure()
-        delete = reusables.remove_empty_directories(test_structure, enable_scandir=True)
+        delete = reusables.remove_empty_directories(test_structure)
         assert len(delete) == 8, (len(delete), delete)
         assert not [x for x in delete if "empty" not in x.lower()]
         self._remove_structure()
