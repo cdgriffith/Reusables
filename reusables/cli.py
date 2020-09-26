@@ -159,18 +159,15 @@ def cat(file_path, encoding="utf-8", errors="strict"):
              /  \\
             |    |   _/
             | || |  |
-            \_||_/_/
+            |_||_/_/
 
     :param file_path: Path to file to read
     :param encoding: defaults to utf-8 to decode as, will fail on binary
     :param errors: Decoding errors: 'strict', 'ignore' or 'replace'
     """
 
-    with open(file_path, "rb") as f:
-        if python_version >= (2, 7):
-            print(f.read().decode(encoding, errors=errors))
-        else:
-            print(f.read().decode(encoding))
+    with open(file_path, "r", encoding=encoding, errors=errors) as f:
+        print(f.read())
 
 
 def tail(file_path, lines=10, encoding="utf-8", printed=True, errors="strict"):
@@ -189,10 +186,7 @@ def tail(file_path, lines=10, encoding="utf-8", printed=True, errors="strict"):
 
     with open(file_path, "rb") as f:
         for line in f:
-            if python_version >= (2, 7):
-                data.append(line.decode(encoding, errors=errors))
-            else:
-                data.append(line.decode(encoding))
+            data.append(line.decode(encoding, errors=errors))
             if len(data) > lines:
                 data.popleft()
     if printed:

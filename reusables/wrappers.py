@@ -253,7 +253,7 @@ def log_exception(
         # 2016-12-26 12:38:01,381 - reusables   ERROR  Exception in test - Bad
         # Traceback (most recent call last):
         #     File "<input>", line 1, in <module>
-        #     File "reusables\wrappers.py", line 200, in wrapper
+        #     File "reusables/wrappers.py", line 200, in wrapper
         #     raise err
         # Exception: Bad
 

@@ -6,6 +6,7 @@ import tempfile
 import subprocess
 
 import reusables
+import pytest
 
 from .common_test_data import *
 
@@ -431,6 +432,7 @@ Key2 = Value2
         dups = reusables.directory_duplicates(test_root)
         assert len(dups) == 1, len(dups)
 
+    @pytest.mark.filterwarnings('ignore:"enable_scandir"')
     def test_find(self):
         resp = reusables.find_files_list(test_root, ext=[".cfg", ".nope"], disable_pathlib=True, enable_scandir=True)
         assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
