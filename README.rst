@@ -44,7 +44,6 @@ additional functionality.
 CI tests run on:
 
 * Python 3.6+
-* Pypy
 
 Examples are provided below, and the API documentation can always be found at
 readthedocs.org_.

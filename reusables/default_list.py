@@ -11,6 +11,5 @@ class defaultlist(list):
 
     def __getitem__(self, index):
         if index >= len(self):
-            for i in range(index - len(self) + 1):
-                self.append(self.factory())
+            self.extend(self.factory() for _ in range(index - len(self) + 1))
         return super().__getitem__(index)
