@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2019 - Chris Griffith - MIT License
+# Copyright (c) 2014-2020 - Chris Griffith - MIT License
 from __future__ import absolute_import
 
 from reusables.string_manipulation import *
@@ -20,6 +20,7 @@ from reusables.web import *
 from reusables.wrappers import *
 from reusables.sanitizers import *
 from reusables.other import *
+from reusables.default_list import *
 
 __author__ = "Chris Griffith"
-__version__ = "0.9.5"
+__version__ = "0.9.6"

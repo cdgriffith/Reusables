@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2019 - Chris Griffith - MIT License
+# Copyright (c) 2014-2020 - Chris Griffith - MIT License
 try:
     import queue as queue
 except ImportError:
@@ -16,7 +16,7 @@ import datetime
 
 from reusables.shared_variables import win_based
 
-__all__ = ['Tasker']
+__all__ = ["Tasker"]
 
 
 class Tasker(object):
@@ -45,11 +45,20 @@ class Tasker(object):
     :param run_until: datetime to run until
     """
 
-    def __init__(self, tasks=(), max_tasks=4, task_timeout=None,
-                 task_queue=None, result_queue=None, command_queue=None,
-                 run_until=None, logger='reusables', **task_kwargs):
+    def __init__(
+        self,
+        tasks=(),
+        max_tasks=4,
+        task_timeout=None,
+        task_queue=None,
+        result_queue=None,
+        command_queue=None,
+        run_until=None,
+        logger="reusables",
+        **task_kwargs,
+    ):
         if logger:
-            self.log = logging.getLogger('reusables')
+            self.log = logging.getLogger("reusables")
         self.task_queue = task_queue or mp.Queue()
         if tasks:
             for task in tasks:
@@ -64,7 +73,7 @@ class Tasker(object):
         self.max_tasks = max_tasks
         self.timeout = task_timeout
         self.run_until = run_until
-        self._pause, self._end = mp.Value('b', False), mp.Value('b', False)
+        self._pause, self._end = mp.Value("b", False), mp.Value("b", False)
         self.background_process = None
         self.task_kwargs = task_kwargs
 
@@ -86,15 +95,13 @@ class Tasker(object):
         for task_id in self.busy_tasks:
             if not self.current_tasks[task_id]:
                 self.free_tasks.append(task_id)
-            elif not self.current_tasks[task_id]['proc'].is_alive():
+            elif not self.current_tasks[task_id]["proc"].is_alive():
                 self.free_tasks.append(task_id)
-            elif self.timeout and (self.current_tasks[task_id]['start'] +
-                                   self.timeout) < time.time():
+            elif self.timeout and (self.current_tasks[task_id]["start"] + self.timeout) < time.time():
                 try:
-                    self.current_tasks[task_id]['proc'].terminate()
+                    self.current_tasks[task_id]["proc"].terminate()
                 except Exception as err:
-                    self.log.exception("Error while terminating "
-                                       "task {} - {}".format(task_id, err))
+                    self.log.exception("Error while terminating " "task {} - {}".format(task_id, err))
                 self.free_tasks.append(task_id)
             else:
                 still_busy.append(task_id)
@@ -113,11 +120,11 @@ class Tasker(object):
         self.busy_tasks.remove(task_id)
 
     def _start_task(self, task_id, task):
-        self.current_tasks[task_id]['proc'] = mp.Process(
-            target=self.perform_task, args=(task, self.result_queue),
-            kwargs=self.task_kwargs)
-        self.current_tasks[task_id]['start_time'] = time.time()
-        self.current_tasks[task_id]['proc'].start()
+        self.current_tasks[task_id]["proc"] = mp.Process(
+            target=self.perform_task, args=(task, self.result_queue), kwargs=self.task_kwargs
+        )
+        self.current_tasks[task_id]["start_time"] = time.time()
+        self.current_tasks[task_id]["proc"].start()
 
     def _reset_and_pause(self):
         self.current_tasks = {}
@@ -172,7 +179,7 @@ class Tasker(object):
                 pass
         for task_id, values in self.current_tasks.items():
             try:
-                values['proc'].terminate()
+                values["proc"].terminate()
             except Exception:
                 pass
 
@@ -186,13 +193,14 @@ class Tasker(object):
 
     def get_state(self):
         """Get general information about the state of the class"""
-        return {"started": (True if self.background_process and
-                            self.background_process.is_alive() else False),
-                "paused": self._pause.value,
-                "stopped": self._end.value,
-                "tasks": len(self.current_tasks),
-                "busy_tasks": len(self.busy_tasks),
-                "free_tasks": len(self.free_tasks)}
+        return {
+            "started": (True if self.background_process and self.background_process.is_alive() else False),
+            "paused": self._pause.value,
+            "stopped": self._end.value,
+            "tasks": len(self.current_tasks),
+            "busy_tasks": len(self.busy_tasks),
+            "free_tasks": len(self.free_tasks),
+        }
 
     def _check_command_queue(self):
         try:
@@ -210,8 +218,7 @@ class Tasker(object):
             try:
                 new_size = int(cmd.split(" ")[-1])
             except Exception as err:
-                self.log.warning("Received improperly formatted command tasking"
-                                 " '{0}' - {1}".format(cmd, err))
+                self.log.warning("Received improperly formatted command tasking" " '{0}' - {1}".format(cmd, err))
             else:
                 self.change_task_size(new_size)
         else:
@@ -243,14 +250,14 @@ class Tasker(object):
                 if self._end.value:
                     break
                 if self._pause.value:
-                    time.sleep(.5)
+                    time.sleep(0.5)
                     continue
                 self.hook_post_command()
                 self._update_tasks()
                 task_id = self._free_task()
                 if task_id:
                     try:
-                        task = self.task_queue.get(timeout=.1)
+                        task = self.task_queue.get(timeout=0.1)
                     except queue.Empty:
                         if stop_at_empty:
                             break
@@ -261,8 +268,7 @@ class Tasker(object):
                         try:
                             self._start_task(task_id, task)
                         except Exception as err:
-                            self.log.exception("Could not start task {0} -"
-                                               " {1}".format(task_id, err))
+                            self.log.exception("Could not start task {0} -" " {1}".format(task_id, err))
                         else:
                             self.hook_post_task()
         finally:
@@ -271,7 +277,6 @@ class Tasker(object):
     def run(self):
         """Start the main loop as a background process. *nix only"""
         if win_based:
-            raise NotImplementedError("Please run main_loop, "
-                                      "backgrounding not supported on Windows")
+            raise NotImplementedError("Please run main_loop, " "backgrounding not supported on Windows")
         self.background_process = mp.Process(target=self.main_loop)
         self.background_process.start()

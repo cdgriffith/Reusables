@@ -1,63 +1,54 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 import reusables
 
 from .common_test_data import *
 
 
 class TestReuseNamespace(BaseTestClass):
-
     def test_namespace(self):
-        test_dict = {'key1': 'value1',
-                     "Key 2": {"Key 3": "Value 3",
-                               "Key4": {"Key5": "Value5"}}}
+        test_dict = {"key1": "value1", "Key 2": {"Key 3": "Value 3", "Key4": {"Key5": "Value5"}}}
         namespace = reusables.Namespace(**test_dict)
-        assert namespace.key1 == test_dict['key1']
-        assert dict(getattr(namespace, 'Key 2')) == test_dict['Key 2']
-        setattr(namespace, 'TEST_KEY', 'VALUE')
-        assert namespace.TEST_KEY == 'VALUE'
-        delattr(namespace, 'TEST_KEY')
-        assert 'TEST_KEY' not in namespace.to_dict(), namespace.to_dict()
-        assert isinstance(namespace['Key 2'].Key4, reusables.Namespace)
+        assert namespace.key1 == test_dict["key1"]
+        assert dict(getattr(namespace, "Key 2")) == test_dict["Key 2"]
+        setattr(namespace, "TEST_KEY", "VALUE")
+        assert namespace.TEST_KEY == "VALUE"
+        delattr(namespace, "TEST_KEY")
+        assert "TEST_KEY" not in namespace.to_dict(), namespace.to_dict()
+        assert isinstance(namespace["Key 2"].Key4, reusables.Namespace)
         assert "'key1': 'value1'" in str(namespace)
         assert repr(namespace).startswith("<Namespace:")
 
     def test_namespace_modifiy_at_depth(self):
-        test_dict = {'key1': 'value1',
-                     "Key 2": {"Key 3": "Value 3",
-                               "Key4": {"Key5": "Value5"}}}
+        test_dict = {"key1": "value1", "Key 2": {"Key 3": "Value 3", "Key4": {"Key5": "Value5"}}}
 
         namespace = reusables.Namespace(**test_dict)
-        assert 'key1' in namespace
-        assert 'key2' not in namespace
-        namespace['Key 2'].new_thing = "test"
-        assert namespace['Key 2'].new_thing == "test"
-        namespace['Key 2'].new_thing += "2"
-        assert namespace['Key 2'].new_thing == "test2"
-        assert namespace['Key 2'].to_dict()['new_thing'] == "test2", namespace['Key 2'].to_dict()
-        assert namespace.to_dict()['Key 2']['new_thing'] == "test2"
-        namespace.__setattr__('key1', 1)
-        assert namespace['key1'] == 1
-        namespace.__delattr__('key1')
-        assert 'key1' not in namespace
+        assert "key1" in namespace
+        assert "key2" not in namespace
+        namespace["Key 2"].new_thing = "test"
+        assert namespace["Key 2"].new_thing == "test"
+        namespace["Key 2"].new_thing += "2"
+        assert namespace["Key 2"].new_thing == "test2"
+        assert namespace["Key 2"].to_dict()["new_thing"] == "test2", namespace["Key 2"].to_dict()
+        assert namespace.to_dict()["Key 2"]["new_thing"] == "test2"
+        namespace.__setattr__("key1", 1)
+        assert namespace["key1"] == 1
+        namespace.__delattr__("key1")
+        assert "key1" not in namespace
 
     def test_error_namespace(self):
-        test_dict = {'key1': 'value1',
-                     "Key 2": {"Key 3": "Value 3",
-                               "Key4": {"Key5": "Value5"}}}
+        test_dict = {"key1": "value1", "Key 2": {"Key 3": "Value 3", "Key4": {"Key5": "Value5"}}}
 
         namespace = reusables.Namespace(**test_dict)
         try:
-            getattr(namespace, 'hello')
+            getattr(namespace, "hello")
         except AttributeError:
             pass
         else:
             raise AssertionError("Should not find 'hello' in the test dict")
 
     def test_namespace_tree(self):
-        test_dict = {'key1': 'value1',
-                     "Key 2": {"Key 3": "Value 3",
-                               "Key4": {"Key5": "Value5"}}}
+        test_dict = {"key1": "value1", "Key 2": {"Key 3": "Value 3", "Key4": {"Key5": "Value5"}}}
         namespace = reusables.Namespace(**test_dict)
         result = namespace.tree_view(sep="    ")
         assert result.startswith("key1\n") or result.startswith("Key 2\n")
@@ -69,8 +60,7 @@ class TestReuseNamespace(BaseTestClass):
 
     def test_namespace_from_bad_dict(self):
         try:
-            ns = reusables.Namespace('{"k1": "v1", '
-                                               '"k2": {"k3": "v2"}}')
+            ns = reusables.Namespace('{"k1": "v1", ' '"k2": {"k3": "v2"}}')
         except ValueError:
             assert True
         else:
@@ -78,23 +68,25 @@ class TestReuseNamespace(BaseTestClass):
 
     def test_basic_namespace(self):
         a = reusables.Namespace(one=1, two=2, three=3)
-        b = reusables.Namespace({'one': 1, 'two': 2, 'three': 3})
-        c = reusables.Namespace((zip(['one', 'two', 'three'], [1, 2, 3])))
-        d = reusables.Namespace(([('two', 2), ('one', 1), ('three', 3)]))
-        e = reusables.Namespace(({'three': 3, 'one': 1, 'two': 2}))
+        b = reusables.Namespace({"one": 1, "two": 2, "three": 3})
+        c = reusables.Namespace((zip(["one", "two", "three"], [1, 2, 3])))
+        d = reusables.Namespace(([("two", 2), ("one", 1), ("three", 3)]))
+        e = reusables.Namespace(({"three": 3, "one": 1, "two": 2}))
         assert a == b == c == d == e
 
     def test_config_namespace(self):
-        g = {"b0": 'no',
-             "b1": 'yes',
-             "b2": 'True',
-             "b3": 'false',
-             "b4": True,
-             "i0": '34',
-             "f0": '5.5',
-             "f1": '3.333',
-             "l0": '4,5,6,7,8',
-             "l1": '[2 3 4 5 6]'}
+        g = {
+            "b0": "no",
+            "b1": "yes",
+            "b2": "True",
+            "b3": "false",
+            "b4": True,
+            "i0": "34",
+            "f0": "5.5",
+            "f1": "3.333",
+            "l0": "4,5,6,7,8",
+            "l1": "[2 3 4 5 6]",
+        }
 
         cns = reusables.ConfigNamespace(g)
         assert cns.list("l1", spliter=" ") == ["2", "3", "4", "5", "6"]
@@ -118,16 +110,13 @@ class TestReuseNamespace(BaseTestClass):
 
 # noinspection PyTypeChecker
 class TestProtectedDict(BaseTestClass):
-
     def test_create_protected_dict(self):
         """
         Validate a protected dictionary can be created with the format of a
         normal dictionary.
         """
         test_dict = {"Test 1": 1, "Test 2": 2, "Test 3": 3}
-        test_protected = reusables.ProtectedDict({"Test 1": 1,
-                                                  "Test 2": 2,
-                                                  "Test 3": 3})
+        test_protected = reusables.ProtectedDict({"Test 1": 1, "Test 2": 2, "Test 3": 3})
         str(test_protected)
         repr(test_protected)
         for k, v in test_protected.items():
@@ -150,9 +139,7 @@ class TestProtectedDict(BaseTestClass):
         Validate that you cannot add a new key value pair to a protected
         dictionary.
         """
-        test_protected = reusables.ProtectedDict({"Test 1": 1,
-                                                  "Test 2": 2,
-                                                  "Test 3": 3})
+        test_protected = reusables.ProtectedDict({"Test 1": 1, "Test 2": 2, "Test 3": 3})
 
         try:
             test_protected["Test 4"] = 4
@@ -166,9 +153,7 @@ class TestProtectedDict(BaseTestClass):
         Validate that you cannot change the value of a normal key value pair
         in a protected dictionary.
         """
-        test_protected = reusables.ProtectedDict({"Test 1": 1,
-                                                  "Test 2": 2,
-                                                  "Test 3": 3})
+        test_protected = reusables.ProtectedDict({"Test 1": 1, "Test 2": 2, "Test 3": 3})
 
         try:
             test_protected["Test 1"] = 10
@@ -182,8 +167,7 @@ class TestProtectedDict(BaseTestClass):
         Validate that stored objects, such as a sub dictionary, may be
         altered in a protected dictionary.
         """
-        test_protected = reusables.ProtectedDict({"Test 1": {"a": 1, "b": 2},
-                                                  "Test 2": 2, })
+        test_protected = reusables.ProtectedDict({"Test 1": {"a": 1, "b": 2}, "Test 2": 2,})
 
         test_protected["Test 1"]["a"] = 3
         assert test_protected["Test 1"]["a"] == 3
@@ -193,8 +177,7 @@ class TestProtectedDict(BaseTestClass):
         Validate that a protected dictionary with a sub dictionary is not
         hashable.
         """
-        test_protected = reusables.ProtectedDict({"Test 1": {"a": 1, "b": 2},
-                                                  "Test 2": 2, })
+        test_protected = reusables.ProtectedDict({"Test 1": {"a": 1, "b": 2}, "Test 2": 2,})
         try:
             hash(test_protected)
         except TypeError:
@@ -210,15 +193,9 @@ class TestProtectedDict(BaseTestClass):
         Validate that two protected dictionary objects with different data
         have different hash values.
         """
-        test_dict_one = reusables.ProtectedDict({"Test 1": 1,
-                                                 "Test 2": 2,
-                                                 "Test 3": 3})
-        test_dict_two = reusables.ProtectedDict({"Test 1": 1,
-                                                 "Test 2": 2,
-                                                 "Test 3": 3})
-        test_dict_three = reusables.ProtectedDict({"Test 4": 4,
-                                                   "Test 5": 5,
-                                                   "Test 6": 6})
+        test_dict_one = reusables.ProtectedDict({"Test 1": 1, "Test 2": 2, "Test 3": 3})
+        test_dict_two = reusables.ProtectedDict({"Test 1": 1, "Test 2": 2, "Test 3": 3})
+        test_dict_three = reusables.ProtectedDict({"Test 4": 4, "Test 5": 5, "Test 6": 6})
         assert isinstance(hash(test_dict_one), int)
         assert isinstance(hash(test_dict_two), int)
         assert isinstance(hash(test_dict_three), int)

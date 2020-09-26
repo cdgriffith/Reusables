@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2019 - Chris Griffith - MIT License
+# Copyright (c) 2014-2020 - Chris Griffith - MIT License
 import os
 import zipfile
 import tarfile
@@ -14,6 +14,7 @@ import hashlib
 import glob
 import shutil
 from collections import defaultdict
+
 try:
     import ConfigParser as ConfigParser
 except ImportError:
@@ -22,19 +23,37 @@ except ImportError:
 from reusables.namespace import *
 from reusables.shared_variables import *
 
-__all__ = ['load_json', 'list_to_csv', 'save_json', 'csv_to_list',
-           'extract', 'archive', 'config_dict', 'config_namespace',
-           'os_tree', 'check_filename', 'count_files',
-           'directory_duplicates', 'dup_finder', 'file_hash', 'find_files',
-           'find_files_list', 'join_here', 'join_paths',
-           'remove_empty_directories', 'remove_empty_files',
-           'safe_filename', 'safe_path', 'touch', 'sync_dirs']
+__all__ = [
+    "load_json",
+    "list_to_csv",
+    "save_json",
+    "csv_to_list",
+    "extract",
+    "archive",
+    "config_dict",
+    "config_namespace",
+    "os_tree",
+    "check_filename",
+    "count_files",
+    "directory_duplicates",
+    "dup_finder",
+    "file_hash",
+    "find_files",
+    "find_files_list",
+    "join_here",
+    "join_paths",
+    "remove_empty_directories",
+    "remove_empty_files",
+    "safe_filename",
+    "safe_path",
+    "touch",
+    "sync_dirs",
+]
 
-logger = logging.getLogger('reusables')
+logger = logging.getLogger("reusables")
 
 
-def extract(archive_file, path=".", delete_on_success=False,
-            enable_rar=False):
+def extract(archive_file, path=".", delete_on_success=False, enable_rar=False):
     """
     Automatically detect archive type and extract all files to specified path.
 
@@ -71,9 +90,9 @@ def extract(archive_file, path=".", delete_on_success=False,
         arch = tarfile.open(archive_file)
     elif enable_rar:
         import rarfile
+
         if rarfile.is_rarfile(archive_file):
-            logger.debug("File {0} detected as "
-                         "a rar file".format(archive_file))
+            logger.debug("File {0} detected as " "a rar file".format(archive_file))
             arch = rarfile.RarFile(archive_file)
 
     if not arch:
@@ -93,9 +112,17 @@ def extract(archive_file, path=".", delete_on_success=False,
     return os.path.abspath(path)
 
 
-def archive(files_to_archive, name="archive.zip", archive_type=None,
-            overwrite=False, store=False, depth=None, err_non_exist=True,
-            allow_zip_64=True, **tarfile_kwargs):
+def archive(
+    files_to_archive,
+    name="archive.zip",
+    archive_type=None,
+    overwrite=False,
+    store=False,
+    depth=None,
+    err_non_exist=True,
+    allow_zip_64=True,
+    **tarfile_kwargs,
+):
     """ Archive a list of files (or files inside a folder), can chose between
 
         - zip
@@ -133,14 +160,12 @@ def archive(files_to_archive, name="archive.zip", archive_type=None,
         elif name.lower().endswith("tar"):
             archive_type = "tar"
         else:
-            err_msg = ("Could not determine archive "
-                       "type based off {0}".format(name))
+            err_msg = "Could not determine archive " "type based off {0}".format(name)
             logger.error(err_msg)
             raise ValueError(err_msg)
         logger.debug("{0} file detected for {1}".format(archive_type, name))
     elif archive_type not in ("tar", "gz", "bz2", "zip"):
-        err_msg = ("archive_type must be zip, gz, bz2,"
-                   " or gz, was {0}".format(archive_type))
+        err_msg = "archive_type must be zip, gz, bz2," " or gz, was {0}".format(archive_type)
         logger.error(err_msg)
         raise ValueError(err_msg)
 
@@ -150,14 +175,13 @@ def archive(files_to_archive, name="archive.zip", archive_type=None,
         raise OSError(err_msg)
 
     if archive_type == "zip":
-        arch = zipfile.ZipFile(name, 'w',
-                               zipfile.ZIP_STORED if store else
-                               zipfile.ZIP_DEFLATED,
-                               allowZip64=allow_zip_64)
+        arch = zipfile.ZipFile(
+            name, "w", zipfile.ZIP_STORED if store else zipfile.ZIP_DEFLATED, allowZip64=allow_zip_64
+        )
         write = arch.write
     elif archive_type in ("tar", "gz", "bz2"):
         mode = archive_type if archive_type != "tar" else ""
-        arch = tarfile.open(name, 'w:{0}'.format(mode), **tarfile_kwargs)
+        arch = tarfile.open(name, "w:{0}".format(mode), **tarfile_kwargs)
         write = arch.add
     else:
         raise ValueError("archive_type must be zip, gz, bz2, or gz")
@@ -169,8 +193,7 @@ def archive(files_to_archive, name="archive.zip", archive_type=None,
                     raise OSError("File {0} does not exist".format(file_path))
                 write(file_path)
             elif os.path.isdir(file_path):
-                for nf in find_files(file_path, abspath=False,
-                                     depth=depth, disable_pathlib=True):
+                for nf in find_files(file_path, abspath=False, depth=depth, disable_pathlib=True):
                     write(nf)
     except (Exception, KeyboardInterrupt) as err:
         logger.exception("Could not archive {0}".format(files_to_archive))
@@ -211,12 +234,12 @@ def list_to_csv(my_list, csv_file):
     :param csv_file: File to save data to
     """
     if PY3:
-        csv_handler = open(csv_file, 'w', newline='')
+        csv_handler = open(csv_file, "w", newline="")
     else:
-        csv_handler = open(csv_file, 'wb')
+        csv_handler = open(csv_file, "wb")
 
     try:
-        writer = csv.writer(csv_handler, delimiter=',', quoting=csv.QUOTE_ALL)
+        writer = csv.writer(csv_handler, delimiter=",", quoting=csv.QUOTE_ALL)
         writer.writerows(my_list)
     finally:
         csv_handler.close()
@@ -237,7 +260,7 @@ def csv_to_list(csv_file):
     :param csv_file: Path to CSV file as str
     :return: list
     """
-    with open(csv_file, 'r' if PY3 else 'rb') as f:
+    with open(csv_file, "r" if PY3 else "rb") as f:
         return list(csv.reader(f))
 
 
@@ -327,9 +350,13 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
             cfg_files.extend(config_file)
 
     if auto_find:
-        cfg_files.extend(find_files_list(
-            current_root if isinstance(auto_find, bool) else auto_find,
-            ext=(".cfg", ".config", ".ini"), disable_pathlib=True))
+        cfg_files.extend(
+            find_files_list(
+                current_root if isinstance(auto_find, bool) else auto_find,
+                ext=(".cfg", ".config", ".ini"),
+                disable_pathlib=True,
+            )
+        )
 
     logger.info("config files to be used: {0}".format(cfg_files))
 
@@ -338,12 +365,10 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
     else:
         cfg_parser.read(cfg_files)
 
-    return dict((section, dict(cfg_parser.items(section)))
-                for section in cfg_parser.sections())
+    return dict((section, dict(cfg_parser.items(section))) for section in cfg_parser.sections())
 
 
-def config_namespace(config_file=None, auto_find=False,
-                     verify=True, **cfg_options):
+def config_namespace(config_file=None, auto_find=False, verify=True, **cfg_options):
     """
     Return configuration options as a Namespace.
 
@@ -360,8 +385,7 @@ def config_namespace(config_file=None, auto_find=False,
     :param cfg_options: options to pass to the parser
     :return: Namespace of the config files
     """
-    return ConfigNamespace(**config_dict(config_file, auto_find,
-                                         verify, **cfg_options))
+    return ConfigNamespace(**config_dict(config_file, auto_find, verify, **cfg_options))
 
 
 def _walk(directory, enable_scandir=False, **kwargs):
@@ -376,6 +400,7 @@ def _walk(directory, enable_scandir=False, **kwargs):
     walk = os.walk
     if python_version < (3, 5) and enable_scandir:
         import scandir
+
         walk = scandir.walk
     return walk(directory, **kwargs)
 
@@ -405,12 +430,11 @@ def os_tree(directory, enable_scandir=False):
 
     full_list = []
     for root, dirs, files in _walk(directory, enable_scandir=enable_scandir):
-        full_list.extend([os.path.join(root, d).lstrip(directory) + os.sep
-                          for d in dirs])
+        full_list.extend([os.path.join(root, d).lstrip(directory) + os.sep for d in dirs])
     tree = {os.path.basename(directory): {}}
     for item in full_list:
         separated = item.split(os.sep)
-        is_dir = separated[-1:] == ['']
+        is_dir = separated[-1:] == [""]
         if is_dir:
             separated = separated[:-1]
         parent = tree[os.path.basename(directory)]
@@ -462,9 +486,17 @@ def count_files(*args, **kwargs):
     return sum(1 for _ in find_files(*args, **kwargs))
 
 
-def find_files(directory=".", ext=None, name=None,
-               match_case=False, disable_glob=False, depth=None,
-               abspath=False, enable_scandir=False, disable_pathlib=False):
+def find_files(
+    directory=".",
+    ext=None,
+    name=None,
+    match_case=False,
+    disable_glob=False,
+    depth=None,
+    abspath=False,
+    enable_scandir=False,
+    disable_pathlib=False,
+):
     """
     Walk through a file directory and return an iterator of files
     that match requirements. Will autodetect if name has glob as magic
@@ -505,10 +537,12 @@ def find_files(directory=".", ext=None, name=None,
     :param disable_pathlib: only return string, not path objects
     :return: generator of all files in the specified directory
     """
+
     def pathed(path):
         if python_version < (3, 4) or disable_pathlib:
             return path
         import pathlib
+
         return pathlib.Path(path)
 
     if ext or not name:
@@ -530,8 +564,7 @@ def find_files(directory=".", ext=None, name=None,
 
         if not disable_glob:
             if match_case:
-                raise ValueError("Cannot use glob and match case, please "
-                                 "either disable glob or not set match_case")
+                raise ValueError("Cannot use glob and match case, please " "either disable glob or not set match_case")
             glob_generator = glob.iglob(os.path.join(root, name))
             for item in glob_generator:
                 yield pathed(item)
@@ -540,8 +573,7 @@ def find_files(directory=".", ext=None, name=None,
         for file_name in files:
             if ext:
                 for end in ext:
-                    if file_name.lower().endswith(end.lower() if not
-                    match_case else end):
+                    if file_name.lower().endswith(end.lower() if not match_case else end):
                         break
                 else:
                     continue
@@ -553,8 +585,7 @@ def find_files(directory=".", ext=None, name=None,
             yield pathed(os.path.join(root, file_name))
 
 
-def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True,
-                             enable_scandir=False):
+def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True, enable_scandir=False):
     """
     Remove all empty folders from a path. Returns list of empty directories.
 
@@ -572,11 +603,8 @@ def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True,
             return list(_scandir.scandir(directory))
 
     directory_list = []
-    for root, directories, files in _walk(root_directory,
-                                          enable_scandir=enable_scandir,
-                                          topdown=False):
-        if (not directories and not files and os.path.exists(root) and
-                    root != root_directory and os.path.isdir(root)):
+    for root, directories, files in _walk(root_directory, enable_scandir=enable_scandir, topdown=False):
+        if not directories and not files and os.path.exists(root) and root != root_directory and os.path.isdir(root):
             directory_list.append(root)
             if not dry_run:
                 try:
@@ -589,23 +617,20 @@ def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True,
         elif directories and not files:
             for directory in directories:
                 directory = join_paths(root, directory, strict=True)
-                if (os.path.exists(directory) and os.path.isdir(directory) and
-                        not listdir(directory)):
+                if os.path.exists(directory) and os.path.isdir(directory) and not listdir(directory):
                     directory_list.append(directory)
                     if not dry_run:
                         try:
                             os.rmdir(directory)
                         except OSError as err:
                             if ignore_errors:
-                                logger.info("{0} could not be deleted".format(
-                                    directory))
+                                logger.info("{0} could not be deleted".format(directory))
                             else:
                                 raise err
     return directory_list
 
 
-def remove_empty_files(root_directory, dry_run=False, ignore_errors=True,
-                       enable_scandir=False):
+def remove_empty_files(root_directory, dry_run=False, ignore_errors=True, enable_scandir=False):
     """
     Remove all empty files from a path. Returns list of the empty files removed.
 
@@ -616,8 +641,7 @@ def remove_empty_files(root_directory, dry_run=False, ignore_errors=True,
     :return: list of removed files
     """
     file_list = []
-    for root, directories, files in _walk(root_directory,
-                                          enable_scandir=enable_scandir):
+    for root, directories, files in _walk(root_directory, enable_scandir=enable_scandir):
         for file_name in files:
             file_path = join_paths(root, file_name, strict=True)
             if os.path.isfile(file_path) and not os.path.getsize(file_path):
@@ -672,28 +696,26 @@ def dup_finder(file_path, directory=".", enable_scandir=False):
         for empty_file in remove_empty_files(directory, dry_run=True):
             yield empty_file
     else:
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             first_twenty = f.read(20)
         file_sha256 = file_hash(file_path, "sha256")
 
-        for root, directories, files in _walk(directory,
-                                              enable_scandir=enable_scandir):
+        for root, directories, files in _walk(directory, enable_scandir=enable_scandir):
             for each_file in files:
                 test_file = os.path.join(root, each_file)
                 if os.path.getsize(test_file) == size:
                     try:
-                        with open(test_file, 'rb') as f:
+                        with open(test_file, "rb") as f:
                             test_first_twenty = f.read(20)
                     except OSError:
-                        logger.warning("Could not open file to compare - "
-                                       "{0}".format(test_file))
+                        logger.warning("Could not open file to compare - " "{0}".format(test_file))
                     else:
                         if first_twenty == test_first_twenty:
                             if file_hash(test_file, "sha256") == file_sha256:
                                 yield os.path.abspath(test_file)
 
 
-def directory_duplicates(directory, hash_type='md5', **kwargs):
+def directory_duplicates(directory, hash_type="md5", **kwargs):
     """
     Find all duplicates in a directory. Will return a list, in that list
     are lists of duplicate files.
@@ -733,7 +755,7 @@ def touch(path):
 
     :param path: path to file to 'touch'
     """
-    with open(path, 'a'):
+    with open(path, "a"):
         os.utime(path, None)
 
 
@@ -764,7 +786,7 @@ def join_paths(*paths, **kwargs):
     for next_path in paths[1:]:
         path = os.path.join(path, next_path.lstrip("\\").lstrip("/").strip())
     path.rstrip(os.sep)
-    return path if not kwargs.get('safe') else safe_path(path)
+    return path if not kwargs.get("safe") else safe_path(path)
 
 
 def join_here(*paths, **kwargs):
@@ -783,10 +805,9 @@ def join_here(*paths, **kwargs):
     """
     path = os.path.abspath(".")
     for next_path in paths:
-        next_path = next_path.lstrip("\\").lstrip("/").strip() if not \
-            kwargs.get('strict') else next_path
+        next_path = next_path.lstrip("\\").lstrip("/").strip() if not kwargs.get("strict") else next_path
         path = os.path.abspath(os.path.join(path, next_path))
-    return path if not kwargs.get('safe') else safe_path(path)
+    return path if not kwargs.get("safe") else safe_path(path)
 
 
 def check_filename(filename):
@@ -821,8 +842,7 @@ def safe_filename(filename, replacement="_"):
         return filename
     safe_name = ""
     for char in filename:
-        safe_name += char if regex.path.linux.filename.search(char) \
-            else replacement
+        safe_name += char if regex.path.linux.filename.search(char) else replacement
     return safe_name
 
 
@@ -854,19 +874,17 @@ def safe_path(path, replacement="_"):
     else:
         for char in dirname:
             safe_dirname += char if regexp.search(char) else replacement
-    sanitized_path = os.path.normpath("{path}{sep}{filename}".format(
-        path=safe_dirname,
-        sep=os.sep if not safe_dirname.endswith(os.sep) else "",
-        filename=filename))
-    if (not filename and
-            path.endswith(os.sep) and
-            not sanitized_path.endswith(os.sep)):
+    sanitized_path = os.path.normpath(
+        "{path}{sep}{filename}".format(
+            path=safe_dirname, sep=os.sep if not safe_dirname.endswith(os.sep) else "", filename=filename
+        )
+    )
+    if not filename and path.endswith(os.sep) and not sanitized_path.endswith(os.sep):
         sanitized_path += os.sep
     return sanitized_path
 
 
-def sync_dirs(dir1, dir2, checksums=True, overwrite=False,
-              only_log_errors=True):
+def sync_dirs(dir1, dir2, checksums=True, overwrite=False, only_log_errors=True):
     """
     Make sure all files in directory 1 exist in directory 2.
 
@@ -877,6 +895,7 @@ def sync_dirs(dir1, dir2, checksums=True, overwrite=False,
     :param only_log_errors: Do not raise copy errors, only log them
     :return: None
     """
+
     def cp(f1, f2):
         try:
             shutil.copy(f1, f2)
@@ -887,32 +906,22 @@ def sync_dirs(dir1, dir2, checksums=True, overwrite=False,
                 raise
 
     for file in find_files(dir1, disable_pathlib=True):
-        path_two = os.path.join(dir2, file[len(dir1)+1:])
+        path_two = os.path.join(dir2, file[len(dir1) + 1 :])
         try:
             os.makedirs(os.path.dirname(path_two))
         except OSError:
             pass  # Because exists_ok doesn't exist in 2.x
         if os.path.exists(path_two):
             if os.path.getsize(file) != os.path.getsize(path_two):
-                logger.info("File sizes do not match: "
-                            "{} - {}".format(file, path_two))
+                logger.info("File sizes do not match: " "{} - {}".format(file, path_two))
                 if overwrite:
                     logger.info("Overwriting {}".format(path_two))
                     cp(file, path_two)
             elif checksums and (file_hash(file) != file_hash(path_two)):
-                logger.warning("Files do not match: "
-                               "{} - {}".format(file, path_two))
+                logger.warning("Files do not match: " "{} - {}".format(file, path_two))
                 if overwrite:
                     logger.info("Overwriting {}".format(file, path_two))
                     cp(file, path_two)
         else:
             logger.info("Copying {} to {}".format(file, path_two))
             cp(file, path_two)
-
-
-
-
-
-
-
-

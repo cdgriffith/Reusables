@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 from reusables.cli import *
 from .common_test_data import *
 
@@ -22,6 +22,7 @@ class TestCLI(BaseTestClass):
 
     def test_cmd(self):
         import sys
+
         save_file = os.path.join(data_dr, "stdout")
         saved = sys.stdout
         sys.stdout = open(save_file, "w")
@@ -55,13 +56,13 @@ class TestCLI(BaseTestClass):
     def test_head(self):
         lines = head(self.ex, printed=False)
         assert len(lines) == 5, len(lines)
-        assert 'file!' in lines[-1], lines
+        assert "file!" in lines[-1], lines
         head(self.ex, printed=True)
 
     def test_tail(self):
         lines = tail(self.ex, lines=2, printed=False)
         assert len(lines) == 2, len(lines)
-        assert 'file!' in lines[-1], lines
+        assert "file!" in lines[-1], lines
         tail(self.ex, printed=True)
 
     def test_cat(self):
@@ -86,4 +87,3 @@ class TestCLI(BaseTestClass):
                 os.unlink("test_file2")
             except OSError:
                 pass
-

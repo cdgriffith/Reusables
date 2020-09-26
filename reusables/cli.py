@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2019 - Chris Griffith - MIT License
+# Copyright (c) 2014-2020 - Chris Griffith - MIT License
 """ Functions to only be in an interactive instances to ease life. """
 from __future__ import absolute_import
 import os
@@ -17,8 +17,7 @@ from reusables.shared_variables import win_based
 from reusables.file_operations import find_files_list
 from reusables.log import add_stream_handler
 
-__all__ = ['cmd', 'pushd', 'popd', 'pwd', 'cd', 'ls',
-           'find', 'head', 'cat', 'tail', 'cp']
+__all__ = ["cmd", "pushd", "popd", "pwd", "cd", "ls", "find", "head", "cat", "tail", "cp"]
 
 _logger = logging.getLogger("reusables.cli")
 add_stream_handler("reusables.cli")
@@ -26,8 +25,7 @@ add_stream_handler("reusables.cli")
 _saved_paths = []
 
 
-def cmd(command, ignore_stderr=False, raise_on_return=False, timeout=None,
-        encoding="utf-8"):
+def cmd(command, ignore_stderr=False, raise_on_return=False, timeout=None, encoding="utf-8"):
     """ Run a shell command and have it automatically decoded and printed
 
     :param command: Command to run as str
@@ -91,8 +89,7 @@ def ls(params="", directory=".", printed=True):
     :param printed: If you're using this, you probably wanted it just printed
     :return: if not printed, you can parse it yourself
     """
-    command = "{0} {1} {2}".format("ls" if not win_based else "dir",
-                                   params, directory)
+    command = "{0} {1} {2}".format("ls" if not win_based else "dir", params, directory)
     response = run(command, shell=True)  # Shell required for windows
     response.check_returncode()
     if printed:
@@ -101,8 +98,7 @@ def ls(params="", directory=".", printed=True):
         return response.stdout
 
 
-def find(name=None, ext=None, directory=".", match_case=False,
-         disable_glob=False, depth=None):
+def find(name=None, ext=None, directory=".", match_case=False, disable_glob=False, depth=None):
     """ Designed for the interactive interpreter by making default order
     of find_files faster.
 
@@ -114,13 +110,18 @@ def find(name=None, ext=None, directory=".", match_case=False,
     :param depth: How many directories down to search
     :return: list of all files in the specified directory
     """
-    return find_files_list(directory=directory, ext=ext, name=name,
-                           match_case=match_case, disable_glob=disable_glob,
-                           depth=depth, disable_pathlib=True)
+    return find_files_list(
+        directory=directory,
+        ext=ext,
+        name=name,
+        match_case=match_case,
+        disable_glob=disable_glob,
+        depth=depth,
+        disable_pathlib=True,
+    )
 
 
-def head(file_path, lines=10, encoding="utf-8", printed=True,
-         errors='strict'):
+def head(file_path, lines=10, encoding="utf-8", printed=True, errors="strict"):
     """
     Read the first N lines of a file, defaults to 10
 
@@ -147,7 +148,7 @@ def head(file_path, lines=10, encoding="utf-8", printed=True,
         return data
 
 
-def cat(file_path, encoding="utf-8", errors='strict'):
+def cat(file_path, encoding="utf-8", errors="strict"):
     """
 
     .. code:
@@ -172,8 +173,7 @@ def cat(file_path, encoding="utf-8", errors='strict'):
             print(f.read().decode(encoding))
 
 
-def tail(file_path, lines=10, encoding="utf-8",
-         printed=True, errors='strict'):
+def tail(file_path, lines=10, encoding="utf-8", printed=True, errors="strict"):
     """
     A really silly way to get the last N lines, defaults to 10.
 
@@ -221,11 +221,9 @@ def cp(src, dst, overwrite=False):
 
     for item in src:
         source = os.path.expanduser(item)
-        destination = (dst if not dst_folder else
-                       os.path.join(dst, os.path.basename(source)))
+        destination = dst if not dst_folder else os.path.join(dst, os.path.basename(source))
         if not overwrite and os.path.exists(destination):
-            _logger.warning("Not replacing {0} with {1}, overwrite not enabled"
-                            "".format(destination, source))
+            _logger.warning("Not replacing {0} with {1}, overwrite not enabled" "".format(destination, source))
             continue
 
         shutil.copy(source, destination)

@@ -5,8 +5,18 @@ import os
 
 from .common_test_data import *
 
-from reusables import unique, lock_it, time_it, queue_it, setup_logger, \
-    log_exception, remove_file_handlers, retry_it, catch_it, ReusablesError
+from reusables import (
+    unique,
+    lock_it,
+    time_it,
+    queue_it,
+    setup_logger,
+    log_exception,
+    remove_file_handlers,
+    retry_it,
+    catch_it,
+    ReusablesError,
+)
 
 
 @unique(exception=OSError, error_text="WHY ME!")
@@ -25,8 +35,6 @@ def unique_function_3():
 
 
 class TestWrappers(BaseTestClass):
-
-
     @classmethod
     def tearDownClass(cls):
         try:
@@ -56,6 +64,7 @@ class TestWrappers(BaseTestClass):
         @lock_it()
         def func1():
             import time
+
             time.sleep(2)
 
         start = time.time()
@@ -106,6 +115,7 @@ class TestWrappers(BaseTestClass):
         """
         Validate the custom log exception is raised correctly.
         """
+
         @log_exception()
         def unique_function_4():
             raise Exception("Bad")
@@ -121,8 +131,7 @@ class TestWrappers(BaseTestClass):
         correctly in the logs.
         """
         setup_logger("my_logger", file_path="out.log")
-        message = "I would like to take this moment to say something " \
-                  "interesting has happened. "
+        message = "I would like to take this moment to say something " "interesting has happened. "
 
         @log_exception("my_logger", message=message)
         def unique_function_5():
@@ -165,7 +174,6 @@ class TestWrappers(BaseTestClass):
         def handle(*args, **kwargs):
             print(args, kwargs)
             return 10
-
 
         @catch_it(handler=handle)
         def ouch():

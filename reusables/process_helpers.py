@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2019 - Chris Griffith - MIT License
+# Copyright (c) 2014-2020 - Chris Griffith - MIT License
 import os
 import sys
 import subprocess
@@ -12,11 +12,12 @@ from functools import partial
 
 from reusables.shared_variables import *
 
-__all__ = ['run', 'run_in_pool']
+__all__ = ["run", "run_in_pool"]
 
 
-def run(command, input=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        timeout=None, copy_local_env=False, **kwargs):
+def run(
+    command, input=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=None, copy_local_env=False, **kwargs
+):
     """
     Cross platform compatible subprocess with CompletedProcess return.
 
@@ -49,14 +50,12 @@ def run(command, input=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     if copy_local_env:
         # Copy local env first and overwrite with anything manually specified
         env = os.environ.copy()
-        env.update(kwargs.get('env', {}))
+        env.update(kwargs.get("env", {}))
     else:
-        env = kwargs.get('env')
+        env = kwargs.get("env")
 
     if sys.version_info >= (3, 5):
-        return subprocess.run(command, input=input, stdout=stdout,
-                              stderr=stderr, timeout=timeout, env=env,
-                              **kwargs)
+        return subprocess.run(command, input=input, stdout=stdout, stderr=stderr, timeout=timeout, env=env, **kwargs)
 
     # Created here instead of root level as it should never need to be
     # manually created or referenced
@@ -70,24 +69,21 @@ def run(command, input=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             self.stderr = stderr
 
         def __repr__(self):
-            args = ['args={0!r}'.format(self.args),
-                    'returncode={0!r}'.format(self.returncode),
-                    'stdout={0!r}'.format(self.stdout) if self.stdout else '',
-                    'stderr={0!r}'.format(self.stderr) if self.stderr else '']
-            return "{0}({1})".format(type(self).__name__,
-                                     ', '.join(filter(None, args)))
+            args = [
+                "args={0!r}".format(self.args),
+                "returncode={0!r}".format(self.returncode),
+                "stdout={0!r}".format(self.stdout) if self.stdout else "",
+                "stderr={0!r}".format(self.stderr) if self.stderr else "",
+            ]
+            return "{0}({1})".format(type(self).__name__, ", ".join(filter(None, args)))
 
         def check_returncode(self):
             if self.returncode:
                 if python_version < (2, 7):
-                    raise subprocess.CalledProcessError(self.returncode,
-                                                        self.args)
-                raise subprocess.CalledProcessError(self.returncode,
-                                                    self.args,
-                                                    self.stdout)
+                    raise subprocess.CalledProcessError(self.returncode, self.args)
+                raise subprocess.CalledProcessError(self.returncode, self.args, self.stdout)
 
-    proc = subprocess.Popen(command, stdout=stdout, stderr=stderr,
-                            env=env, **kwargs)
+    proc = subprocess.Popen(command, stdout=stdout, stderr=stderr, env=env, **kwargs)
     if PY3:
         out, err = proc.communicate(input=input, timeout=timeout)
     else:
@@ -97,8 +93,7 @@ def run(command, input=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     return CompletedProcess(command, proc.returncode, out, err)
 
 
-def run_in_pool(target, iterable, threaded=True, processes=4,
-                asynchronous=False, target_kwargs=None):
+def run_in_pool(target, iterable, threaded=True, processes=4, asynchronous=False, target_kwargs=None):
     """ Run a set of iterables to a function in a Threaded or MP Pool.
 
     .. code: python
@@ -125,8 +120,7 @@ def run_in_pool(target, iterable, threaded=True, processes=4,
 
     p = my_pool(processes)
     try:
-        results = (p.map_async(target, iterable) if asynchronous
-                   else p.map(target, iterable))
+        results = p.map_async(target, iterable) if asynchronous else p.map(target, iterable)
     finally:
         p.close()
         p.join()
