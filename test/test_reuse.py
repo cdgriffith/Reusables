@@ -432,7 +432,7 @@ Key2 = Value2
         assert len(dups) == 1, len(dups)
 
     def test_find(self):
-        resp = reusables.find_files_list(test_root, ext=[".cfg", ".nope"], disable_pathlib=True)
+        resp = reusables.find_files_list(test_root, ext=[".cfg", ".nope"], disable_pathlib=True, enable_scandir=True)
         assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
 
     def test_remove(self):

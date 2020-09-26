@@ -239,7 +239,7 @@ class Tasker(object):
     def main_loop(self, stop_at_empty=False):
         """Blocking function that can be run directly, if so would probably
         want to specify 'stop_at_empty' to true, or have a separate process
-        adding items to the queue. """
+        adding items to the queue."""
         try:
             while True:
                 self.hook_pre_command()

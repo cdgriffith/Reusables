@@ -35,7 +35,7 @@ setup(
     include_package_data=True,
     platforms="any",
     setup_requires=["pytest-runner"],
-    python_requires='>3.6',
+    python_requires=">3.6",
     classifiers=[
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
@@ -60,5 +60,7 @@ setup(
         "Topic :: System :: Filesystems",
         "Topic :: System :: Logging",
     ],
-    extras_require={"testing": ["pytest", "coverage >= 3.6", "argparse", "rarfile", "tox", "scandir", "pytest-cov"],},
+    extras_require={
+        "testing": ["pytest", "coverage >= 3.6", "argparse", "rarfile", "tox", "scandir", "pytest-cov"],
+    },
 )

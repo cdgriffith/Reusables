@@ -15,6 +15,7 @@ import glob
 import shutil
 from collections import defaultdict
 from pathlib import Path
+import warnings
 
 try:
     import ConfigParser as ConfigParser
@@ -52,6 +53,17 @@ __all__ = [
 ]
 
 logger = logging.getLogger("reusables")
+
+scandir_warning_given = False
+
+
+def scandir_warning():
+    global scandir_warning_given
+    scandir_warning_given = True
+    warnings.warn(
+        '"enable_scandir" option will be removed in the next release of Reusables.'
+        ' Please remove all references to "enable_scandir" or version lock to Reusables < 1.0.0'
+    )
 
 
 def extract(archive_file, path=".", delete_on_success=False, enable_rar=False):
@@ -124,7 +136,7 @@ def archive(
     allow_zip_64=True,
     **tarfile_kwargs,
 ):
-    """ Archive a list of files (or files inside a folder), can chose between
+    """Archive a list of files (or files inside a folder), can chose between
 
         - zip
         - tar
@@ -166,8 +178,7 @@ def archive(
             raise ValueError(err_msg)
         logger.debug("{0} file detected for {1}".format(archive_type, name))
     elif archive_type not in ("tar", "gz", "bz2", "zip", "lzma"):
-        err_msg = ("archive_type must be zip, gz, bz2,"
-                   " or gz, was {0}".format(archive_type))
+        err_msg = "archive_type must be zip, gz, bz2, lzma, or gz, was {0}".format(archive_type)
         logger.error(err_msg)
         raise ValueError(err_msg)
 
@@ -183,16 +194,14 @@ def archive(
         elif store:
             compression = zipfile.ZIP_STORED
 
-        arch = zipfile.ZipFile(name, 'w',
-                               compression,
-                               allowZip64=allow_zip_64)
+        arch = zipfile.ZipFile(name, "w", compression, allowZip64=allow_zip_64)
         write = arch.write
     elif archive_type in ("tar", "gz", "bz2"):
         mode = archive_type if archive_type != "tar" else ""
         arch = tarfile.open(name, "w:{0}".format(mode), **tarfile_kwargs)
         write = arch.add
     else:
-        raise ValueError("archive_type must be zip, gz, bz2, or gz")
+        raise ValueError("archive_type must be zip, gz, bz2, lzma, or gz")
 
     try:
         for file_path in files_to_archive:
@@ -396,7 +405,7 @@ def config_namespace(config_file=None, auto_find=False, verify=True, **cfg_optio
     return ConfigNamespace(**config_dict(config_file, auto_find, verify, **cfg_options))
 
 
-def os_tree(directory):
+def os_tree(directory, enable_scandir=False):
     """
     Return a directories contents as a dictionary hierarchy.
 
@@ -413,6 +422,9 @@ def os_tree(directory):
     :param directory: path to directory to created the tree of.
     :return: dictionary of the directory
     """
+    if enable_scandir and not scandir_warning_given:
+        scandir_warning()
+
     if not os.path.exists(directory):
         raise OSError("Directory does not exist")
     if not os.path.isdir(directory):
@@ -484,6 +496,7 @@ def find_files(
     disable_glob=False,
     depth=None,
     abspath=False,
+    enable_scandir=False,
     disable_pathlib=False,
 ):
     """
@@ -525,6 +538,8 @@ def find_files(
     :param disable_pathlib: only return string, not path objects
     :return: generator of all files in the specified directory
     """
+    if enable_scandir and not scandir_warning_given:
+        scandir_warning()
 
     def pathed(path):
         if disable_pathlib:
@@ -571,7 +586,7 @@ def find_files(
             yield pathed(os.path.join(root, file_name))
 
 
-def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True):
+def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True, enable_scandir=False):
     """
     Remove all empty folders from a path. Returns list of empty directories.
 
@@ -580,6 +595,8 @@ def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True):
     :param ignore_errors: Permissions are a pain, just ignore if you blocked
     :return: list of removed directories
     """
+    if enable_scandir and not scandir_warning_given:
+        scandir_warning()
 
     directory_list = []
     for root, directories, files in os.walk(root_directory, topdown=False):
@@ -609,7 +626,7 @@ def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True):
     return directory_list
 
 
-def remove_empty_files(root_directory, dry_run=False, ignore_errors=True):
+def remove_empty_files(root_directory, dry_run=False, ignore_errors=True, enable_scandir=False):
     """
     Remove all empty files from a path. Returns list of the empty files removed.
 
@@ -618,6 +635,9 @@ def remove_empty_files(root_directory, dry_run=False, ignore_errors=True):
     :param ignore_errors: Permissions are a pain, just ignore if you blocked
     :return: list of removed files
     """
+    if enable_scandir and not scandir_warning_given:
+        scandir_warning()
+
     file_list = []
     for root, directories, files in os.walk(root_directory):
         for file_name in files:
@@ -641,7 +661,7 @@ def remove_empty_files(root_directory, dry_run=False, ignore_errors=True):
     return file_list
 
 
-def dup_finder(file_path, directory="."):
+def dup_finder(file_path, directory=".", enable_scandir=False):
     """
     Check a directory for duplicates of the specified file. This is meant
     for a single file only, for checking a directory for dups, use
@@ -668,6 +688,9 @@ def dup_finder(file_path, directory="."):
     :param directory: Directory to dig recursively into to look for duplicates
     :return: generators
     """
+    if enable_scandir and not scandir_warning_given:
+        scandir_warning()
+
     size = os.path.getsize(file_path)
     if size == 0:
         for empty_file in remove_empty_files(directory, dry_run=True):

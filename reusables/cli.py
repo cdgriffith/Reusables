@@ -26,7 +26,7 @@ _saved_paths = []
 
 
 def cmd(command, ignore_stderr=False, raise_on_return=False, timeout=None, encoding="utf-8"):
-    """ Run a shell command and have it automatically decoded and printed
+    """Run a shell command and have it automatically decoded and printed
 
     :param command: Command to run as str
     :param ignore_stderr: To not print stderr
@@ -99,7 +99,7 @@ def ls(params="", directory=".", printed=True):
 
 
 def find(name=None, ext=None, directory=".", match_case=False, disable_glob=False, depth=None):
-    """ Designed for the interactive interpreter by making default order
+    """Designed for the interactive interpreter by making default order
     of find_files faster.
 
     :param name: Part of the file name

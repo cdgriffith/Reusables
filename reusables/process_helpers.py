@@ -94,7 +94,7 @@ def run(
 
 
 def run_in_pool(target, iterable, threaded=True, processes=4, asynchronous=False, target_kwargs=None):
-    """ Run a set of iterables to a function in a Threaded or MP Pool.
+    """Run a set of iterables to a function in a Threaded or MP Pool.
 
     .. code: python
 

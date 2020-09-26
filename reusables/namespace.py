@@ -176,7 +176,7 @@ class ConfigNamespace(Namespace):
             return super(ConfigNamespace, self).__getattr__(item.lower())
 
     def bool(self, item, default=None):
-        """ Return value of key as a boolean
+        """Return value of key as a boolean
 
         :param item: key of value to transform
         :param default: value to return if item does not exist
@@ -198,7 +198,7 @@ class ConfigNamespace(Namespace):
         return True if item else False
 
     def int(self, item, default=None):
-        """ Return value of key as an int
+        """Return value of key as an int
 
         :param item: key of value to transform
         :param default: value to return if item does not exist
@@ -213,7 +213,7 @@ class ConfigNamespace(Namespace):
         return int(item)
 
     def float(self, item, default=None):
-        """ Return value of key as a float
+        """Return value of key as a float
 
         :param item: key of value to transform
         :param default: value to return if item does not exist
@@ -228,7 +228,7 @@ class ConfigNamespace(Namespace):
         return float(item)
 
     def list(self, item, default=None, spliter=",", strip=True, mod=None):
-        """ Return value of key as a list
+        """Return value of key as a list
 
         :param item: key of value to transform
         :param mod: function to map against list

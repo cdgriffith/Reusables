@@ -5,7 +5,7 @@ import reusables
 from .common_test_data import *
 
 
-class TestException(Exception):
+class ReuseTestException(Exception):
     pass
 
 
@@ -19,8 +19,8 @@ class TestException(Exception):
 
 class TestOther(BaseTestClass):
     def test_exception_ignored(self):
-        with reusables.ignored(TestException):
-            raise TestException()
+        with reusables.ignored(ReuseTestException):
+            raise ReuseTestException()
 
     def test_defaultlist_init(self):
         test = reusables.defaultlist(factory=int)
