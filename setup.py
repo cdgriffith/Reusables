@@ -26,7 +26,7 @@ setup(
     url="https://github.com/cdgriffith/Reusables",
     license="MIT",
     author=attrs["author"],
-    tests_require=["pytest", "coverage >= 3.6", "argparse", "rarfile", "tox", "scandir", "pytest-cov"],
+    tests_require=["pytest", "coverage >= 3.6", "rarfile", "pytest-cov"],
     install_requires=[],
     author_email="chris@cdgriffith.com",
     description="Commonly Consumed Code Commodities",
@@ -61,6 +61,6 @@ setup(
         "Topic :: System :: Logging",
     ],
     extras_require={
-        "testing": ["pytest", "coverage >= 3.6", "argparse", "rarfile", "tox", "scandir", "pytest-cov"],
+        "testing": ["pytest", "coverage >= 3.6", "rarfile", "pytest-cov"],
     },
 )

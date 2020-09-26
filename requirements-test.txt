@@ -1,8 +1,6 @@
 coverage >= 5.3
-future
 mock
 pytest >= 6.0.2
 pytest-cov
 rarfile
 scandir
-tox
