@@ -185,7 +185,3 @@ class TestWrappers(BaseTestClass):
 
         b()
         assert ouch() == 10
-
-
-if __name__ == "__main__":
-    unittest.main()

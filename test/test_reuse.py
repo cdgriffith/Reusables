@@ -308,7 +308,7 @@ Key2 = Value2
 
     def test_config_reader_bad(self):
         try:
-            cfg = reusables.config_namespace(reusables.join_paths(test_root, "data", "test_bad_config.ini"))
+            reusables.config_namespace(reusables.join_paths(test_root, "data", "test_bad_config.ini"))
         except AttributeError:
             pass
         else:
@@ -332,7 +332,7 @@ Key2 = Value2
         assert str(cl) == outstr, "{0} != {1}".format(str(cl), outstr)
 
         try:
-            cl2 = reusables.run("echo test", shell=True, timeout=5)
+            reusables.run("echo test", shell=True, timeout=5)
         except NotImplementedError:
             if reusables.PY3:
                 raise AssertionError("Should only happen on PY2")
@@ -366,7 +366,6 @@ Key2 = Value2
             os.unlink(empty)
 
     def test_cut(self):
-
         a = reusables.cut("abcdefghi")
         assert a == ["ab", "cd", "ef", "gh", "i"]
 
@@ -456,7 +455,7 @@ Key2 = Value2
     def test_sync_dirs(self):
         if reusables.python_version >= (3, 4):
             pass
-        files = reusables.find_files_list(test_root, ext=".cfg", abspath=True)
+        reusables.find_files_list(test_root, ext=".cfg", abspath=True)
 
 
 if reusables.nix_based:

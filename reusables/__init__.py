@@ -3,7 +3,7 @@
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2020 - Chris Griffith - MIT License
+# Copyright (c) 2014-2025 - Chris Griffith - MIT License
 from __future__ import absolute_import
 
 from reusables.string_manipulation import *
@@ -23,4 +23,4 @@ from reusables.other import *
 from reusables.default_list import *
 
 __author__ = "Chris Griffith"
-__version__ = "1.0.0a0"
+__version__ = "1.0.0"

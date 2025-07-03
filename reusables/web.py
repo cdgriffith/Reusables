@@ -3,7 +3,7 @@
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2020 - Chris Griffith - MIT License
+# Copyright (c) 2014-2025 - Chris Griffith - MIT License
 from __future__ import absolute_import
 import os
 import logging
@@ -11,15 +11,9 @@ import time
 import threading
 import socket
 
-try:
-    from urllib2 import urlopen
-except ImportError:
-    from urllib.request import urlopen
-try:
-    from http.server import HTTPServer as _server, SimpleHTTPRequestHandler as _handler
-except ImportError:
-    from SimpleHTTPServer import SimpleHTTPRequestHandler as _handler
-    from SocketServer import TCPServer as _server
+from urllib.request import urlopen
+from http.server import HTTPServer as _server, SimpleHTTPRequestHandler as _handler
+
 
 from reusables.file_operations import safe_filename
 
@@ -94,7 +88,7 @@ class ThreadedServer(object):
     Defaulting as a FileServer, this class allows for fast creation of
     a threaded server that is easily stoppable.
 
-    .. code:: python
+    ... code:: python
 
         my_server = reusables.ThreadedServer()
         reusables.download("http://localhost:8080", False)
@@ -103,7 +97,7 @@ class ThreadedServer(object):
 
     :param name: server name
     :param port: int of port to run server on (below 1024 requires root)
-    :param auto_start: automatically start the background thread and serve
+    :param auto_start: automatically starts the background thread and serve
     :param server: Default is TCPServer (py2) or HTTPServer (py3)
     :param handler: Default is SimpleHTTPRequestHandler
     """
@@ -134,7 +128,7 @@ def url_to_ips(url, port=None, ipv6=False, connect_type=socket.SOCK_STREAM, prot
     """
     Provide a list of IP addresses, uses `socket.getaddrinfo`
 
-    .. code:: python
+    ... code:: python
 
         reusables.url_to_ips("example.com", ipv6=True)
         # ['2606:2800:220:1:248:1893:25c8:1946']
@@ -162,7 +156,7 @@ def url_to_ip(url):
     """
     Provide IP of host, does not support IPv6, uses `socket.gethostbyaddr`
 
-    .. code:: python
+    ... code:: python
 
         reusables.url_to_ip('example.com')
         # '93.184.216.34'
@@ -184,7 +178,7 @@ def ip_to_url(ip_addr):
     probably not return any results if it is a shared IP address or an
     address with improperly setup DNS records.
 
-    .. code:: python
+    ... code:: python
 
         reusables.ip_to_url('93.184.216.34') # example.com
         # None

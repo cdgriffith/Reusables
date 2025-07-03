@@ -3,8 +3,9 @@
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2020 - Chris Griffith - MIT License
-""" Functions to only be in an interactive instances to ease life. """
+# Copyright (c) 2014-2025 - Chris Griffith - MIT License
+"""Functions to only be in an interactive instances to ease life."""
+
 from __future__ import absolute_import
 import os
 import logging
@@ -151,7 +152,7 @@ def head(file_path, lines=10, encoding="utf-8", printed=True, errors="strict"):
 def cat(file_path, encoding="utf-8", errors="strict"):
     """
 
-    .. code:
+    ... code:
 
               ^-^
              (-.-)

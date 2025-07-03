@@ -23,7 +23,7 @@ class TestOther(BaseTestClass):
             raise ReuseTestException()
 
     def test_defaultlist_init(self):
-        test = reusables.defaultlist(factory=int)
+        reusables.defaultlist(factory=int)
 
     def test_defaultlist_none(self):
         test = reusables.defaultlist()

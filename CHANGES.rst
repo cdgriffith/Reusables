@@ -4,6 +4,7 @@ Changelog
 Version 1.0.0
 -------------
 
+- Fixing warning about escape sequences
 - Fixing default of defaultlist
 - Changing testing from Travis CI to github actions
 - Removing Python 2.x support

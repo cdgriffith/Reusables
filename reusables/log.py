@@ -3,10 +3,11 @@
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2020 - Chris Griffith - MIT License
+# Copyright (c) 2014-2025 - Chris Griffith - MIT License
 """
 Logging helper functions and common log formats.
 """
+
 from __future__ import absolute_import
 import warnings
 import logging
@@ -61,7 +62,7 @@ if sys.version_info < (2, 7):
 
 
 def get_logger(*args, **kwargs):
-    """ Depreciated, use setup_logger"""
+    """Depreciated, use setup_logger"""
     warnings.warn("get_logger is changing name to setup_logger", DeprecationWarning)
     return setup_logger(*args, **kwargs)
 

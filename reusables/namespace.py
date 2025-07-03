@@ -3,11 +3,12 @@
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2020 - Chris Griffith - MIT License
+# Copyright (c) 2014-2025 - Chris Griffith - MIT License
 """
 Improved dictionary management. Inspired by
 javascript style referencing, as it's one of the few things they got right.
 """
+
 import sys
 
 try:
@@ -270,7 +271,7 @@ class ProtectedDict(dict):
     A special dict class that prohibits the setting of keys and attributes.
     It will NOT protect objects stored in the dictionary, such as sub dicts.
 
-    .. code: python
+    ... code: python
 
         safe_dict = reusables.ProtectedDict(a=5, b="stuff")
         # same as safe_dict = resuables.ProtectedDict({"a": 5, "b":"stuff"})

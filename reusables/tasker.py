@@ -3,7 +3,7 @@
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2020 - Chris Griffith - MIT License
+# Copyright (c) 2014-2025 - Chris Griffith - MIT License
 try:
     import queue as queue
 except ImportError:

@@ -4,7 +4,6 @@
 import time
 import reusables
 import logging
-import platform
 
 from .common_test_data import *
 

@@ -3,7 +3,7 @@
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2020 - Chris Griffith - MIT License
+# Copyright (c) 2014-2025 - Chris Griffith - MIT License
 import os
 import zipfile
 import tarfile
@@ -70,7 +70,7 @@ def extract(archive_file, path=".", delete_on_success=False, enable_rar=False):
     """
     Automatically detect archive type and extract all files to specified path.
 
-    .. code:: python
+    ... code:: python
 
         import os
 
@@ -143,7 +143,7 @@ def archive(
         - gz (tar.gz, tgz)
         - bz2 (tar.bz2)
 
-    .. code:: python
+    ... code:: python
 
         reusables.archive(['reusables', '.travis.yml'],
                               name="my_archive.bz2")
@@ -229,7 +229,7 @@ def list_to_csv(my_list, csv_file):
     """
     Save a matrix (list of lists) to a file as a CSV
 
-    .. code:: python
+    ... code:: python
 
         my_list = [["Name", "Location"],
                    ["Chris", "South Pole"],
@@ -240,7 +240,7 @@ def list_to_csv(my_list, csv_file):
 
     example.csv
 
-    .. code:: csv
+    ... code:: csv
 
         "Name","Location"
         "Chris","South Pole"
@@ -266,7 +266,7 @@ def csv_to_list(csv_file):
     """
     Open and transform a CSV file into a matrix (list of lists).
 
-    .. code:: python
+    ... code:: python
 
         reusables.csv_to_list("example.csv")
         # [['Name', 'Location'],
@@ -285,7 +285,7 @@ def load_json(json_file, **kwargs):
     """
     Open and load data from a JSON file
 
-    .. code:: python
+    ... code:: python
 
         reusables.load_json("example.json")
         # {u'key_1': u'val_1', u'key_for_dict': {u'sub_dict_key': 8}}
@@ -302,7 +302,7 @@ def save_json(data, json_file, indent=4, **kwargs):
     """
     Takes a dictionary and saves it to a file as JSON
 
-    .. code:: python
+    ... code:: python
 
         my_dict = {"key_1": "val_1",
                    "key_for_dict": {"sub_dict_key": 8}}
@@ -311,7 +311,7 @@ def save_json(data, json_file, indent=4, **kwargs):
 
     example.json
 
-    .. code::
+    ... code::
 
         {
             "key_1": "val_1",
@@ -335,7 +335,7 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
     config file or a list of files. Auto find will search for all .cfg, .config
     and .ini in the execution directory and package root (unsafe but handy).
 
-    .. code:: python
+    ... code:: python
 
         reusables.config_dict(os.path.join("test", "data", "test_config.ini"))
         # {'General': {'example': 'A regular string'},
@@ -389,7 +389,7 @@ def config_namespace(config_file=None, auto_find=False, verify=True, **cfg_optio
     """
     Return configuration options as a Namespace.
 
-    .. code:: python
+    ... code:: python
 
         reusables.config_namespace(os.path.join("test", "data",
                                                 "test_config.ini"))
@@ -409,7 +409,7 @@ def os_tree(directory, enable_scandir=False):
     """
     Return a directories contents as a dictionary hierarchy.
 
-    .. code:: python
+    ... code:: python
 
         reusables.os_tree(".")
         # {'doc': {'build': {'doctrees': {},
@@ -458,7 +458,7 @@ def file_hash(path, hash_type="md5", block_size=65536, hex_digest=True):
 
     This function is designed to be non memory intensive.
 
-    .. code:: python
+    ... code:: python
 
         reusables.file_hash(test_structure.zip")
         # '61e387de305201a2c915a4f4277d6663'
@@ -479,12 +479,12 @@ def file_hash(path, hash_type="md5", block_size=65536, hex_digest=True):
 
 
 def find_files_list(*args, **kwargs):
-    """ Returns a list of find_files generator"""
+    """Returns a list of find_files generator"""
     return list(find_files(*args, **kwargs))
 
 
 def count_files(*args, **kwargs):
-    """ Returns an integer of all files found using find_files"""
+    """Returns an integer of all files found using find_files"""
     return sum(1 for _ in find_files(*args, **kwargs))
 
 
@@ -510,7 +510,7 @@ def find_files(
     Note: For the example below, you can use find_files_list to return as a
     list, this is simply an easy way to show the output.
 
-    .. code:: python
+    ... code:: python
 
         list(reusables.find_files(name="ex", match_case=True))
         # ['C:\\example.pdf',
@@ -675,7 +675,7 @@ def dup_finder(file_path, directory=".", enable_scandir=False):
     2. First twenty bytes
     3. Full SHA256 compare
 
-    .. code:: python
+    ... code:: python
 
         list(reusables.dup_finder(
              "test_structure\\files_2\\empty_file"))
@@ -720,7 +720,7 @@ def directory_duplicates(directory, hash_type="md5", **kwargs):
     Find all duplicates in a directory. Will return a list, in that list
     are lists of duplicate files.
 
-    .. code: python
+    ... code: python
 
         dups = reusables.directory_duplicates('C:\\Users\\Me\\Pictures')
 
@@ -769,7 +769,7 @@ def join_paths(*paths, **kwargs):
     Would like to do 'safe=False' instead of '**kwargs' but stupider versions
     of python *cough 2.6* don't like that after '*paths'.
 
-    .. code: python
+    ... code: python
 
         reusables.join_paths("var", "\\log", "/test")
         'C:\\Users\\Me\\var\\log\\test'
@@ -793,7 +793,7 @@ def join_here(*paths, **kwargs):
     """
     Join any path or paths as a sub directory of the current file's directory.
 
-    .. code:: python
+    ... code:: python
 
         reusables.join_here("Makefile")
         # 'C:\\Reusables\\Makefile'
@@ -920,7 +920,11 @@ def sync_dirs(dir1, dir2, checksums=True, overwrite=False, only_log_errors=True)
             elif checksums and (file_hash(file) != file_hash(path_two)):
                 logger.warning("Files do not match: {} - {}".format(file, path_two))
                 if overwrite:
-                    logger.info("Overwriting {}".format(file, path_two))
+                    logger.info(
+                        "Overwriting {}".format(
+                            file,
+                        )
+                    )
                     cp(file, path_two)
         else:
             logger.info("Copying {} to {}".format(file, path_two))

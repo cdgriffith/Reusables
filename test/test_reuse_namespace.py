@@ -60,7 +60,7 @@ class TestReuseNamespace(BaseTestClass):
 
     def test_namespace_from_bad_dict(self):
         try:
-            ns = reusables.Namespace('{"k1": "v1", ' '"k2": {"k3": "v2"}}')
+            reusables.Namespace('{"k1": "v1", "k2": {"k3": "v2"}}')
         except ValueError:
             assert True
         else:
