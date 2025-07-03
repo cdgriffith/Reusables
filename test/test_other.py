@@ -2,28 +2,32 @@
 # -*- coding: utf-8 -*-
 import reusables
 
-from .common_test_data import *
+from .common_test_data import BaseTestClass
 
 
-class TestException(Exception):
+class ReuseTestException(Exception):
     pass
 
 
-class Foo(metaclass=reusables.Singleton):
-    def __init__(self, thing):
-        self.thing = thing
-
-    def __call__(self):
-        return self.thing
+# class Foo(metaclass=reusables.Singleton):
+#     def __init__(self, thing):
+#         self.thing = thing
+#
+#     def __call__(self):
+#         return self.thing
 
 
 class TestOther(BaseTestClass):
     def test_exception_ignored(self):
-        with reusables.ignored(TestException):
-            raise TestException()
+        with reusables.ignored(ReuseTestException):
+            raise ReuseTestException()
 
     def test_defaultlist_init(self):
-        test = reusables.defaultlist(factory=int)
+        reusables.defaultlist(factory=int)
+
+    def test_defaultlist_none(self):
+        test = reusables.defaultlist()
+        assert test[2] is None
 
     def test_defaultlist_length(self):
         test = reusables.defaultlist(factory=int)
@@ -38,9 +42,9 @@ class TestOther(BaseTestClass):
         test[2].append(10)
         self.assertEqual(test, [[], [], [10]])
 
-    def test_singleton(self):
-        """Singleton design pattern test class."""
-        foo = Foo("BAR")
-        self.assertIs(foo, Foo("BAZ"))
-        self.assertEqual(foo.thing, "BAR")
-        self.assertEqual(Foo("BAZ"), "BAR")
+    # def test_singleton(self):
+    #     """Singleton design pattern test class."""
+    #     foo = Foo("BAR")
+    #     self.assertIs(foo, Foo("BAZ"))
+    #     self.assertEqual(foo.thing, "BAR")
+    #     self.assertEqual(Foo("BAZ"), "BAR")

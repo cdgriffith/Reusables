@@ -3,11 +3,12 @@
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2020 - Chris Griffith - MIT License
+# Copyright (c) 2014-2025 - Chris Griffith - MIT License
 """
 Improved dictionary management. Inspired by
 javascript style referencing, as it's one of the few things they got right.
 """
+
 import sys
 
 try:
@@ -53,7 +54,7 @@ class Namespace(dict):
             else:
                 raise ValueError("First argument must be mapping or iterable")
         elif args:
-            raise TypeError("Namespace expected at most 1 argument, " "got {0}".format(len(args)))
+            raise TypeError("Namespace expected at most 1 argument, got {0}".format(len(args)))
         _recursive_create(self, kwargs.items())
 
     def __contains__(self, item):
@@ -176,7 +177,7 @@ class ConfigNamespace(Namespace):
             return super(ConfigNamespace, self).__getattr__(item.lower())
 
     def bool(self, item, default=None):
-        """ Return value of key as a boolean
+        """Return value of key as a boolean
 
         :param item: key of value to transform
         :param default: value to return if item does not exist
@@ -198,7 +199,7 @@ class ConfigNamespace(Namespace):
         return True if item else False
 
     def int(self, item, default=None):
-        """ Return value of key as an int
+        """Return value of key as an int
 
         :param item: key of value to transform
         :param default: value to return if item does not exist
@@ -213,7 +214,7 @@ class ConfigNamespace(Namespace):
         return int(item)
 
     def float(self, item, default=None):
-        """ Return value of key as a float
+        """Return value of key as a float
 
         :param item: key of value to transform
         :param default: value to return if item does not exist
@@ -228,7 +229,7 @@ class ConfigNamespace(Namespace):
         return float(item)
 
     def list(self, item, default=None, spliter=",", strip=True, mod=None):
-        """ Return value of key as a list
+        """Return value of key as a list
 
         :param item: key of value to transform
         :param mod: function to map against list
@@ -270,7 +271,7 @@ class ProtectedDict(dict):
     A special dict class that prohibits the setting of keys and attributes.
     It will NOT protect objects stored in the dictionary, such as sub dicts.
 
-    .. code: python
+    ... code: python
 
         safe_dict = reusables.ProtectedDict(a=5, b="stuff")
         # same as safe_dict = resuables.ProtectedDict({"a": 5, "b":"stuff"})

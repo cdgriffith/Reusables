@@ -3,14 +3,14 @@
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2020 - Chris Griffith - MIT License
+# Copyright (c) 2014-2025 - Chris Griffith - MIT License
 import os
 import sys
 import subprocess
 from multiprocessing import pool
 from functools import partial
 
-from reusables.shared_variables import *
+from reusables.shared_variables import python_version, PY3
 
 __all__ = ["run", "run_in_pool"]
 
@@ -24,7 +24,7 @@ def run(
     No formatting or encoding is performed on the output of subprocess, so it's
     output will appear the same on each version / interpreter as before.
 
-    .. code:: python
+    ... code:: python
 
         reusables.run('echo "hello world!', shell=True)
         # CPython 3.6
@@ -94,9 +94,9 @@ def run(
 
 
 def run_in_pool(target, iterable, threaded=True, processes=4, asynchronous=False, target_kwargs=None):
-    """ Run a set of iterables to a function in a Threaded or MP Pool.
+    """Run a set of iterables to a function in a Threaded or MP Pool.
 
-    .. code: python
+    ... code: python
 
         def func(a):
             return a + a

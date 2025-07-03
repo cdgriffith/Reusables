@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import reusables
 
-from .common_test_data import *
+from .common_test_data import BaseTestClass
 
 
 class TestReuseNamespace(BaseTestClass):
@@ -60,7 +60,7 @@ class TestReuseNamespace(BaseTestClass):
 
     def test_namespace_from_bad_dict(self):
         try:
-            ns = reusables.Namespace('{"k1": "v1", ' '"k2": {"k3": "v2"}}')
+            reusables.Namespace('{"k1": "v1", "k2": {"k3": "v2"}}')
         except ValueError:
             assert True
         else:
@@ -167,7 +167,12 @@ class TestProtectedDict(BaseTestClass):
         Validate that stored objects, such as a sub dictionary, may be
         altered in a protected dictionary.
         """
-        test_protected = reusables.ProtectedDict({"Test 1": {"a": 1, "b": 2}, "Test 2": 2,})
+        test_protected = reusables.ProtectedDict(
+            {
+                "Test 1": {"a": 1, "b": 2},
+                "Test 2": 2,
+            }
+        )
 
         test_protected["Test 1"]["a"] = 3
         assert test_protected["Test 1"]["a"] == 3
@@ -177,7 +182,12 @@ class TestProtectedDict(BaseTestClass):
         Validate that a protected dictionary with a sub dictionary is not
         hashable.
         """
-        test_protected = reusables.ProtectedDict({"Test 1": {"a": 1, "b": 2}, "Test 2": 2,})
+        test_protected = reusables.ProtectedDict(
+            {
+                "Test 1": {"a": 1, "b": 2},
+                "Test 2": 2,
+            }
+        )
         try:
             hash(test_protected)
         except TypeError:

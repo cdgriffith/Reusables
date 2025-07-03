@@ -3,7 +3,7 @@
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2020 - Chris Griffith - MIT License
+# Copyright (c) 2014-2025 - Chris Griffith - MIT License
 from __future__ import absolute_import
 import datetime
 import re
@@ -56,7 +56,7 @@ def datetime_format(desired_format, datetime_instance=None, *args, **kwargs):
     Replaces format style phrases (listed in the dt_exps dictionary)
     with this datetime instance's information.
 
-    .. code :: python
+    ... code :: python
 
         reusables.datetime_format("Hey, it's {month-full} already!")
         "Hey, it's March already!"
@@ -78,7 +78,7 @@ def datetime_from_iso(iso_string):
     """
     Create a DateTime object from a ISO string
 
-    .. code :: python
+    ... code :: python
 
         reusables.datetime_from_iso('2019-03-10T12:56:55.031863')
         datetime.datetime(2019, 3, 10, 12, 56, 55, 31863)
@@ -100,7 +100,7 @@ def now(utc=False, tz=None):
     """
     Get a current DateTime object. By default is local.
 
-    .. code:: python
+    ... code:: python
 
         reusables.now()
         # DateTime(2016, 12, 8, 22, 5, 2, 517000)

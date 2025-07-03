@@ -1,17 +1,13 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+import unittest.mock as mock
+
+from .common_test_data import BaseTestClass
 
 import reusables
 
-try:
-    import unittest.mock as mock
-except ImportError:
-    from mock import mock
 
-from .common_test_data import *
-
-
-class TestException(Exception):
+class ReuseTestException(Exception):
     pass
 
 
@@ -20,7 +16,7 @@ class IntVar:
         if isinstance(value, str):
             self.value = int(value)
         else:
-            raise TestException("Exception")
+            raise ReuseTestException("Exception")
 
 
 class TestSanitizedInput(BaseTestClass):
@@ -58,7 +54,7 @@ class TestSanitizedInput(BaseTestClass):
             "raise_on_invalid": False,
         }
         with mock.patch("reusables.sanitizers._get_input", return_value=1):
-            self.assertRaises(TestException, reusables.sanitized_input, **kwargs)
+            self.assertRaises(ReuseTestException, reusables.sanitized_input, **kwargs)
         with mock.patch("reusables.sanitizers._get_input", return_value="1"):
             assert isinstance(reusables.sanitized_input(cast_as=IntVar), IntVar), "Success"
             assert not isinstance(reusables.sanitized_input(cast_as=IntVar), int), "Failure"

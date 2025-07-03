@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import unittest
 import time
 import reusables
 import logging
-import platform
 
-from .common_test_data import *
+from .common_test_data import BaseTestClass
 
 reusables.change_logger_levels(logging.getLogger("reusables"), logging.INFO)
 

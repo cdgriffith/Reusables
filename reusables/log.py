@@ -3,12 +3,12 @@
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2020 - Chris Griffith - MIT License
+# Copyright (c) 2014-2025 - Chris Griffith - MIT License
 """
 Logging helper functions and common log formats.
 """
+
 from __future__ import absolute_import
-import warnings
 import logging
 import sys
 import io
@@ -21,7 +21,6 @@ from reusables.wrappers import log_it, log_exception
 
 __all__ = [
     "log_formats",
-    "get_logger",
     "setup_logger",
     "get_registered_loggers",
     "get_file_handler",
@@ -46,8 +45,8 @@ log_formats = Namespace(
         "level_first": "%(levelname)s - %(name)s - %(asctime)s - %(message)s",
         "threaded": "%(relativeCreated)d %(threadName)s : %(message)s",
         "easy_read": "%(asctime)s - %(name)-12s  %(levelname)-8s %(message)s",
-        "easy_thread": "%(relativeCreated)8d %(threadName)s : %(name)-12s " "%(levelname)-8s  %(message)s",
-        "detailed": "%(asctime)s : %(relativeCreated)5d %(threadName)s : %(name)s " "%(levelname)s %(message)s",
+        "easy_thread": "%(relativeCreated)8d %(threadName)s : %(name)-12s %(levelname)-8s  %(message)s",
+        "detailed": "%(asctime)s : %(relativeCreated)5d %(threadName)s : %(name)s %(levelname)s %(message)s",
     }
 )
 
@@ -58,12 +57,6 @@ if sys.version_info < (2, 7):
             pass
 
     logging.NullHandler = NullHandler
-
-
-def get_logger(*args, **kwargs):
-    """ Depreciated, use setup_logger"""
-    warnings.warn("get_logger is changing name to setup_logger", DeprecationWarning)
-    return setup_logger(*args, **kwargs)
 
 
 def get_stream_handler(stream=sys.stderr, level=logging.INFO, log_format=log_formats.easy_read):
@@ -177,7 +170,7 @@ def add_rotating_file_handler(
     backup_count=5,
     **handler_kwargs,
 ):
-    """ Adds a rotating file handler to the specified logger.
+    """Adds a rotating file handler to the specified logger.
 
     :param logger: logging name or object to modify, defaults to root logger
     :param file_path: path to file to log to
@@ -213,7 +206,7 @@ def add_timed_rotating_file_handler(
     backup_count=5,
     **handler_kwargs,
 ):
-    """ Adds a timed rotating file handler to the specified logger.
+    """Adds a timed rotating file handler to the specified logger.
     Defaults to weekly rotation, with 5 backups.
 
     :param logger: logging name or object to modify, defaults to root logger

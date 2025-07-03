@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from reusables.cli import *
-from .common_test_data import *
+from reusables.cli import cmd, pushd, popd, pwd, cd, ls, find, head, cat, tail, cp
+from .common_test_data import BaseTestClass, data_dr, os
 
 
 class TestCLI(BaseTestClass):
-
     ex = os.path.join(data_dr, "ex.txt")
 
     @classmethod
@@ -51,7 +50,7 @@ class TestCLI(BaseTestClass):
         pushd(data_dr)
         test1 = ls(printed=False)
         assert "test" in test1.decode("utf-8")
-        test2 = ls()
+        ls()
 
     def test_head(self):
         lines = head(self.ex, printed=False)

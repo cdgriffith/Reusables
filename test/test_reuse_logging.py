@@ -5,8 +5,9 @@
 import logging
 import reusables
 import sys
+import os
 
-from .common_test_data import *
+from .common_test_data import BaseTestClass, test_root
 
 my_stream_path = os.path.join(test_root, "my_stream.log")
 my_fiie_path = os.path.join(test_root, "my_file.log")

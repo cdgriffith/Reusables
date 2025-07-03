@@ -3,7 +3,7 @@
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2020 - Chris Griffith - MIT License
+# Copyright (c) 2014-2025 - Chris Griffith - MIT License
 import os
 import zipfile
 import tarfile
@@ -14,14 +14,16 @@ import hashlib
 import glob
 import shutil
 from collections import defaultdict
+from pathlib import Path
+import warnings
 
 try:
     import ConfigParser as ConfigParser
 except ImportError:
     import configparser as ConfigParser
 
-from reusables.namespace import *
-from reusables.shared_variables import *
+from reusables.namespace import ConfigNamespace
+from reusables.shared_variables import win_based, PY3, regex, variables, current_root
 
 __all__ = [
     "load_json",
@@ -52,12 +54,23 @@ __all__ = [
 
 logger = logging.getLogger("reusables")
 
+scandir_warning_given = False
+
+
+def scandir_warning():
+    global scandir_warning_given
+    scandir_warning_given = True
+    warnings.warn(
+        '"enable_scandir" option will be removed in the next release of Reusables.'
+        ' Please remove all references to "enable_scandir" or version lock to Reusables < 1.0.0'
+    )
+
 
 def extract(archive_file, path=".", delete_on_success=False, enable_rar=False):
     """
     Automatically detect archive type and extract all files to specified path.
 
-    .. code:: python
+    ... code:: python
 
         import os
 
@@ -92,7 +105,7 @@ def extract(archive_file, path=".", delete_on_success=False, enable_rar=False):
         import rarfile
 
         if rarfile.is_rarfile(archive_file):
-            logger.debug("File {0} detected as " "a rar file".format(archive_file))
+            logger.debug("File {0} detected as a rar file".format(archive_file))
             arch = rarfile.RarFile(archive_file)
 
     if not arch:
@@ -123,14 +136,14 @@ def archive(
     allow_zip_64=True,
     **tarfile_kwargs,
 ):
-    """ Archive a list of files (or files inside a folder), can chose between
+    """Archive a list of files (or files inside a folder), can chose between
 
         - zip
         - tar
         - gz (tar.gz, tgz)
         - bz2 (tar.bz2)
 
-    .. code:: python
+    ... code:: python
 
         reusables.archive(['reusables', '.travis.yml'],
                               name="my_archive.bz2")
@@ -160,12 +173,12 @@ def archive(
         elif name.lower().endswith("tar"):
             archive_type = "tar"
         else:
-            err_msg = "Could not determine archive " "type based off {0}".format(name)
+            err_msg = "Could not determine archive type based off {0}".format(name)
             logger.error(err_msg)
             raise ValueError(err_msg)
         logger.debug("{0} file detected for {1}".format(archive_type, name))
-    elif archive_type not in ("tar", "gz", "bz2", "zip"):
-        err_msg = "archive_type must be zip, gz, bz2," " or gz, was {0}".format(archive_type)
+    elif archive_type not in ("tar", "gz", "bz2", "zip", "lzma"):
+        err_msg = "archive_type must be zip, gz, bz2, lzma, or gz, was {0}".format(archive_type)
         logger.error(err_msg)
         raise ValueError(err_msg)
 
@@ -174,17 +187,21 @@ def archive(
         logger.error(err_msg)
         raise OSError(err_msg)
 
-    if archive_type == "zip":
-        arch = zipfile.ZipFile(
-            name, "w", zipfile.ZIP_STORED if store else zipfile.ZIP_DEFLATED, allowZip64=allow_zip_64
-        )
+    if archive_type in ("zip", "lzma"):
+        compression = zipfile.ZIP_DEFLATED
+        if archive_type == "lzma":
+            compression = zipfile.ZIP_LZMA
+        elif store:
+            compression = zipfile.ZIP_STORED
+
+        arch = zipfile.ZipFile(name, "w", compression, allowZip64=allow_zip_64)
         write = arch.write
     elif archive_type in ("tar", "gz", "bz2"):
         mode = archive_type if archive_type != "tar" else ""
         arch = tarfile.open(name, "w:{0}".format(mode), **tarfile_kwargs)
         write = arch.add
     else:
-        raise ValueError("archive_type must be zip, gz, bz2, or gz")
+        raise ValueError("archive_type must be zip, gz, bz2, lzma, or gz")
 
     try:
         for file_path in files_to_archive:
@@ -212,7 +229,7 @@ def list_to_csv(my_list, csv_file):
     """
     Save a matrix (list of lists) to a file as a CSV
 
-    .. code:: python
+    ... code:: python
 
         my_list = [["Name", "Location"],
                    ["Chris", "South Pole"],
@@ -223,7 +240,7 @@ def list_to_csv(my_list, csv_file):
 
     example.csv
 
-    .. code:: csv
+    ... code:: csv
 
         "Name","Location"
         "Chris","South Pole"
@@ -249,7 +266,7 @@ def csv_to_list(csv_file):
     """
     Open and transform a CSV file into a matrix (list of lists).
 
-    .. code:: python
+    ... code:: python
 
         reusables.csv_to_list("example.csv")
         # [['Name', 'Location'],
@@ -268,7 +285,7 @@ def load_json(json_file, **kwargs):
     """
     Open and load data from a JSON file
 
-    .. code:: python
+    ... code:: python
 
         reusables.load_json("example.json")
         # {u'key_1': u'val_1', u'key_for_dict': {u'sub_dict_key': 8}}
@@ -285,7 +302,7 @@ def save_json(data, json_file, indent=4, **kwargs):
     """
     Takes a dictionary and saves it to a file as JSON
 
-    .. code:: python
+    ... code:: python
 
         my_dict = {"key_1": "val_1",
                    "key_for_dict": {"sub_dict_key": 8}}
@@ -294,14 +311,9 @@ def save_json(data, json_file, indent=4, **kwargs):
 
     example.json
 
-    .. code::
+    ... code::
 
-        {
-            "key_1": "val_1",
-            "key_for_dict": {
-                "sub_dict_key": 8
-            }
-        }
+        {"key_1": "val_1", "key_for_dict": {"sub_dict_key": 8}}
 
     :param data: dictionary to save as JSON
     :param json_file: Path to save file location as str
@@ -318,7 +330,7 @@ def config_dict(config_file=None, auto_find=False, verify=True, **cfg_options):
     config file or a list of files. Auto find will search for all .cfg, .config
     and .ini in the execution directory and package root (unsafe but handy).
 
-    .. code:: python
+    ... code:: python
 
         reusables.config_dict(os.path.join("test", "data", "test_config.ini"))
         # {'General': {'example': 'A regular string'},
@@ -372,7 +384,7 @@ def config_namespace(config_file=None, auto_find=False, verify=True, **cfg_optio
     """
     Return configuration options as a Namespace.
 
-    .. code:: python
+    ... code:: python
 
         reusables.config_namespace(os.path.join("test", "data",
                                                 "test_config.ini"))
@@ -388,28 +400,11 @@ def config_namespace(config_file=None, auto_find=False, verify=True, **cfg_optio
     return ConfigNamespace(**config_dict(config_file, auto_find, verify, **cfg_options))
 
 
-def _walk(directory, enable_scandir=False, **kwargs):
-    """
-    Internal function to return walk generator either from os or scandir
-
-    :param directory: directory to traverse
-    :param enable_scandir: on python < 3.5 enable external scandir package
-    :param kwargs: arguments to pass to walk function
-    :return: walk generator
-    """
-    walk = os.walk
-    if python_version < (3, 5) and enable_scandir:
-        import scandir
-
-        walk = scandir.walk
-    return walk(directory, **kwargs)
-
-
 def os_tree(directory, enable_scandir=False):
     """
     Return a directories contents as a dictionary hierarchy.
 
-    .. code:: python
+    ... code:: python
 
         reusables.os_tree(".")
         # {'doc': {'build': {'doctrees': {},
@@ -420,16 +415,18 @@ def os_tree(directory, enable_scandir=False):
 
 
     :param directory: path to directory to created the tree of.
-    :param enable_scandir: on python < 3.5 enable external scandir package
     :return: dictionary of the directory
     """
+    if enable_scandir and not scandir_warning_given:
+        scandir_warning()
+
     if not os.path.exists(directory):
         raise OSError("Directory does not exist")
     if not os.path.isdir(directory):
         raise OSError("Path is not a directory")
 
     full_list = []
-    for root, dirs, files in _walk(directory, enable_scandir=enable_scandir):
+    for root, dirs, files in os.walk(directory):
         full_list.extend([os.path.join(root, d).lstrip(directory) + os.sep for d in dirs])
     tree = {os.path.basename(directory): {}}
     for item in full_list:
@@ -456,7 +453,7 @@ def file_hash(path, hash_type="md5", block_size=65536, hex_digest=True):
 
     This function is designed to be non memory intensive.
 
-    .. code:: python
+    ... code:: python
 
         reusables.file_hash(test_structure.zip")
         # '61e387de305201a2c915a4f4277d6663'
@@ -477,12 +474,12 @@ def file_hash(path, hash_type="md5", block_size=65536, hex_digest=True):
 
 
 def find_files_list(*args, **kwargs):
-    """ Returns a list of find_files generator"""
+    """Returns a list of find_files generator"""
     return list(find_files(*args, **kwargs))
 
 
 def count_files(*args, **kwargs):
-    """ Returns an integer of all files found using find_files"""
+    """Returns an integer of all files found using find_files"""
     return sum(1 for _ in find_files(*args, **kwargs))
 
 
@@ -508,7 +505,7 @@ def find_files(
     Note: For the example below, you can use find_files_list to return as a
     list, this is simply an easy way to show the output.
 
-    .. code:: python
+    ... code:: python
 
         list(reusables.find_files(name="ex", match_case=True))
         # ['C:\\example.pdf',
@@ -533,17 +530,16 @@ def find_files(
     :param disable_glob: Do not look for globable names or use glob magic check
     :param depth: How many directories down to search
     :param abspath: Return files with their absolute paths
-    :param enable_scandir: on python < 3.5 enable external scandir package
     :param disable_pathlib: only return string, not path objects
     :return: generator of all files in the specified directory
     """
+    if enable_scandir and not scandir_warning_given:
+        scandir_warning()
 
     def pathed(path):
-        if python_version < (3, 4) or disable_pathlib:
+        if disable_pathlib:
             return path
-        import pathlib
-
-        return pathlib.Path(path)
+        return Path(path)
 
     if ext or not name:
         disable_glob = True
@@ -558,13 +554,13 @@ def find_files(
         directory = os.path.abspath(directory)
     starting_depth = directory.count(os.sep)
 
-    for root, dirs, files in _walk(directory, enable_scandir=enable_scandir):
+    for root, dirs, files in os.walk(directory):
         if depth and root.count(os.sep) - starting_depth >= depth:
             continue
 
         if not disable_glob:
             if match_case:
-                raise ValueError("Cannot use glob and match case, please " "either disable glob or not set match_case")
+                raise ValueError("Cannot use glob and match case, please either disable glob or not set match_case")
             glob_generator = glob.iglob(os.path.join(root, name))
             for item in glob_generator:
                 yield pathed(item)
@@ -592,18 +588,13 @@ def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True, 
     :param root_directory: base directory to start at
     :param dry_run: just return a list of what would be removed
     :param ignore_errors: Permissions are a pain, just ignore if you blocked
-    :param enable_scandir: on python < 3.5 enable external scandir package
     :return: list of removed directories
     """
-    listdir = os.listdir
-    if python_version < (3, 5) and enable_scandir:
-        import scandir as _scandir
-
-        def listdir(directory):
-            return list(_scandir.scandir(directory))
+    if enable_scandir and not scandir_warning_given:
+        scandir_warning()
 
     directory_list = []
-    for root, directories, files in _walk(root_directory, enable_scandir=enable_scandir, topdown=False):
+    for root, directories, files in os.walk(root_directory, topdown=False):
         if not directories and not files and os.path.exists(root) and root != root_directory and os.path.isdir(root):
             directory_list.append(root)
             if not dry_run:
@@ -617,7 +608,7 @@ def remove_empty_directories(root_directory, dry_run=False, ignore_errors=True, 
         elif directories and not files:
             for directory in directories:
                 directory = join_paths(root, directory, strict=True)
-                if os.path.exists(directory) and os.path.isdir(directory) and not listdir(directory):
+                if os.path.exists(directory) and os.path.isdir(directory) and not os.listdir(directory):
                     directory_list.append(directory)
                     if not dry_run:
                         try:
@@ -637,11 +628,13 @@ def remove_empty_files(root_directory, dry_run=False, ignore_errors=True, enable
     :param root_directory: base directory to start at
     :param dry_run: just return a list of what would be removed
     :param ignore_errors: Permissions are a pain, just ignore if you blocked
-    :param enable_scandir: on python < 3.5 enable external scandir package
     :return: list of removed files
     """
+    if enable_scandir and not scandir_warning_given:
+        scandir_warning()
+
     file_list = []
-    for root, directories, files in _walk(root_directory, enable_scandir=enable_scandir):
+    for root, directories, files in os.walk(root_directory):
         for file_name in files:
             file_path = join_paths(root, file_name, strict=True)
             if os.path.isfile(file_path) and not os.path.getsize(file_path):
@@ -677,7 +670,7 @@ def dup_finder(file_path, directory=".", enable_scandir=False):
     2. First twenty bytes
     3. Full SHA256 compare
 
-    .. code:: python
+    ... code:: python
 
         list(reusables.dup_finder(
              "test_structure\\files_2\\empty_file"))
@@ -688,9 +681,11 @@ def dup_finder(file_path, directory=".", enable_scandir=False):
 
     :param file_path: Path to file to check for duplicates of
     :param directory: Directory to dig recursively into to look for duplicates
-    :param enable_scandir: on python < 3.5 enable external scandir package
     :return: generators
     """
+    if enable_scandir and not scandir_warning_given:
+        scandir_warning()
+
     size = os.path.getsize(file_path)
     if size == 0:
         for empty_file in remove_empty_files(directory, dry_run=True):
@@ -700,7 +695,7 @@ def dup_finder(file_path, directory=".", enable_scandir=False):
             first_twenty = f.read(20)
         file_sha256 = file_hash(file_path, "sha256")
 
-        for root, directories, files in _walk(directory, enable_scandir=enable_scandir):
+        for root, directories, files in os.walk(directory):
             for each_file in files:
                 test_file = os.path.join(root, each_file)
                 if os.path.getsize(test_file) == size:
@@ -708,7 +703,7 @@ def dup_finder(file_path, directory=".", enable_scandir=False):
                         with open(test_file, "rb") as f:
                             test_first_twenty = f.read(20)
                     except OSError:
-                        logger.warning("Could not open file to compare - " "{0}".format(test_file))
+                        logger.warning("Could not open file to compare - {0}".format(test_file))
                     else:
                         if first_twenty == test_first_twenty:
                             if file_hash(test_file, "sha256") == file_sha256:
@@ -720,7 +715,7 @@ def directory_duplicates(directory, hash_type="md5", **kwargs):
     Find all duplicates in a directory. Will return a list, in that list
     are lists of duplicate files.
 
-    .. code: python
+    ... code: python
 
         dups = reusables.directory_duplicates('C:\\Users\\Me\\Pictures')
 
@@ -769,7 +764,7 @@ def join_paths(*paths, **kwargs):
     Would like to do 'safe=False' instead of '**kwargs' but stupider versions
     of python *cough 2.6* don't like that after '*paths'.
 
-    .. code: python
+    ... code: python
 
         reusables.join_paths("var", "\\log", "/test")
         'C:\\Users\\Me\\var\\log\\test'
@@ -793,7 +788,7 @@ def join_here(*paths, **kwargs):
     """
     Join any path or paths as a sub directory of the current file's directory.
 
-    .. code:: python
+    ... code:: python
 
         reusables.join_here("Makefile")
         # 'C:\\Reusables\\Makefile'
@@ -913,14 +908,18 @@ def sync_dirs(dir1, dir2, checksums=True, overwrite=False, only_log_errors=True)
             pass  # Because exists_ok doesn't exist in 2.x
         if os.path.exists(path_two):
             if os.path.getsize(file) != os.path.getsize(path_two):
-                logger.info("File sizes do not match: " "{} - {}".format(file, path_two))
+                logger.info("File sizes do not match: {} - {}".format(file, path_two))
                 if overwrite:
                     logger.info("Overwriting {}".format(path_two))
                     cp(file, path_two)
             elif checksums and (file_hash(file) != file_hash(path_two)):
-                logger.warning("Files do not match: " "{} - {}".format(file, path_two))
+                logger.warning("Files do not match: {} - {}".format(file, path_two))
                 if overwrite:
-                    logger.info("Overwriting {}".format(file, path_two))
+                    logger.info(
+                        "Overwriting {}".format(
+                            file,
+                        )
+                    )
                     cp(file, path_two)
         else:
             logger.info("Copying {} to {}".format(file, path_two))

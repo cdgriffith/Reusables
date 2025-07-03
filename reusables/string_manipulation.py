@@ -3,7 +3,7 @@
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2020 - Chris Griffith - MIT License
+# Copyright (c) 2014-2025 - Chris Griffith - MIT License
 _roman_dict = {
     "I": 1,
     "IV": 4,
@@ -72,7 +72,7 @@ def cut(string, characters=2, trailing="normal"):
     """
     Split a string into a list of N characters each.
 
-    .. code:: python
+    ... code:: python
 
         reusables.cut("abcdefghi")
         # ['ab', 'cd', 'ef', 'gh', 'i']
@@ -84,7 +84,7 @@ def cut(string, characters=2, trailing="normal"):
     * combine: add the remainder characters to the previous set
     * error: raise an IndexError if there are remaining characters
 
-    .. code:: python
+    ... code:: python
 
         reusables.cut("abcdefghi", 2, "error")
         # Traceback (most recent call last):
@@ -110,7 +110,7 @@ def cut(string, characters=2, trailing="normal"):
         if trailing.lower() == "combine" and len(split_str) >= 2:
             return split_str[:-2] + [split_str[-2] + split_str[-1]]
         if trailing.lower() == "error":
-            raise IndexError("String of length {0} not divisible by {1} to" " cut".format(len(string), characters))
+            raise IndexError("String of length {0} not divisible by {1} to cut".format(len(string), characters))
     return split_str
 
 
@@ -118,7 +118,7 @@ def int_to_roman(integer):
     """
     Convert an integer into a string of roman numbers.
 
-    .. code: python
+    ... code: python
 
         reusables.int_to_roman(445)
         # 'CDXLV'
@@ -142,7 +142,7 @@ def roman_to_int(roman_string):
     """
     Converts a string of roman numbers into an integer.
 
-    .. code: python
+    ... code: python
 
         reusables.roman_to_int("XXXVI")
         # 36
@@ -183,7 +183,7 @@ def int_to_words(number, european=False):
     """
     Converts an integer or float to words.
 
-    .. code: python
+    ... code: python
 
         reusables.int_to_number(445)
         # 'four hundred forty-five'

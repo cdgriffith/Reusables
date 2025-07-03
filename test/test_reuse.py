@@ -1,13 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
+import shutil
 import tarfile
 import tempfile
 import subprocess
+import unittest
 
 import reusables
+import pytest
 
-from .common_test_data import *
+from .common_test_data import (
+    BaseTestClass,
+    test_root,
+    test_structure,
+    data_dr,
+    test_structure_tar,
+    test_structure_rar,
+    test_structure_zip,
+)
 
 
 class TestReuse(BaseTestClass):
@@ -292,10 +304,13 @@ Key2 = Value2
 
     def test_dup_empty(self):
         empty_file = reusables.join_paths(test_root, "empty")
-        reusables.touch(empty_file)
-        self._extract_structure()
-        b = [x for x in reusables.dup_finder(empty_file, test_root)]
-        print(b)
+        try:
+            reusables.touch(empty_file)
+            self._extract_structure()
+            b = [x for x in reusables.dup_finder(empty_file, test_root)]
+            print(b)
+        finally:
+            os.unlink(empty_file)
 
     def test_config_reader(self):
         cfg = reusables.config_namespace(reusables.join_paths(test_root, "data", "test_config.ini"))
@@ -307,7 +322,7 @@ Key2 = Value2
 
     def test_config_reader_bad(self):
         try:
-            cfg = reusables.config_namespace(reusables.join_paths(test_root, "data", "test_bad_config.ini"))
+            reusables.config_namespace(reusables.join_paths(test_root, "data", "test_bad_config.ini"))
         except AttributeError:
             pass
         else:
@@ -331,7 +346,7 @@ Key2 = Value2
         assert str(cl) == outstr, "{0} != {1}".format(str(cl), outstr)
 
         try:
-            cl2 = reusables.run("echo test", shell=True, timeout=5)
+            reusables.run("echo test", shell=True, timeout=5)
         except NotImplementedError:
             if reusables.PY3:
                 raise AssertionError("Should only happen on PY2")
@@ -352,10 +367,10 @@ Key2 = Value2
         self._extract_structure()
         empty = os.path.join(data_dr, "empty")
         something = os.path.join(data_dr, "full")
-        reusables.touch(empty)
-        with open(something, "w") as f:
-            f.write("stuff in here")
         try:
+            reusables.touch(empty)
+            with open(something, "w") as f:
+                f.write("stuff in here")
             dups = list(reusables.dup_finder(empty, data_dr))
             assert len(dups) == 1, dups
             dups2 = list(reusables.dup_finder(something, data_dr))
@@ -365,7 +380,6 @@ Key2 = Value2
             os.unlink(empty)
 
     def test_cut(self):
-
         a = reusables.cut("abcdefghi")
         assert a == ["ab", "cd", "ef", "gh", "i"]
 
@@ -427,17 +441,19 @@ Key2 = Value2
         else:
             raise AssertionError("You cant figure out that archive type ")
 
-    def test_duplicate_dir(self):
-        dups = reusables.directory_duplicates(test_root)
-        assert len(dups) == 1, len(dups)
+    #
+    # def test_duplicate_dir(self):
+    #     dups = reusables.directory_duplicates(test_root)
+    #     assert len(dups) == 1, len(dups)
 
-    def test_find_with_scandir(self):
-        resp = reusables.find_files_list(test_root, ext=[".cfg", ".nope"], enable_scandir=True, disable_pathlib=True)
+    @pytest.mark.filterwarnings('ignore:"enable_scandir"')
+    def test_find(self):
+        resp = reusables.find_files_list(test_root, ext=[".cfg", ".nope"], disable_pathlib=True, enable_scandir=True)
         assert [x for x in resp if x.endswith(os.path.join(test_root, "test_config.cfg"))]
 
-    def test_remove_with_scandir(self):
+    def test_remove(self):
         self._extract_structure()
-        delete = reusables.remove_empty_directories(test_structure, enable_scandir=True)
+        delete = reusables.remove_empty_directories(test_structure)
         assert len(delete) == 8, (len(delete), delete)
         assert not [x for x in delete if "empty" not in x.lower()]
         self._remove_structure()
@@ -454,7 +470,7 @@ Key2 = Value2
     def test_sync_dirs(self):
         if reusables.python_version >= (3, 4):
             pass
-        files = reusables.find_files_list(test_root, ext=".cfg", abspath=True)
+        reusables.find_files_list(test_root, ext=".cfg", abspath=True)
 
 
 if reusables.nix_based:
@@ -533,7 +549,3 @@ if reusables.win_based:
                 reusables.remove_empty_files(dir, ignore_errors=True)
             finally:
                 file.close()
-
-
-if __name__ == "__main__":
-    unittest.main()

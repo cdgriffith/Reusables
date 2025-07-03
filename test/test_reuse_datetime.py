@@ -4,7 +4,7 @@ import datetime
 
 import reusables
 
-from .common_test_data import *
+from .common_test_data import BaseTestClass
 
 
 class TestDateTime(BaseTestClass):

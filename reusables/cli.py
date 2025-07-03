@@ -3,17 +3,17 @@
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2020 - Chris Griffith - MIT License
-""" Functions to only be in an interactive instances to ease life. """
+# Copyright (c) 2014-2025 - Chris Griffith - MIT License
+"""Functions to only be in an interactive instances to ease life."""
+
 from __future__ import absolute_import
 import os
 import logging
 import shutil
 from collections import deque
 
-from reusables.shared_variables import *
+from reusables.shared_variables import win_based, python_version
 from reusables.process_helpers import run
-from reusables.shared_variables import win_based
 from reusables.file_operations import find_files_list
 from reusables.log import add_stream_handler
 
@@ -26,7 +26,7 @@ _saved_paths = []
 
 
 def cmd(command, ignore_stderr=False, raise_on_return=False, timeout=None, encoding="utf-8"):
-    """ Run a shell command and have it automatically decoded and printed
+    """Run a shell command and have it automatically decoded and printed
 
     :param command: Command to run as str
     :param ignore_stderr: To not print stderr
@@ -99,7 +99,7 @@ def ls(params="", directory=".", printed=True):
 
 
 def find(name=None, ext=None, directory=".", match_case=False, disable_glob=False, depth=None):
-    """ Designed for the interactive interpreter by making default order
+    """Designed for the interactive interpreter by making default order
     of find_files faster.
 
     :param name: Part of the file name
@@ -151,7 +151,7 @@ def head(file_path, lines=10, encoding="utf-8", printed=True, errors="strict"):
 def cat(file_path, encoding="utf-8", errors="strict"):
     """
 
-    .. code:
+    ... code:
 
               ^-^
              (-.-)
@@ -159,18 +159,15 @@ def cat(file_path, encoding="utf-8", errors="strict"):
              /  \\
             |    |   _/
             | || |  |
-            \_||_/_/
+            |_||_/_/
 
     :param file_path: Path to file to read
     :param encoding: defaults to utf-8 to decode as, will fail on binary
     :param errors: Decoding errors: 'strict', 'ignore' or 'replace'
     """
 
-    with open(file_path, "rb") as f:
-        if python_version >= (2, 7):
-            print(f.read().decode(encoding, errors=errors))
-        else:
-            print(f.read().decode(encoding))
+    with open(file_path, "r", encoding=encoding, errors=errors) as f:
+        print(f.read())
 
 
 def tail(file_path, lines=10, encoding="utf-8", printed=True, errors="strict"):
@@ -189,10 +186,7 @@ def tail(file_path, lines=10, encoding="utf-8", printed=True, errors="strict"):
 
     with open(file_path, "rb") as f:
         for line in f:
-            if python_version >= (2, 7):
-                data.append(line.decode(encoding, errors=errors))
-            else:
-                data.append(line.decode(encoding))
+            data.append(line.decode(encoding, errors=errors))
             if len(data) > lines:
                 data.popleft()
     if printed:
@@ -223,7 +217,7 @@ def cp(src, dst, overwrite=False):
         source = os.path.expanduser(item)
         destination = dst if not dst_folder else os.path.join(dst, os.path.basename(source))
         if not overwrite and os.path.exists(destination):
-            _logger.warning("Not replacing {0} with {1}, overwrite not enabled" "".format(destination, source))
+            _logger.warning("Not replacing {0} with {1}, overwrite not enabled".format(destination, source))
             continue
 
         shutil.copy(source, destination)

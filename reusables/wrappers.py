@@ -3,7 +3,7 @@
 #
 # Part of the Reusables package.
 #
-# Copyright (c) 2014-2020 - Chris Griffith - MIT License
+# Copyright (c) 2014-2025 - Chris Griffith - MIT License
 from __future__ import absolute_import
 import time
 from threading import Lock
@@ -48,7 +48,7 @@ def unique(max_retries=10, wait=0, alt_return="-no_alt_return-", exception=Excep
     Wrapper. Makes sure the function's return value has not been returned before
     or else it run with the same inputs again.
 
-    .. code: python
+    ... code: python
 
         import reusables
         import random
@@ -100,7 +100,7 @@ def lock_it(lock=g_lock):
     """
     Wrapper. Simple wrapper to make sure a function is only run once at a time.
 
-    .. code: python
+    ... code: python
 
         import reusables
         import time
@@ -149,7 +149,7 @@ def time_it(log=None, message=None, append=None):
     If log is true, make sure to set the logging level of 'reusables' to INFO
     level or lower.
 
-    .. code:: python
+    ... code:: python
 
         import time
         import reusables
@@ -207,7 +207,7 @@ def queue_it(queue=g_queue, **put_args):
     """
     Wrapper. Instead of returning the result of the function, add it to a queue.
 
-    .. code: python
+    ... code: python
 
         import reusables
         import queue
@@ -244,7 +244,7 @@ def log_exception(
     Wrapper. Log the traceback to any exceptions raised. Possible to raise
     custom exception.
 
-    .. code :: python
+    ... code :: python
 
         @reusables.log_exception()
         def test():
@@ -253,7 +253,7 @@ def log_exception(
         # 2016-12-26 12:38:01,381 - reusables   ERROR  Exception in test - Bad
         # Traceback (most recent call last):
         #     File "<input>", line 1, in <module>
-        #     File "reusables\wrappers.py", line 200, in wrapper
+        #     File "reusables/wrappers.py", line 200, in wrapper
         #     raise err
         # Exception: Bad
 
@@ -302,7 +302,7 @@ def catch_it(exceptions=(Exception,), default=None, handler=None):
     If the function encounters an exception, catch it, and
     return the specified default or sent to a handler function instead.
 
-    .. code :: python
+    ... code :: python
 
         def handle_error(exception, func, *args, **kwargs):
             print(f"{func.__name__} raised {exception} when called with {args}")
