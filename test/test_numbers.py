@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import reusables
 
-from .common_test_data import *
+from .common_test_data import BaseTestClass
 
 roman_list = [
     (1, "I"),

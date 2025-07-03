@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from reusables.cli import *
-from .common_test_data import *
+from reusables.cli import cmd, pushd, popd, pwd, cd, ls, find, head, cat, tail, cp
+from .common_test_data import BaseTestClass, data_dr, os
 
 
 class TestCLI(BaseTestClass):

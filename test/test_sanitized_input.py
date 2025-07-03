@@ -1,14 +1,10 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+import unittest.mock as mock
+
+from .common_test_data import BaseTestClass
 
 import reusables
-
-try:
-    import unittest.mock as mock
-except ImportError:
-    from mock import mock
-
-from .common_test_data import *
 
 
 class ReuseTestException(Exception):

@@ -12,9 +12,8 @@ import logging
 import shutil
 from collections import deque
 
-from reusables.shared_variables import *
+from reusables.shared_variables import win_based, python_version
 from reusables.process_helpers import run
-from reusables.shared_variables import win_based
 from reusables.file_operations import find_files_list
 from reusables.log import add_stream_handler
 

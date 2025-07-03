@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import random
+import os
 
 import reusables
-from reusables.cli import *
-
-from .common_test_data import *
+from reusables.cli import popd, pushd
+from .common_test_data import BaseTestClass, data_dr
 
 
 class TestWeb(BaseTestClass):

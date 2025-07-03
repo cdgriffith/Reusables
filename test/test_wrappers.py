@@ -3,7 +3,7 @@
 import time
 import os
 
-from .common_test_data import *
+from .common_test_data import BaseTestClass
 
 from reusables import (
     unique,

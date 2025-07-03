@@ -22,8 +22,8 @@ try:
 except ImportError:
     import configparser as ConfigParser
 
-from reusables.namespace import *
-from reusables.shared_variables import *
+from reusables.namespace import ConfigNamespace
+from reusables.shared_variables import win_based, PY3, regex, variables, current_root
 
 __all__ = [
     "load_json",
@@ -313,12 +313,7 @@ def save_json(data, json_file, indent=4, **kwargs):
 
     ... code::
 
-        {
-            "key_1": "val_1",
-            "key_for_dict": {
-                "sub_dict_key": 8
-            }
-        }
+        {"key_1": "val_1", "key_for_dict": {"sub_dict_key": 8}}
 
     :param data: dictionary to save as JSON
     :param json_file: Path to save file location as str
